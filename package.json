@@ -1,0 +1,33 @@
+{
+  "name": "open-pencil-headless-mcp",
+  "version": "0.1.0",
+  "description": "Headless MCP server for inspecting and exporting OpenPencil .fig and .pen files via the OpenPencil CLI.",
+  "type": "module",
+  "license": "MIT",
+  "author": "salvadorsru",
+  "bin": {
+    "open-pencil-headless-mcp": "./server.mjs"
+  },
+  "files": [
+    "server.mjs",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/salvadorsru/open-pencil-headless-mcp.git"
+  },
+  "keywords": [
+    "mcp",
+    "openpencil",
+    "figma",
+    "headless"
+  ],
+  "dependencies": {
+    "@modelcontextprotocol/server": "^2.0.0",
+    "zod": "^4.6.5"
+  }
+}
