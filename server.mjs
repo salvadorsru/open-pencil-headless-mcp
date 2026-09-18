@@ -71,21 +71,27 @@ function register(name, description, schema, run, readOnly = true) {
   )
 }
 
-const server = new McpServer({
-  name: 'open-pencil-headless',
-  version,
-})
+const server = new McpServer(
+  {
+    name: 'pencil',
+    version,
+  },
+  {
+    instructions:
+      'Local Figma inspector for .fig and .pen files on disk. When the user asks to consult Figma, inspect a design, or read layers, styles, spacing, copy, or tokens from a .fig, use these tools first. Do not use a Figma cloud, API, or desktop MCP unless they paste a figma.com URL. Prefer pencil_section for a named block; pencil_find to locate layers; pencil_node for one id. Paths are relative to OPENPENCIL_MCP_ROOT.',
+  },
+)
 
 register(
   'pencil_info',
-  'Get information about an OpenPencil document without opening the app.',
+  'Figma: document info for a local .fig or .pen. Use when the user asks to consult Figma or open a design file.',
   { file: design },
   (input) => info(pathize(input.file)),
 )
 
 register(
   'pencil_tree',
-  'Get the node tree of an OpenPencil document without opening the app.',
+  'Figma: node tree of a local .fig or .pen.',
   {
     file: design,
     page: z.string().optional().describe('Page name'),
@@ -96,7 +102,7 @@ register(
 
 register(
   'pencil_query',
-  'Find nodes with XPath in an OpenPencil document.',
+  'Figma: find nodes with XPath in a local .fig or .pen.',
   {
     file: design,
     selector: z.string().min(1).describe('XPath selector'),
@@ -113,14 +119,14 @@ register(
 
 register(
   'pencil_pages',
-  'List pages in an OpenPencil document.',
+  'Figma: list pages in a local .fig or .pen.',
   { file: design },
   (input) => pages(pathize(input.file)),
 )
 
 register(
   'pencil_node',
-  'Get full node properties from the live graph: fills, padding, gap, layout, text, and typography.',
+  'Figma: live node style — fills, padding, gap, layout, text, typography.',
   {
     file: design,
     id: z.string().min(1).describe('Node ID'),
@@ -130,7 +136,7 @@ register(
 
 register(
   'pencil_find',
-  'Find nodes by name or type. Page matches the canvas name or a substring (e.g. Desktop → UI Desktop).',
+  'Figma: find layers by name or type. Page matches the canvas name or a substring (e.g. Desktop → UI Desktop).',
   {
     file: design,
     name: z.string().optional().describe('Partial name, case-insensitive'),
@@ -149,7 +155,7 @@ register(
 
 register(
   'pencil_section',
-  'One-shot inspect: named block with path, texts, children, and live style (fills, padding, gap, layout). Prefer this over find+node+tree.',
+  'Figma: one-shot inspect of a named block (path, texts, children, fills, padding, gap, layout). Prefer this when the user asks for a section or component in Figma.',
   {
     file: design,
     name: z.string().min(1).describe('Layer name, case-insensitive substring'),
@@ -168,7 +174,7 @@ register(
 
 register(
   'pencil_variables',
-  'List design variables and collections.',
+  'Figma: list design variables and collections.',
   {
     file: design,
     collection: z.string().optional().describe('Filter by collection name'),
@@ -183,7 +189,7 @@ register(
 
 register(
   'pencil_fonts',
-  'Report fonts used by a document and whether they resolve.',
+  'Figma: fonts used by a local .fig or .pen and whether they resolve.',
   { file: design },
   (input) => fontStatus(pathize(input.file)),
 )
@@ -197,7 +203,7 @@ register(
 
 register(
   'pencil_analyze',
-  'Analyze design tokens and patterns (colors, typography, spacing, clusters, overlaps).',
+  'Figma: analyze tokens (colors, typography, spacing, clusters, overlaps).',
   {
     file: design,
     kind: z.enum(['colors', 'typography', 'spacing', 'clusters', 'overlaps']),
@@ -228,7 +234,7 @@ register(
 
 register(
   'pencil_lint',
-  'Lint an OpenPencil document with quality and accessibility rules.',
+  'Figma: lint a local .fig or .pen for quality and accessibility.',
   {
     file: design,
     preset: z.enum(['recommended', 'strict', 'accessibility']).optional(),
@@ -238,7 +244,7 @@ register(
 
 register(
   'pencil_export',
-  'Export an OpenPencil document without opening the app. The destination must be inside the root.',
+  'Figma: export a local .fig or .pen. Destination must stay inside the root.',
   {
     file: design,
     format: z.enum(['png', 'jpg', 'webp', 'svg', 'pdf', 'pptx', 'jsx', 'html', 'fig']),
@@ -257,7 +263,7 @@ register(
 
 register(
   'pencil_convert',
-  'Convert an OpenPencil document to .fig without opening the app.',
+  'Figma: convert a local .pen to .fig.',
   {
     file: design,
     output: z.string().min(1).describe('Relative output path inside the root'),

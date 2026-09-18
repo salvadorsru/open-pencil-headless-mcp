@@ -60,7 +60,7 @@ restart the MCP server:
 ```json
 {
   "mcpServers": {
-    "open-pencil": {
+    "figma": {
       "command": "npx",
       "args": ["-y", "--prefer-online", "github:salvadorsru/open-pencil-headless-mcp#main"],
       "env": {
@@ -71,6 +71,12 @@ restart the MCP server:
 }
 ```
 
+Name the server `figma` so the client labels the tools as Figma. The server also
+sends MCP `instructions`: when the user asks to consult Figma or a `.fig`, use
+these tools before a Figma cloud/API/desktop MCP, unless they paste a
+`figma.com` URL. There is no hard priority switch in MCP; this is how the
+model chooses.
+
 ### Other MCP clients
 
 Any stdio client uses the same command. Example for Claude Desktop
@@ -79,7 +85,7 @@ Any stdio client uses the same command. Example for Claude Desktop
 ```json
 {
   "mcpServers": {
-    "open-pencil": {
+    "figma": {
       "command": "npx",
       "args": ["-y", "--prefer-online", "github:salvadorsru/open-pencil-headless-mcp#main"],
       "env": {
@@ -97,7 +103,7 @@ Skip `npx` and run the repo you already have:
 ```json
 {
   "mcpServers": {
-    "open-pencil": {
+    "figma": {
       "command": "node",
       "args": ["/absolute/path/to/open-pencil-headless-mcp/server.mjs"],
       "env": {
