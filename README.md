@@ -20,61 +20,24 @@ That package is a bridge to a running desktop app. This one reads files on disk.
 Raster export (`png`, `jpg`, `webp`, `pdf`) downloads `canvaskit-wasm` the first
 time `npx` runs. Nothing else is required on `PATH`.
 
-## Install with npx
+## Install
 
-From the project that holds (or points at) your `.fig` files:
+Run this from the project root (the repo where you want Cursor to see Pencil).
+`--` keeps `install` as an argument to this package, not to npm:
 
 ```sh
 npx -y --prefer-online github:salvadorsru/open-pencil-headless-mcp#main -- install
 ```
 
-`--` keeps `install` as an argument to this package. That writes `.cursor/mcp.json`
-in the current directory with the standard `npx` command. Point the sandbox at
-another folder with `--root`:
+That writes `.cursor/mcp.json` in the current directory and merges into an
+existing file (other servers stay). The sandbox root is the current directory.
+If the `.fig` files live somewhere else:
 
 ```sh
 npx -y --prefer-online github:salvadorsru/open-pencil-headless-mcp#main -- install --root /absolute/path/to/your/designs
 ```
 
-Restart the MCP server in Cursor. Each repo gets its own config and its own root.
-
-The MCP client starts the server with `npx`:
-
-```sh
-npx -y github:salvadorsru/open-pencil-headless-mcp
-```
-
-`-y` skips the install prompt. The first run clones this repo into the `npx`
-cache and installs the npm dependencies listed above. Later runs reuse that
-cache. The process speaks MCP over stdin/stdout; leave it to the client. Progress
-goes to stderr (`starting`, `engine loaded`, `ready`, each with the package
-version) so the client log shows when the server is up. In Cursor: MCP
-server → Output / Logs.
-
-Set `OPENPENCIL_MCP_ROOT` to the folder that holds your `.fig` / `.pen` files
-(the client config below does that). Without it, the working directory of the
-`npx` process is used.
-
-Pin a commit or tag if you do not want floating `main`:
-
-```sh
-npx -y github:salvadorsru/open-pencil-headless-mcp#main
-```
-
-To pick up a newly pushed `main` without touching the disk by hand, add
-`--prefer-online` so npm checks GitHub before reusing a stale install:
-
-```sh
-npx -y --prefer-online github:salvadorsru/open-pencil-headless-mcp#main
-```
-
-### Cursor
-
-Add this to the project's `.cursor/mcp.json` (not `~/.cursor/mcp.json`). Each
-repo points `OPENPENCIL_MCP_ROOT` at that project's `.fig` folder. A user-level
-server can only have one root.
-
-Then restart the MCP server:
+Example of what `install` writes:
 
 ```json
 {
@@ -90,9 +53,17 @@ Then restart the MCP server:
 }
 ```
 
-The server key is `pencil`. MCP `instructions` still tell the client to use
-these tools when the user asks to consult Figma or a `.fig`, before a Figma
+Do this per project, not in `~/.cursor/mcp.json`. A user-level server can only
+have one root. Restart the MCP server in Cursor afterwards.
+
+The server key is `pencil`. MCP `instructions` tell the client to use these
+tools when the user asks to consult Figma or a `.fig`, before a Figma
 cloud/API/desktop MCP, unless they paste a `figma.com` URL.
+
+Cursor starts the server with that `npx` command. `-y` skips the npm prompt.
+`--prefer-online` refreshes `main` without deleting the npx cache. Progress
+goes to stderr (`starting`, `engine loaded`, `ready`, plus the package
+version). In Cursor: MCP server → Output / Logs.
 
 ### Other MCP clients
 
