@@ -54,8 +54,11 @@ npx -y --prefer-online github:salvadorsru/open-pencil-headless-mcp#main
 
 ### Cursor
 
-Add this to `~/.cursor/mcp.json` (or the project `.cursor/mcp.json`), then
-restart the MCP server:
+Add this to the project's `.cursor/mcp.json` (not `~/.cursor/mcp.json`). Each
+repo points `OPENPENCIL_MCP_ROOT` at that project's `.fig` folder. A user-level
+server can only have one root.
+
+Then restart the MCP server:
 
 ```json
 {
