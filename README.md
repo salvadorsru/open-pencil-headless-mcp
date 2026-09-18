@@ -72,8 +72,8 @@ that root:
 
 | Root | `file` argument |
 | --- | --- |
-| `/home/me/designs` | `woments/woments.fig` |
-| `/home/me/designs/woments` | `woments.fig` |
+| `/absolute/path/to/your/designs` | `project/file.fig` |
+| `/absolute/path/to/your/designs/project` | `file.fig` |
 
 Absolute paths or `../` that escape the root are rejected.
 
@@ -86,7 +86,7 @@ Every tool takes `file`. Responses are JSON text.
 Document metadata: page count, node counts by type, fonts.
 
 ```
-file: woments/woments.fig
+file: project/file.fig
 ```
 
 ### `pencil_tree`
@@ -94,8 +94,8 @@ file: woments/woments.fig
 Node tree. Optional `page` (name) and `depth`.
 
 ```
-file: woments/woments.fig
-page: UI Mobile
+file: project/file.fig
+page: Home
 depth: 2
 ```
 
@@ -107,22 +107,21 @@ Omitting `page` uses the first page. Large `.fig` files can be heavy without
 XPath over the document. Optional `page` and `limit` (max 10000).
 
 ```
-file: woments/woments.fig
-selector: //SECTION[@name='Section 3']
-page: UI Mobile
+file: project/file.fig
+selector: //SECTION[@name='Hero']
+page: Home
 ```
 
 Useful selectors:
 
 ```
-//FRAME[@name='Homepage Woments']
-//COMPONENT[contains(@name,'Header')]
-//TEXT[contains(@name,'Woments')]
-//*[@name='Section 3']
+//FRAME[@name='Header']
+//COMPONENT[contains(@name,'Button')]
+//TEXT[contains(@name,'Title')]
+//*[@name='Hero']
 ```
 
-Names are exact as in the file (`Section 3`, not `Sección 3`, unless the layer
-is actually named that way).
+Layer names must match the document exactly.
 
 ### `pencil_lint`
 
@@ -130,7 +129,7 @@ Quality and accessibility rules. Optional `preset`: `recommended` (default),
 `strict`, `accessibility`.
 
 ```
-file: woments/woments.fig
+file: project/file.fig
 preset: recommended
 ```
 
@@ -142,15 +141,15 @@ Write a derived file **inside the root**.
 | --- | --- |
 | `file` | Source `.fig` / `.pen` |
 | `format` | `png`, `jpg`, `webp`, `svg`, `pdf`, `pptx`, `jsx`, `html`, `fig` |
-| `output` | Relative destination, e.g. `woments/exports/section-3.png` |
+| `output` | Relative destination, e.g. `project/exports/hero.png` |
 | `page` | Optional page name |
 | `scale` | Optional, raster only |
 
 ```
-file: woments/woments.fig
+file: project/file.fig
 format: png
-output: woments/exports/section-3.png
-page: UI Mobile
+output: project/exports/hero.png
+page: Home
 scale: 2
 ```
 
@@ -162,8 +161,8 @@ policy). HTML writes a fragment plus any sidecar assets next to `output`.
 Write a `.fig` copy.
 
 ```
-file: woments/woments.fig
-output: woments/exports/woments.fig
+file: project/file.fig
+output: project/exports/file.fig
 ```
 
 ## Environment
@@ -190,9 +189,8 @@ bun run bundle
 bun run test
 ```
 
-`bun run test` loads `info` from `OPENPENCIL_SMOKE_FILE`, then
-`../pencil/woments/woments.fig`, then
-`../open-pencil/tests/fixtures/pencil_simple.pen`.
+`bun run test` runs `info` on `OPENPENCIL_SMOKE_FILE` if set, otherwise the
+first existing local `.fig` or `.pen` fixture it finds.
 
 After changing the fork, regenerate and commit `dist/engine.mjs` so GitHub `npx`
 picks it up:
