@@ -5,7 +5,9 @@ import { McpServer } from '@modelcontextprotocol/server'
 import { StdioServerTransport } from '@modelcontextprotocol/server/stdio'
 import { z } from 'zod'
 
-import { version } from './package.json' with { type: 'json' }
+import pkg from './package.json' with { type: 'json' }
+
+const { version } = pkg
 
 process.stderr.write(`open-pencil-headless ${version}: starting\n`)
 
