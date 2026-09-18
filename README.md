@@ -15,14 +15,45 @@ That package is a bridge to a running desktop app. This one reads files on disk.
 
 ## Requirements
 
-- Node.js 20+
+- Node.js 20+ (`npx` comes with npm)
 
 Raster export (`png`, `jpg`, `webp`, `pdf`) downloads `canvaskit-wasm` the first
 time `npx` runs. Nothing else is required on `PATH`.
 
-## Cursor
+## Install with npx
 
-Add this to `~/.cursor/mcp.json` (or the project `.cursor/mcp.json`):
+There is no global CLI to install. The MCP client starts the server with `npx`:
+
+```sh
+npx -y github:salvadorsru/open-pencil-headless-mcp
+```
+
+`-y` skips the install prompt. The first run clones this repo into the `npx`
+cache and installs the npm dependencies listed above. Later runs reuse that
+cache. The process speaks MCP over stdin/stdout; leave it to the client.
+
+Set `OPENPENCIL_MCP_ROOT` to the folder that holds your `.fig` / `.pen` files
+(the client config below does that). Without it, the working directory of the
+`npx` process is used.
+
+Pin a commit or tag if you do not want `main`:
+
+```sh
+npx -y github:salvadorsru/open-pencil-headless-mcp#main
+```
+
+If `npx` keeps an old install that still calls the CLI (`spawn openpencil ENOENT`),
+clear the cache and try again:
+
+```sh
+npx clear-npx-cache
+# or: rm -rf ~/.npm/_npx
+```
+
+### Cursor
+
+Add this to `~/.cursor/mcp.json` (or the project `.cursor/mcp.json`), then
+restart the MCP server:
 
 ```json
 {
@@ -38,17 +69,28 @@ Add this to `~/.cursor/mcp.json` (or the project `.cursor/mcp.json`):
 }
 ```
 
-Restart the MCP server after changing this file.
+### Other MCP clients
 
-If `npx` keeps an old install that still calls the CLI (`spawn openpencil ENOENT`),
-clear the cache and try again:
+Any stdio client uses the same command. Example for Claude Desktop
+(`claude_desktop_config.json`):
 
-```sh
-npx clear-npx-cache
-# or: rm -rf ~/.npm/_npx
+```json
+{
+  "mcpServers": {
+    "open-pencil": {
+      "command": "npx",
+      "args": ["-y", "github:salvadorsru/open-pencil-headless-mcp"],
+      "env": {
+        "OPENPENCIL_MCP_ROOT": "/absolute/path/to/your/designs"
+      }
+    }
+  }
+}
 ```
 
 ### Local clone
+
+Skip `npx` and run the repo you already have:
 
 ```json
 {
