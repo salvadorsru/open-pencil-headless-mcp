@@ -1,6 +1,6 @@
 {
   "name": "open-pencil-headless-mcp",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Headless MCP server for inspecting and exporting OpenPencil .fig and .pen files via the OpenPencil engine.",
   "type": "module",
   "license": "MIT",

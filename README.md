@@ -1,8 +1,7 @@
 # OpenPencil headless MCP
 
-Inspect and export OpenPencil `.fig` and `.pen` files from Cursor (or any MCP
-client) without opening OpenPencil Desktop and without installing the
-`openpencil` CLI.
+Inspect and export OpenPencil `.fig` and `.pen` files from any MCP client
+without opening OpenPencil Desktop and without installing the `openpencil` CLI.
 
 The server embeds the engine from
 [salvadorsru/open-pencil](https://github.com/salvadorsru/open-pencil) in
@@ -22,22 +21,21 @@ time `npx` runs. Nothing else is required on `PATH`.
 
 ## Install
 
-Run this from the project root (the repo where you want Cursor to see Pencil).
-`--` keeps `install` as an argument to this package, not to npm:
+Print a stdio server block and paste it into your MCP client (Cursor, Claude
+Desktop, VS Code, Windsurf, and others that speak MCP over stdin/stdout):
 
 ```sh
 npx -y --prefer-online github:salvadorsru/open-pencil-headless-mcp#main -- install
 ```
 
-That writes `.cursor/mcp.json` in the current directory and merges into an
-existing file (other servers stay). The sandbox root is the current directory.
-If the `.fig` files live somewhere else:
+`--` keeps `install` as an argument to this package, not to npm. The sandbox
+root is the current directory. If the `.fig` files live somewhere else:
 
 ```sh
 npx -y --prefer-online github:salvadorsru/open-pencil-headless-mcp#main -- install --root /absolute/path/to/your/designs
 ```
 
-Example of what `install` writes:
+That prints:
 
 ```json
 {
@@ -53,40 +51,35 @@ Example of what `install` writes:
 }
 ```
 
-Do this per project, not in `~/.cursor/mcp.json`. A user-level server can only
-have one root. Restart the MCP server in Cursor afterwards.
+Write it into a client config that uses the `mcpServers` shape (merges; other
+servers stay):
+
+```sh
+npx -y --prefer-online github:salvadorsru/open-pencil-headless-mcp#main -- install --out /path/to/mcp.json
+```
+
+Shortcuts:
+
+| Flag | File |
+| --- | --- |
+| `--client cursor` | `./.cursor/mcp.json` (this project) |
+| `--client claude` | Claude Desktop user config |
+
+Give each project its own root. A single user-level config can only see one
+designs folder. Restart the MCP server in your client afterwards.
 
 The server key is `pencil`. MCP `instructions` tell the client to use these
 tools when the user asks to consult Figma or a `.fig`, before a Figma
 cloud/API/desktop MCP, unless they paste a `figma.com` URL.
 
-Cursor starts the server with that `npx` command. `-y` skips the npm prompt.
-`--prefer-online` refreshes `main` without deleting the npx cache. Progress
-goes to stderr (`starting`, `engine loaded`, `ready`, plus the package
-version). In Cursor: MCP server → Output / Logs.
-
-### Other MCP clients
-
-Any stdio client uses the same command. Example for Claude Desktop
-(`claude_desktop_config.json`):
-
-```json
-{
-  "mcpServers": {
-    "pencil": {
-      "command": "npx",
-      "args": ["-y", "--prefer-online", "github:salvadorsru/open-pencil-headless-mcp#main"],
-      "env": {
-        "OPENPENCIL_MCP_ROOT": "/absolute/path/to/your/designs"
-      }
-    }
-  }
-}
-```
+The client starts the server with that `npx` command. `-y` skips the npm
+prompt. `--prefer-online` refreshes `main` without deleting the npx cache.
+Progress goes to stderr (`starting`, `engine loaded`, `ready`, plus the
+package version).
 
 ### Local clone
 
-Skip `npx` and run the repo you already have:
+Skip `npx` and run the repo you already have. Same `mcpServers` shape:
 
 ```json
 {
