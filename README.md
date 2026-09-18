@@ -30,7 +30,9 @@ npx -y github:salvadorsru/open-pencil-headless-mcp
 
 `-y` skips the install prompt. The first run clones this repo into the `npx`
 cache and installs the npm dependencies listed above. Later runs reuse that
-cache. The process speaks MCP over stdin/stdout; leave it to the client.
+cache. The process speaks MCP over stdin/stdout; leave it to the client. Progress
+goes to stderr (`starting`, `engine loaded`, `ready`) so the client log
+shows when the server is up. In Cursor: MCP server → Output / Logs.
 
 Set `OPENPENCIL_MCP_ROOT` to the folder that holds your `.fig` / `.pen` files
 (the client config below does that). Without it, the working directory of the
