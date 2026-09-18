@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { readdir } from 'node:fs/promises'
 import { relative, resolve } from 'node:path'
 import { McpServer } from '@modelcontextprotocol/server'
 import { StdioServerTransport } from '@modelcontextprotocol/server/stdio'
@@ -23,8 +24,10 @@ const {
   node,
   pages,
   query,
+  section,
   tree,
   variables,
+  warm,
 } = await import('./dist/engine.mjs')
 process.stderr.write(`open-pencil-headless ${version}: engine loaded\n`)
 
@@ -117,7 +120,7 @@ register(
 
 register(
   'pencil_node',
-  'Get detailed properties of a node by ID, including text, fills, and typography.',
+  'Get full node properties from the live graph: fills, padding, gap, layout, text, and typography.',
   {
     file: design,
     id: z.string().min(1).describe('Node ID'),
@@ -127,12 +130,12 @@ register(
 
 register(
   'pencil_find',
-  'Find nodes by name or type.',
+  'Find nodes by name or type. Page matches the canvas name or a substring (e.g. Desktop → UI Desktop).',
   {
     file: design,
     name: z.string().optional().describe('Partial name, case-insensitive'),
     type: z.string().optional().describe('Node type, e.g. FRAME, TEXT, COMPONENT'),
-    page: z.string().optional().describe('Page name'),
+    page: z.string().optional().describe('Page name or substring, e.g. Desktop'),
     limit: z.number().int().positive().max(10000).optional().describe('Maximum results'),
   },
   (input) =>
@@ -140,6 +143,25 @@ register(
       name: input.name,
       type: input.type,
       page: input.page,
+      limit: input.limit,
+    }),
+)
+
+register(
+  'pencil_section',
+  'One-shot inspect: named block with path, texts, children, and live style (fills, padding, gap, layout). Prefer this over find+node+tree.',
+  {
+    file: design,
+    name: z.string().min(1).describe('Layer name, case-insensitive substring'),
+    page: z.string().optional().describe('Page name or substring, e.g. Mobile'),
+    within: z.string().optional().describe('Ancestor name substring, e.g. Homepage'),
+    limit: z.number().int().positive().max(100).optional().describe('Candidates to consider'),
+  },
+  (input) =>
+    section(pathize(input.file), {
+      name: input.name,
+      page: input.page,
+      within: input.within,
       limit: input.limit,
     }),
 )
@@ -255,3 +277,35 @@ try {
 }
 
 process.stderr.write(`open-pencil-headless ${version}: ready (root ${root})\n`)
+
+async function designs(dir) {
+  const out = []
+  const entries = await readdir(dir, { withFileTypes: true }).catch(() => [])
+  for (const entry of entries) {
+    const path = resolve(dir, entry.name)
+    if (entry.isDirectory()) {
+      if (entry.name === 'exports' || entry.name.startsWith('.')) continue
+      out.push(...(await designs(path)))
+      continue
+    }
+    if (/\.(fig|pen)$/i.test(entry.name) && !entry.name.endsWith('.bak')) out.push(path)
+  }
+  return out
+}
+
+queueMicrotask(async () => {
+  const files = await designs(root)
+  for (const file of files) {
+    const start = Date.now()
+    try {
+      await warm(file)
+      process.stderr.write(
+        `open-pencil-headless ${version}: graph ready ${relative(root, file)} in ${Date.now() - start}ms\n`,
+      )
+    } catch (error) {
+      process.stderr.write(
+        `open-pencil-headless ${version}: warm failed ${relative(root, file)} — ${error instanceof Error ? error.message : error}\n`,
+      )
+    }
+  }
+})

@@ -121,6 +121,27 @@ that root:
 
 Absolute paths or `../` that escape the root are rejected.
 
+## Inspect cache
+
+The first inspect of a `.fig` still parses the file (~2 s for a large document).
+After that, the server writes an index under the designs root:
+
+```
+your-designs/.cache/pencil/project/file.fig.json
+```
+
+That folder is **your designs root** (`OPENPENCIL_MCP_ROOT`), not the `npx` cache.
+Anyone using `npx` with the same root reuses it.
+
+The index (v3) is for **navigation**: `TEXT` plus named frames, components, instances, groups, and sections. Generic `Frame 2147…` / `Container` / vectors are omitted from find/tree.
+
+- `pencil_find`, `pencil_tree`, `pencil_pages`, `pencil_info` read the index.
+- `pencil_node` and `pencil_section` use the live graph for **style**. After `ready`, the server warms the graph in the background so the first style query is usually already in memory. If you query before that finishes, only the requested page is populated.
+- Changing the `.fig` (new mtime) or an older index version rebuilds the cache.
+- Export, lint, convert, XPath, and analyze always parse the `.fig`.
+
+Delete `.cache/pencil` to force a rebuild.
+
 ## Tools
 
 Responses are JSON text. File-scoped tools take `file` relative to the root.
@@ -190,9 +211,27 @@ name: Hero
 type: FRAME
 ```
 
+### `pencil_section`
+
+One-shot inspect. Resolves a named block and returns path, descendant copy,
+child names, and **style** (fills, padding, gap, layout) from the live graph.
+Prefer this over `find` + `node` + `tree`.
+
+```
+file: project/file.fig
+name: Hero
+page: Mobile
+within: Homepage
+```
+
+`page` and `within` are substrings. If several layers share the name, frames and
+components win over text.
+
 ### `pencil_node`
 
-Full properties for one node: text, fills, strokes, font, layout, parent.
+Full properties for one node from the live graph: fills, strokes, padding,
+gap (`itemSpacing`), layout, type, parent. Works for any id in the document,
+including layers omitted from the content index.
 
 ```
 file: project/file.fig

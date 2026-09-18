@@ -1,7 +1,7 @@
 import { access } from 'node:fs/promises'
 import { resolve } from 'node:path'
 
-import { info } from '../dist/engine.mjs'
+import { info, section } from '../dist/engine.mjs'
 
 const candidates = [
   process.argv[2],
@@ -30,4 +30,17 @@ if (typeof result.pages !== 'number' || typeof result.totalNodes !== 'number') {
   throw new Error(`Unexpected info payload: ${JSON.stringify(result)}`)
 }
 
-console.log(`ok ${file} pages=${result.pages} nodes=${result.totalNodes}`)
+const block = JSON.parse(await section(file, { name: 'Hero', limit: 5 }))
+if (block.id) {
+  if (!Array.isArray(block.texts) || !Array.isArray(block.path)) {
+    throw new Error(`Unexpected section payload: ${JSON.stringify(block)}`)
+  }
+} else if (!Array.isArray(block.results)) {
+  throw new Error(`Unexpected section miss: ${JSON.stringify(block)}`)
+}
+
+console.log(
+  block.id
+    ? `ok ${file} pages=${result.pages} nodes=${result.totalNodes} section=${block.id} texts=${block.texts.length}`
+    : `ok ${file} pages=${result.pages} nodes=${result.totalNodes} section=none`,
+)

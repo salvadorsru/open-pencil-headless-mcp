@@ -14517,7 +14517,7 @@ function createFetch(globalOptions = {}) {
       if (retries > 0 && (Array.isArray(context2.options.retryStatusCodes) ? context2.options.retryStatusCodes.includes(responseCode) : retryStatusCodes.has(responseCode))) {
         const retryDelay = typeof context2.options.retryDelay === "function" ? context2.options.retryDelay(context2) : context2.options.retryDelay || 0;
         if (retryDelay > 0) {
-          await new Promise((resolve) => setTimeout(resolve, retryDelay));
+          await new Promise((resolve2) => setTimeout(resolve2, retryDelay));
         }
         return $fetchRaw(context2.request, {
           ...context2.options,
@@ -14844,7 +14844,7 @@ function mini$fetch(url, options) {
   }).catch((err3) => {
     if (retries <= 0) throw err3;
     console.warn(`Could not fetch from \`${(options?.baseURL ?? "") + url}\`. Will retry in \`${retryDelay}ms\`. \`${retries}\` retries left.`);
-    return new Promise((resolve) => setTimeout(resolve, retryDelay)).then(() => mini$fetch(url, {
+    return new Promise((resolve2) => setTimeout(resolve2, retryDelay)).then(() => mini$fetch(url, {
       ...options,
       retries: retries - 1
     }));
@@ -15696,7 +15696,7 @@ function isArrayBuffer(value) {
 function waitForFontOperation(operation, signal) {
   if (!signal) return operation;
   signal.throwIfAborted();
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve2, reject) => {
     const abort = () => {
       try {
         signal.throwIfAborted();
@@ -15708,7 +15708,7 @@ function waitForFontOperation(operation, signal) {
     void operation.then(
       (value) => {
         signal.removeEventListener("abort", abort);
-        resolve(value);
+        resolve2(value);
         return void 0;
       },
       (error2) => {
@@ -15806,8 +15806,8 @@ var init_web_fonts = __esm({
         if (!this.remoteFetch) return operation();
         const previous = this.fetchProxyQueue;
         let release;
-        this.fetchProxyQueue = new Promise((resolve) => {
-          release = () => resolve();
+        this.fetchProxyQueue = new Promise((resolve2) => {
+          release = () => resolve2();
         });
         try {
           await waitForFontOperation(previous, signal);
@@ -16093,7 +16093,7 @@ var init_fonts = __esm({
           /* @vite-ignore */
           "node:fs/promises"
         );
-        const { resolve, dirname: dirname2 } = await import(
+        const { resolve: resolve2, dirname: dirname2 } = await import(
           /* @vite-ignore */
           "node:path"
         );
@@ -16103,7 +16103,7 @@ var init_fonts = __esm({
         );
         const packageJSONURL = import.meta.resolve("@open-pencil/core/package.json");
         const packageRoot = dirname2(fileURLToPath(packageJSONURL));
-        const assetPath = resolve(packageRoot, `assets${url}`);
+        const assetPath = resolve2(packageRoot, `assets${url}`);
         const buf = await readFile2(assetPath);
         return buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength);
       }
@@ -16864,13 +16864,13 @@ var require_opentype = __commonJS({
             return;
           }
           const commandType = command.type.toUpperCase();
-          const relative = commandType !== "Z" && command.type.toUpperCase() !== command.type;
+          const relative2 = commandType !== "Z" && command.type.toUpperCase() !== command.type;
           let parsedBuffer = parseBuffer2(buffer);
           buffer = [""];
           if (!parsedBuffer.length && commandType !== "Z") {
             return;
           }
-          if (relative && commandType !== "H" && commandType !== "V") {
+          if (relative2 && commandType !== "H" && commandType !== "V") {
             parsedBuffer = makeRelative.apply(this, [parsedBuffer]);
           }
           const currentX = this.commands.length ? this.commands[this.commands.length - 1].x || 0 : 0;
@@ -16885,7 +16885,7 @@ var require_opentype = __commonJS({
             case "V":
               for (let i2 = 0; i2 < parsedBuffer.length; i2++) {
                 let offset = 0;
-                if (relative) {
+                if (relative2) {
                   offset = this.commands.length ? this.commands[this.commands.length - 1].y || 0 : 0;
                 }
                 this.lineTo(currentX, parsedBuffer[i2] + offset);
@@ -16894,7 +16894,7 @@ var require_opentype = __commonJS({
             case "H":
               for (let i2 = 0; i2 < parsedBuffer.length; i2++) {
                 let offset = 0;
-                if (relative) {
+                if (relative2) {
                   offset = this.commands.length ? this.commands[this.commands.length - 1].x || 0 : 0;
                 }
                 this.lineTo(parsedBuffer[i2] + offset, currentY);
@@ -23068,7 +23068,7 @@ var require_opentype = __commonJS({
         const stack = [];
         let nStems = 0;
         let haveWidth = false;
-        let open = false;
+        let open2 = false;
         let x3 = 0;
         let y3 = 0;
         let subrs;
@@ -23107,11 +23107,11 @@ var require_opentype = __commonJS({
         const paintType = applyPaintType(font, p6);
         let width = defaultWidthX;
         function newContour(x22, y22) {
-          if (open && paintType !== 2) {
+          if (open2 && paintType !== 2) {
             p6.closePath();
           }
           p6.moveTo(x22, y22);
-          open = true;
+          open2 = true;
         }
         function parseStems() {
           let hasWidthArg;
@@ -23338,9 +23338,9 @@ var require_opentype = __commonJS({
                   width = stack.shift() + nominalWidthX;
                   haveWidth = true;
                 }
-                if (open && paintType !== 2) {
+                if (open2 && paintType !== 2) {
                   p6.closePath();
-                  open = false;
+                  open2 = false;
                 }
                 break;
               case 15:
@@ -25960,11 +25960,11 @@ var require_opentype = __commonJS({
          * @return {Object} The GSUB or GPOS table.
          */
         getTable: function(create) {
-          let layout = this.font.tables[this.tableName];
-          if (!layout && create) {
-            layout = this.font.tables[this.tableName] = this.createDefaultTable();
+          let layout2 = this.font.tables[this.tableName];
+          if (!layout2 && create) {
+            layout2 = this.font.tables[this.tableName] = this.createDefaultTable();
           }
-          return layout;
+          return layout2;
         },
         /**
          * Returns all scripts in the substitution table.
@@ -25972,11 +25972,11 @@ var require_opentype = __commonJS({
          * @return {Array}
          */
         getScriptNames: function() {
-          let layout = this.getTable();
-          if (!layout) {
+          let layout2 = this.getTable();
+          if (!layout2) {
             return [];
           }
-          return layout.scripts.map(function(script) {
+          return layout2.scripts.map(function(script) {
             return script.tag;
           });
         },
@@ -25987,13 +25987,13 @@ var require_opentype = __commonJS({
          * If neither exist, returns undefined.
          */
         getDefaultScriptName: function() {
-          let layout = this.getTable();
-          if (!layout) {
+          let layout2 = this.getTable();
+          if (!layout2) {
             return;
           }
           let hasLatn = false;
-          for (let i2 = 0; i2 < layout.scripts.length; i2++) {
-            const name = layout.scripts[i2].tag;
+          for (let i2 = 0; i2 < layout2.scripts.length; i2++) {
+            const name = layout2.scripts[i2].tag;
             if (name === "DFLT") return name;
             if (name === "latn") hasLatn = true;
           }
@@ -26007,11 +26007,11 @@ var require_opentype = __commonJS({
          * @return {Object} An object with tag and script properties.
          */
         getScriptTable: function(script, create) {
-          const layout = this.getTable(create);
-          if (layout) {
+          const layout2 = this.getTable(create);
+          if (layout2) {
             script = script || "DFLT";
-            const scripts = layout.scripts;
-            const pos = searchTag(layout.scripts, script);
+            const scripts = layout2.scripts;
+            const pos = searchTag(layout2.scripts, script);
             if (pos >= 0) {
               return scripts[pos].script;
             } else if (create) {
@@ -52483,6 +52483,7 @@ var init_base642 = __esm({
 // packages/core/src/bytes/index.ts
 var init_bytes2 = __esm({
   "packages/core/src/bytes/index.ts"() {
+    "use strict";
     init_base642();
   }
 });
@@ -56172,9 +56173,9 @@ function textLines2(node2) {
     }
     try {
       const prepared = prepareWithSegments(hardLine.text, `${node2.fontSize}px ${node2.fontFamily}`);
-      const layout = layoutWithLines(prepared, node2.width, lineHeight(node2));
+      const layout2 = layoutWithLines(prepared, node2.width, lineHeight(node2));
       let start2 = hardLine.start;
-      for (const line of layout.lines) {
+      for (const line of layout2.lines) {
         result.push({ text: line.text, start: start2 });
         start2 += line.text.length;
       }
@@ -57349,16 +57350,16 @@ function patternTileLayout(source, fill2) {
   }
   return { rect: { x: 0, y: 0, width, height }, scale, positions };
 }
-function recordPatternSource(r4, source, graph, layout, patternStack) {
-  const bounds = r4.ck.LTRBRect(0, 0, layout.rect.width, layout.rect.height);
+function recordPatternSource(r4, source, graph, layout2, patternStack) {
+  const bounds = r4.ck.LTRBRect(0, 0, layout2.rect.width, layout2.rect.height);
   const recorder = new r4.ck.PictureRecorder();
   const canvas = recorder.beginRecording(bounds);
   const rect = r4.ck.LTRBRect(0, 0, source.width, source.height);
   const hasRadius2 = nodeHasSmoothCorners(source) || source.cornerRadius > 0;
-  for (const position of layout.positions) {
+  for (const position of layout2.positions) {
     canvas.save();
     canvas.translate(position.x, position.y);
-    canvas.scale(layout.scale, layout.scale);
+    canvas.scale(layout2.scale, layout2.scale);
     if (!drawVectorMultiStyleFills(r4, canvas, source, graph, patternStack)) {
       paintFills(
         r4,
@@ -57390,14 +57391,14 @@ function applyPatternFill(r4, fill2, node2, graph, patternStack) {
   if (!source || source.width <= 0 || source.height <= 0) return false;
   if (patternStack.has(source.id)) return false;
   patternStack.add(source.id);
-  const layout = patternTileLayout(source, fill2);
+  const layout2 = patternTileLayout(source, fill2);
   let picture;
   try {
-    picture = recordPatternSource(r4, source, graph, layout, patternStack);
+    picture = recordPatternSource(r4, source, graph, layout2, patternStack);
   } finally {
     patternStack.delete(source.id);
   }
-  const tile = layout.rect;
+  const tile = layout2.rect;
   const tileRect = r4.ck.LTRBRect(tile.x, tile.y, tile.x + tile.width, tile.y + tile.height);
   const shader = picture.makeShader(
     r4.ck.TileMode.Repeat,
@@ -57646,10 +57647,10 @@ function appendOutlineCommand(path, command, xOffset, yOffset) {
   }
 }
 function textNodeToOutlinePath(r4, node2) {
-  const layout = textNodeToOutlineLayout(node2);
-  if (!layout) return null;
+  const layout2 = textNodeToOutlineLayout(node2);
+  if (!layout2) return null;
   const path = new r4.ck.PathBuilder();
-  for (const glyph of layout.glyphs) {
+  for (const glyph of layout2.glyphs) {
     for (const command of glyph.commands) appendOutlineCommand(path, command, glyph.x, glyph.y);
   }
   return path.detachAndDelete();
@@ -58973,12 +58974,12 @@ function hitSectionTitle(child, ax, ay, insideSection, canvasX, canvasY, zoom, f
   const pillY = insideSection ? gap : -pillH - gap;
   return hitInRect(hit.x, hit.y, 0, pillY, pillW, pillH) ? child : null;
 }
-function hitCachedSectionTitle(child, section, context2) {
+function hitCachedSectionTitle(child, section2, context2) {
   return hitSectionTitle(
     child,
-    section.absX,
-    section.absY,
-    section.nested,
+    section2.absX,
+    section2.absY,
+    section2.nested,
     context2.canvasX,
     context2.canvasY,
     context2.zoom,
@@ -59189,13 +59190,13 @@ function isTextPictureCurrent(r4, node2) {
   }
   return cached.generation === r4.fontGeneration;
 }
-function settleFontDemand(r4, snapshot, nodeIds) {
+function settleFontDemand(r4, snapshot2, nodeIds) {
   syncFontGeneration(r4);
   for (const nodeId of nodeIds) {
     const pending = r4.pendingFontNodes.get(nodeId);
     if (pending) {
       pending.node.textPicture = null;
-      pending.keys.delete(snapshot.key);
+      pending.keys.delete(snapshot2.key);
       if (pending.keys.size === 0) r4.pendingFontNodes.delete(nodeId);
     }
     r4.textPictureGenerations.delete(nodeId);
@@ -59207,9 +59208,9 @@ function getFontProvider(r4) {
 }
 async function loadFonts(r4, onFallbackFontsLoaded) {
   if (r4.isDestroyed()) return;
-  r4.onFontResolutionSettled = (snapshot, nodeIds) => {
+  r4.onFontResolutionSettled = (snapshot2, nodeIds) => {
     if (r4.isDestroyed()) return;
-    settleFontDemand(r4, snapshot, nodeIds);
+    settleFontDemand(r4, snapshot2, nodeIds);
     onFallbackFontsLoaded?.();
   };
   r4.fontProvider?.delete();
@@ -62192,13 +62193,13 @@ function gridGeometry(grid) {
   };
 }
 function drawColumnGrid(r4, canvas, node2, grid) {
-  for (const section of layoutGuideSections(node2, grid)) {
-    canvas.drawRect(r4.ck.LTRBRect(section.start, 0, section.end, node2.height), r4.auxFill);
+  for (const section2 of layoutGuideSections(node2, grid)) {
+    canvas.drawRect(r4.ck.LTRBRect(section2.start, 0, section2.end, node2.height), r4.auxFill);
   }
 }
 function drawRowGrid(r4, canvas, node2, grid) {
-  for (const section of layoutGuideSections(node2, grid)) {
-    canvas.drawRect(r4.ck.LTRBRect(0, section.start, node2.width, section.end), r4.auxFill);
+  for (const section2 of layoutGuideSections(node2, grid)) {
+    canvas.drawRect(r4.ck.LTRBRect(0, section2.start, node2.width, section2.end), r4.auxFill);
   }
 }
 function drawSquareGrid(r4, canvas, node2, grid) {
@@ -65285,23 +65286,23 @@ var init_resolver = __esm({
       exhaust(demand) {
         const current = this.entries.get(demand.key);
         if (current?.snapshot.state === "loading") return current.snapshot;
-        const snapshot = { key: demand.key, state: "exhausted" };
+        const snapshot2 = { key: demand.key, state: "exhausted" };
         if (current) {
-          current.snapshot = snapshot;
-          current.promise = Promise.resolve(snapshot);
+          current.snapshot = snapshot2;
+          current.promise = Promise.resolve(snapshot2);
           current.callbacks.clear();
           current.nodeIds.clear();
-          return snapshot;
+          return snapshot2;
         }
         const entry = {
           demand,
-          snapshot,
-          promise: Promise.resolve(snapshot),
+          snapshot: snapshot2,
+          promise: Promise.resolve(snapshot2),
           callbacks: /* @__PURE__ */ new Map(),
           nodeIds: /* @__PURE__ */ new Set()
         };
         this.entries.set(demand.key, entry);
-        return snapshot;
+        return snapshot2;
       }
       reset(demand) {
         if (demand === void 0) {
@@ -65319,17 +65320,17 @@ var init_resolver = __esm({
           if (current.snapshot.state === "loading") this.addConsumer(current, onSettled, nodeId);
           return current.promise;
         }
-        const snapshot = { key: demand.key, state: "loading" };
+        const snapshot2 = { key: demand.key, state: "loading" };
         const entry = {
           demand,
-          snapshot,
+          snapshot: snapshot2,
           callbacks: /* @__PURE__ */ new Map(),
           nodeIds: /* @__PURE__ */ new Set(),
-          promise: Promise.resolve(snapshot)
+          promise: Promise.resolve(snapshot2)
         };
         this.addConsumer(entry, onSettled, nodeId);
         this.entries.set(demand.key, entry);
-        this.notify("started", snapshot);
+        this.notify("started", snapshot2);
         entry.promise = this.resolve(entry);
         return entry.promise;
       }
@@ -65365,23 +65366,23 @@ var init_resolver = __esm({
         }
         return this.settle(entry, { key: entry.demand.key, state: "exhausted" });
       }
-      settle(entry, snapshot) {
+      settle(entry, snapshot2) {
         if (this.entries.get(entry.demand.key) !== entry) return idleSnapshot(entry.demand.key);
-        entry.snapshot = snapshot;
-        this.notify("settled", snapshot);
+        entry.snapshot = snapshot2;
+        this.notify("settled", snapshot2);
         for (const [callback, nodeIds] of entry.callbacks) {
           try {
-            callback(snapshot, [...nodeIds]);
+            callback(snapshot2, [...nodeIds]);
           } catch (error2) {
             console.error("Font resolution callback failed:", error2);
           }
         }
         entry.callbacks.clear();
         entry.nodeIds.clear();
-        return snapshot;
+        return snapshot2;
       }
-      notify(event, snapshot) {
-        for (const listener of this.listeners) listener(event, snapshot);
+      notify(event, snapshot2) {
+        for (const listener of this.listeners) listener(event, snapshot2);
       }
     };
   }
@@ -77512,11 +77513,11 @@ var require_html2canvas = __commonJS({
       };
       function __awaiter2(thisArg, _arguments, P4, generator) {
         function adopt(value) {
-          return value instanceof P4 ? value : new P4(function(resolve) {
-            resolve(value);
+          return value instanceof P4 ? value : new P4(function(resolve2) {
+            resolve2(value);
           });
         }
-        return new (P4 || (P4 = Promise))(function(resolve, reject) {
+        return new (P4 || (P4 = Promise))(function(resolve2, reject) {
           function fulfilled(value) {
             try {
               step(generator.next(value));
@@ -77532,7 +77533,7 @@ var require_html2canvas = __commonJS({
             }
           }
           function step(result) {
-            result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+            result.done ? resolve2(result.value) : adopt(result.value).then(fulfilled, rejected);
           }
           step((generator = generator.apply(thisArg, _arguments || [])).next());
         });
@@ -79524,16 +79525,16 @@ var require_html2canvas = __commonJS({
           [width, 0],
           [width, height]
         ];
-        return corners.reduce(function(stat, corner) {
+        return corners.reduce(function(stat2, corner) {
           var cx = corner[0], cy = corner[1];
           var d3 = distance(x3 - cx, y3 - cy);
-          if (closest ? d3 < stat.optimumDistance : d3 > stat.optimumDistance) {
+          if (closest ? d3 < stat2.optimumDistance : d3 > stat2.optimumDistance) {
             return {
               optimumCorner: corner,
               optimumDistance: d3
             };
           }
-          return stat;
+          return stat2;
         }, {
           optimumDistance: closest ? Infinity : -Infinity,
           optimumCorner: null
@@ -80907,7 +80908,7 @@ var require_html2canvas = __commonJS({
           return quotes2;
         }
       };
-      var getQuote = function(quotes2, depth, open) {
+      var getQuote = function(quotes2, depth, open2) {
         if (!quotes2) {
           return "";
         }
@@ -80915,7 +80916,7 @@ var require_html2canvas = __commonJS({
         if (!quote2) {
           return "";
         }
-        return open ? quote2.open : quote2.close;
+        return open2 ? quote2.open : quote2.close;
       };
       var boxShadow = {
         name: "box-shadow",
@@ -81661,10 +81662,10 @@ var require_html2canvas = __commonJS({
         return svg2;
       };
       var loadSerializedSVG$1 = function(svg2) {
-        return new Promise(function(resolve, reject) {
+        return new Promise(function(resolve2, reject) {
           var img = new Image();
           img.onload = function() {
-            return resolve(img);
+            return resolve2(img);
           };
           img.onerror = reject;
           img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(new XMLSerializer().serializeToString(svg2));
@@ -83026,24 +83027,24 @@ var require_html2canvas = __commonJS({
         return cloneIframeContainer;
       };
       var imageReady = function(img) {
-        return new Promise(function(resolve) {
+        return new Promise(function(resolve2) {
           if (img.complete) {
-            resolve();
+            resolve2();
             return;
           }
           if (!img.src) {
-            resolve();
+            resolve2();
             return;
           }
-          img.onload = resolve;
-          img.onerror = resolve;
+          img.onload = resolve2;
+          img.onerror = resolve2;
         });
       };
       var imagesReady = function(document2) {
         return Promise.all([].slice.call(document2.images, 0).map(imageReady));
       };
       var iframeLoader = function(iframe) {
-        return new Promise(function(resolve, reject) {
+        return new Promise(function(resolve2, reject) {
           var cloneWindow = iframe.contentWindow;
           if (!cloneWindow) {
             return reject("No window assigned for iframe");
@@ -83054,7 +83055,7 @@ var require_html2canvas = __commonJS({
             var interval = setInterval(function() {
               if (documentClone.body.childNodes.length > 0 && documentClone.readyState === "complete") {
                 clearInterval(interval);
-                resolve(iframe);
+                resolve2(iframe);
               }
             }, 50);
           };
@@ -83193,10 +83194,10 @@ var require_html2canvas = __commonJS({
                     _a2.label = 2;
                   case 2:
                     this.context.logger.debug("Added image " + key.substring(0, 256));
-                    return [4, new Promise(function(resolve, reject) {
+                    return [4, new Promise(function(resolve2, reject) {
                       var img = new Image();
                       img.onload = function() {
-                        return resolve(img);
+                        return resolve2(img);
                       };
                       img.onerror = reject;
                       if (isInlineBase64Image(src) || useCORS) {
@@ -83205,7 +83206,7 @@ var require_html2canvas = __commonJS({
                       img.src = src;
                       if (img.complete === true) {
                         setTimeout(function() {
-                          return resolve(img);
+                          return resolve2(img);
                         }, 500);
                       }
                       if (_this._options.imageTimeout > 0) {
@@ -83233,17 +83234,17 @@ var require_html2canvas = __commonJS({
               throw new Error("No proxy defined");
             }
             var key = src.substring(0, 256);
-            return new Promise(function(resolve, reject) {
+            return new Promise(function(resolve2, reject) {
               var responseType = FEATURES.SUPPORT_RESPONSE_TYPE ? "blob" : "text";
               var xhr = new XMLHttpRequest();
               xhr.onload = function() {
                 if (xhr.status === 200) {
                   if (responseType === "text") {
-                    resolve(xhr.response);
+                    resolve2(xhr.response);
                   } else {
                     var reader_1 = new FileReader();
                     reader_1.addEventListener("load", function() {
-                      return resolve(reader_1.result);
+                      return resolve2(reader_1.result);
                     }, false);
                     reader_1.addEventListener("error", function(e7) {
                       return reject(e7);
@@ -85058,10 +85059,10 @@ var require_html2canvas = __commonJS({
         })(Renderer)
       );
       var loadSerializedSVG = function(svg2) {
-        return new Promise(function(resolve, reject) {
+        return new Promise(function(resolve2, reject) {
           var img = new Image();
           img.onload = function() {
-            resolve(img);
+            resolve2(img);
           };
           img.onerror = reject;
           img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(new XMLSerializer().serializeToString(svg2));
@@ -86036,11 +86037,11 @@ var require_purify_cjs = __commonJS({
         _neutralizeSubtree(root);
         const childNodes = getChildNodes(root);
         if (childNodes) {
-          const snapshot = [];
+          const snapshot2 = [];
           arrayForEach(childNodes, (child) => {
-            arrayPush(snapshot, child);
+            arrayPush(snapshot2, child);
           });
-          arrayForEach(snapshot, (child) => {
+          arrayForEach(snapshot2, (child) => {
             try {
               remove(child);
             } catch (_3) {
@@ -88660,8 +88661,8 @@ var require_promise_constructor_detection = __commonJS({
       if (!GLOBAL_CORE_JS_PROMISE && V8_VERSION === 66) return true;
       if (IS_PURE && !(NativePromisePrototype["catch"] && NativePromisePrototype["finally"])) return true;
       if (!V8_VERSION || V8_VERSION < 51 || !/native code/.test(PROMISE_CONSTRUCTOR_SOURCE)) {
-        var promise = new NativePromiseConstructor(function(resolve) {
-          resolve(1);
+        var promise = new NativePromiseConstructor(function(resolve2) {
+          resolve2(1);
         });
         var FakePromise = function(exec) {
           exec(function() {
@@ -88691,13 +88692,13 @@ var require_new_promise_capability = __commonJS({
     var aCallable = require_a_callable();
     var $TypeError = TypeError;
     var PromiseCapability = function(C5) {
-      var resolve, reject;
+      var resolve2, reject;
       this.promise = new C5(function($$resolve, $$reject) {
-        if (resolve !== void 0 || reject !== void 0) throw new $TypeError("Bad Promise constructor");
-        resolve = $$resolve;
+        if (resolve2 !== void 0 || reject !== void 0) throw new $TypeError("Bad Promise constructor");
+        resolve2 = $$resolve;
         reject = $$reject;
       });
-      this.resolve = aCallable(resolve);
+      this.resolve = aCallable(resolve2);
       this.reject = aCallable(reject);
     };
     module2.exports.f = function(C5) {
@@ -88768,7 +88769,7 @@ var require_es_promise_constructor = __commonJS({
       var value = state.value;
       var ok = state.state === FULFILLED;
       var handler = ok ? reaction.ok : reaction.fail;
-      var resolve = reaction.resolve;
+      var resolve2 = reaction.resolve;
       var reject = reaction.reject;
       var domain = reaction.domain;
       var result, then, exited;
@@ -88790,8 +88791,8 @@ var require_es_promise_constructor = __commonJS({
           if (result === reaction.promise) {
             reject(new TypeError2("Promise-chain cycle"));
           } else if (then = isThenable(result)) {
-            call(then, result, resolve, reject);
-          } else resolve(result);
+            call(then, result, resolve2, reject);
+          } else resolve2(result);
         } else reject(value);
       } catch (error2) {
         if (domain && !exited) domain.exit();
@@ -88947,8 +88948,8 @@ var require_es_promise_constructor = __commonJS({
         if (!NATIVE_PROMISE_SUBCLASSING) {
           defineBuiltIn(NativePromisePrototype, "then", function then(onFulfilled, onRejected) {
             var that = this;
-            return new PromiseConstructor(function(resolve, reject) {
-              call(nativeThen, that, resolve, reject);
+            return new PromiseConstructor(function(resolve2, reject) {
+              call(nativeThen, that, resolve2, reject);
             }).then(onFulfilled, onRejected);
           }, { unsafe: true });
         }
@@ -89208,7 +89209,7 @@ var require_es_promise_all = __commonJS({
       all: function all(iterable) {
         var C5 = this;
         var capability = newPromiseCapabilityModule.f(C5);
-        var resolve = capability.resolve;
+        var resolve2 = capability.resolve;
         var reject = capability.reject;
         var result = perform(function() {
           var $promiseResolve = aCallable(C5.resolve);
@@ -89223,10 +89224,10 @@ var require_es_promise_all = __commonJS({
               if (alreadyCalled) return;
               alreadyCalled = true;
               values[index] = value;
-              --remaining || resolve(values);
+              --remaining || resolve2(values);
             }, reject);
           });
-          --remaining || resolve(values);
+          --remaining || resolve2(values);
         });
         if (result.error) reject(result.value);
         return capability.promise;
@@ -89320,8 +89321,8 @@ var require_promise_resolve = __commonJS({
       anObject(C5);
       if (isObject(x3) && x3.constructor === C5) return x3;
       var promiseCapability = newPromiseCapability.f(C5);
-      var resolve = promiseCapability.resolve;
-      resolve(x3);
+      var resolve2 = promiseCapability.resolve;
+      resolve2(x3);
       return promiseCapability.promise;
     };
   }
@@ -89340,7 +89341,7 @@ var require_es_promise_resolve = __commonJS({
     var PromiseConstructorWrapper = getBuiltIn("Promise");
     var CHECK_WRAPPER = IS_PURE && !FORCED_PROMISE_CONSTRUCTOR;
     $4({ target: "Promise", stat: true, forced: IS_PURE || FORCED_PROMISE_CONSTRUCTOR }, {
-      resolve: function resolve(x3) {
+      resolve: function resolve2(x3) {
         return promiseResolve(CHECK_WRAPPER && this === PromiseConstructorWrapper ? NativePromiseConstructor : this, x3);
       }
     });
@@ -94966,8 +94967,8 @@ var require_lib2 = __commonJS({
           var FRAMERATE = this.FRAMERATE, mouse = this.mouse;
           var frameDuration = 1e3 / FRAMERATE;
           this.frameDuration = frameDuration;
-          this.readyPromise = new Promise(function(resolve) {
-            _this.resolveReady = resolve;
+          this.readyPromise = new Promise(function(resolve2) {
+            _this.resolveReady = resolve2;
           });
           if (this.isReady()) {
             this.render(element, ignoreDimensions, ignoreClear, scaleWidth, scaleHeight, offsetX, offsetY);
@@ -101005,9 +101006,9 @@ var require_lib2 = __commonJS({
                 if (anonymousCrossOrigin) {
                   image.crossOrigin = "Anonymous";
                 }
-                return _context.abrupt("return", new Promise(function(resolve, reject) {
+                return _context.abrupt("return", new Promise(function(resolve2, reject) {
                   image.onload = function() {
-                    resolve(image);
+                    resolve2(image);
                   };
                   image.onerror = function(_event, _source, _lineno, _colno, error2) {
                     reject(error2);
@@ -113538,8 +113539,8 @@ var require_lib4 = __commonJS({
         return this;
       }
       var p6 = this.constructor;
-      return this.then(resolve2, reject2);
-      function resolve2(value) {
+      return this.then(resolve3, reject2);
+      function resolve3(value) {
         function yes() {
           return value;
         }
@@ -113692,8 +113693,8 @@ var require_lib4 = __commonJS({
       }
       return out;
     }
-    Promise2.resolve = resolve;
-    function resolve(value) {
+    Promise2.resolve = resolve2;
+    function resolve2(value) {
       if (value instanceof this) {
         return value;
       }
@@ -114224,10 +114225,10 @@ var require_utils = __commonJS({
       var promise = external.Promise.resolve(inputData).then(function(data) {
         var isBlob = support.blob && (data instanceof Blob || ["[object File]", "[object Blob]"].indexOf(Object.prototype.toString.call(data)) !== -1);
         if (isBlob && typeof FileReader !== "undefined") {
-          return new external.Promise(function(resolve, reject) {
+          return new external.Promise(function(resolve2, reject) {
             var reader = new FileReader();
             reader.onload = function(e6) {
-              resolve(e6.target.result);
+              resolve2(e6.target.result);
             };
             reader.onerror = function(e6) {
               reject(e6.target.error);
@@ -114782,7 +114783,7 @@ var require_StreamHelper = __commonJS({
       }
     }
     function accumulate(helper, updateCallback) {
-      return new external.Promise(function(resolve, reject) {
+      return new external.Promise(function(resolve2, reject) {
         var dataArray = [];
         var chunkType = helper._internalType, resultType = helper._outputType, mimeType = helper._mimeType;
         helper.on("data", function(data, meta) {
@@ -114796,7 +114797,7 @@ var require_StreamHelper = __commonJS({
         }).on("end", function() {
           try {
             var result = transformZipOutput(resultType, concat(chunkType, dataArray), mimeType);
-            resolve(result);
+            resolve2(result);
           } catch (e6) {
             reject(e6);
           }
@@ -120909,7 +120910,7 @@ var require_load = __commonJS({
     var Crc32Probe = require_Crc32Probe();
     var nodejsUtils = require_nodejsUtils();
     function checkEntryCRC32(zipEntry) {
-      return new external.Promise(function(resolve, reject) {
+      return new external.Promise(function(resolve2, reject) {
         var worker = zipEntry.decompressed.getContentWorker().pipe(new Crc32Probe());
         worker.on("error", function(e6) {
           reject(e6);
@@ -120917,7 +120918,7 @@ var require_load = __commonJS({
           if (worker.streamInfo.crc32 !== zipEntry.decompressed.crc32) {
             reject(new Error("Corrupted zip : CRC32 mismatch"));
           } else {
-            resolve();
+            resolve2();
           }
         }).resume();
       });
@@ -121021,11 +121022,11 @@ __export(pptxgen_es_exports, {
 });
 function __awaiter(thisArg, _arguments, P4, generator) {
   function adopt(value) {
-    return value instanceof P4 ? value : new P4(function(resolve) {
-      resolve(value);
+    return value instanceof P4 ? value : new P4(function(resolve2) {
+      resolve2(value);
     });
   }
-  return new (P4 || (P4 = Promise))(function(resolve, reject) {
+  return new (P4 || (P4 = Promise))(function(resolve2, reject) {
     function fulfilled(value) {
       try {
         step(generator.next(value));
@@ -121041,12 +121042,12 @@ function __awaiter(thisArg, _arguments, P4, generator) {
       }
     }
     function step(result) {
-      result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected);
+      result.done ? resolve2(result.value) : adopt(result.value).then(fulfilled, rejected);
     }
     step((generator = generator.apply(thisArg, _arguments || [])).next());
   });
 }
-function getSmartParseNumber(size, xyDir, layout) {
+function getSmartParseNumber(size, xyDir, layout2) {
   if (typeof size === "string" && !isNaN(Number(size)))
     size = Number(size);
   if (typeof size === "number" && size < 100)
@@ -121055,10 +121056,10 @@ function getSmartParseNumber(size, xyDir, layout) {
     return size;
   if (typeof size === "string" && size.includes("%")) {
     if (xyDir && xyDir === "X")
-      return Math.round(parseFloat(size) / 100 * layout.width);
+      return Math.round(parseFloat(size) / 100 * layout2.width);
     if (xyDir && xyDir === "Y")
-      return Math.round(parseFloat(size) / 100 * layout.height);
-    return Math.round(parseFloat(size) / 100 * layout.width);
+      return Math.round(parseFloat(size) / 100 * layout2.height);
+    return Math.round(parseFloat(size) / 100 * layout2.width);
   }
   return 0;
 }
@@ -122503,7 +122504,7 @@ function createHyperlinkRels(target, text, options) {
 function createExcelWorksheet(chartObject, zip) {
   return __awaiter(this, void 0, void 0, function* () {
     const data = chartObject.data;
-    return yield new Promise((resolve, reject) => {
+    return yield new Promise((resolve2, reject) => {
       var _a2, _b2;
       const zipExcel = new import_jszip.default();
       const intBubbleCols = (data.length - 1) * 2 + 1;
@@ -122713,7 +122714,7 @@ function createExcelWorksheet(chartObject, zip) {
         zip.file(`ppt/embeddings/Microsoft_Excel_Worksheet${chartObject.globalId}.xlsx`, content, { base64: true });
         zip.file("ppt/charts/_rels/" + chartObject.fileName + ".rels", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/package" Target="../embeddings/Microsoft_Excel_Worksheet${chartObject.globalId}.xlsx"/></Relationships>`);
         zip.file(`ppt/charts/${chartObject.fileName}`, makeXmlCharts(chartObject));
-        resolve("");
+        resolve2("");
       }).catch((strErr) => {
         reject(strErr);
       });
@@ -123779,7 +123780,7 @@ function genXmlTitle(opts, chartX, chartY) {
   const rotate = opts.titleRotate ? `<a:bodyPr rot="${convertRotationDegrees(opts.titleRotate)}"/>` : "<a:bodyPr/>";
   const sizeAttr = opts.fontSize ? `sz="${Math.round(opts.fontSize * 100)}"` : "";
   const titleBold = opts.titleBold ? 1 : 0;
-  let layout = "<c:layout/>";
+  let layout2 = "<c:layout/>";
   if (opts.titlePos && typeof opts.titlePos.x === "number" && typeof opts.titlePos.y === "number") {
     const totalX = opts.titlePos.x + chartX;
     const totalY = opts.titlePos.y + chartY;
@@ -123793,7 +123794,7 @@ function genXmlTitle(opts, chartX, chartY) {
       valY = valY / 10;
     if (valY >= 0.1)
       valY = valY / 10;
-    layout = `<c:layout><c:manualLayout><c:xMode val="edge"/><c:yMode val="edge"/><c:x val="${valX}"/><c:y val="${valY}"/></c:manualLayout></c:layout>`;
+    layout2 = `<c:layout><c:manualLayout><c:xMode val="edge"/><c:yMode val="edge"/><c:x val="${valX}"/><c:y val="${valY}"/></c:manualLayout></c:layout>`;
   }
   return `<c:title>
       <c:tx>
@@ -123817,7 +123818,7 @@ function genXmlTitle(opts, chartX, chartY) {
         </a:p>
         </c:rich>
       </c:tx>
-      ${layout}
+      ${layout2}
       <c:overlay val="0"/>
     </c:title>`;
 }
@@ -123877,7 +123878,7 @@ function createLineCap(lineCap) {
     throw new Error(`Invalid chart line cap: ${neverLineCap}`);
   }
 }
-function encodeSlideMediaRels(layout) {
+function encodeSlideMediaRels(layout2) {
   var _a2, _b2;
   const isNode = typeof process !== "undefined" && !!((_a2 = process.versions) === null || _a2 === void 0 ? void 0 : _a2.node) && ((_b2 = process.release) === null || _b2 === void 0 ? void 0 : _b2.name) === "node";
   let fs;
@@ -123890,7 +123891,7 @@ function encodeSlideMediaRels(layout) {
   if (isNode)
     loadNodeDeps();
   const imageProms = [];
-  const candidateRels = layout._relsMedia.filter((rel2) => rel2.type !== "online" && !rel2.data && (!rel2.path || rel2.path && !rel2.path.includes("preencoded")));
+  const candidateRels = layout2._relsMedia.filter((rel2) => rel2.type !== "online" && !rel2.data && (!rel2.path || rel2.path && !rel2.path.includes("preencoded")));
   const unqPaths = [];
   candidateRels.forEach((rel2) => {
     if (!unqPaths.includes(rel2.path)) {
@@ -123918,7 +123919,7 @@ ${String(ex)}`);
         }
       }
       if (isNode && https && rel2.path.startsWith("http")) {
-        return yield new Promise((resolve, reject) => {
+        return yield new Promise((resolve2, reject) => {
           https.get(rel2.path, (res) => {
             let raw = "";
             res.setEncoding("binary");
@@ -123926,7 +123927,7 @@ ${String(ex)}`);
             res.on("end", () => {
               rel2.data = Buffer.from(raw, "binary").toString("base64");
               candidateRels.filter((dupe) => dupe.isDuplicate && dupe.path === rel2.path).forEach((dupe) => dupe.data = rel2.data);
-              resolve("done");
+              resolve2("done");
             });
             res.on("error", () => {
               rel2.data = IMG_BROKEN;
@@ -123936,7 +123937,7 @@ ${String(ex)}`);
           });
         });
       }
-      return yield new Promise((resolve, reject) => {
+      return yield new Promise((resolve2, reject) => {
         const xhr = new XMLHttpRequest();
         xhr.onload = () => {
           const reader = new FileReader();
@@ -123944,9 +123945,9 @@ ${String(ex)}`);
             rel2.data = reader.result;
             candidateRels.filter((dupe) => dupe.isDuplicate && dupe.path === rel2.path).forEach((dupe) => dupe.data = rel2.data);
             if (!rel2.isSvgPng) {
-              resolve("done");
+              resolve2("done");
             } else {
-              createSvgPngPreview(rel2).then(() => resolve("done")).catch(reject);
+              createSvgPngPreview(rel2).then(() => resolve2("done")).catch(reject);
             }
           };
           reader.readAsDataURL(xhr.response);
@@ -123962,7 +123963,7 @@ ${String(ex)}`);
       });
     }))());
   });
-  layout._relsMedia.filter((rel2) => rel2.isSvgPng && rel2.data).forEach((rel2) => {
+  layout2._relsMedia.filter((rel2) => rel2.isSvgPng && rel2.data).forEach((rel2) => {
     (() => __awaiter(this, void 0, void 0, function* () {
       if (isNode && !fs)
         yield loadNodeDeps();
@@ -123978,7 +123979,7 @@ ${String(ex)}`);
 }
 function createSvgPngPreview(rel2) {
   return __awaiter(this, void 0, void 0, function* () {
-    return yield new Promise((resolve, reject) => {
+    return yield new Promise((resolve2, reject) => {
       const image = new Image();
       image.onload = () => {
         if (image.width + image.height === 0) {
@@ -123991,7 +123992,7 @@ function createSvgPngPreview(rel2) {
         ctx.drawImage(image, 0, 0);
         try {
           rel2.data = canvas.toDataURL(rel2.type);
-          resolve("done");
+          resolve2("done");
         } catch (ex) {
           image.onerror(ex.toString());
         }
@@ -124908,9 +124909,9 @@ function makeXmlContTypes(slides, slideLayouts, masterSlide) {
   strXml += '<Override PartName="/ppt/viewProps.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.viewProps+xml"/>';
   strXml += '<Override PartName="/ppt/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>';
   strXml += '<Override PartName="/ppt/tableStyles.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.tableStyles+xml"/>';
-  slideLayouts.forEach((layout, idx) => {
+  slideLayouts.forEach((layout2, idx) => {
     strXml += `<Override PartName="/ppt/slideLayouts/slideLayout${idx + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/>`;
-    (layout._relsChart || []).forEach((rel2) => {
+    (layout2._relsChart || []).forEach((rel2) => {
       strXml += ' <Override PartName="' + rel2.Target + '" ContentType="application/vnd.openxmlformats-officedocument.drawingml.chart+xml"/>';
     });
   });
@@ -125015,10 +125016,10 @@ function makeXmlNotesMaster() {
 function makeXmlNotesSlide(slide) {
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>${CRLF}<p:notes xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld><p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr><p:sp><p:nvSpPr><p:cNvPr id="2" name="Slide Image Placeholder 1"/><p:cNvSpPr><a:spLocks noGrp="1" noRot="1" noChangeAspect="1"/></p:cNvSpPr><p:nvPr><p:ph type="sldImg"/></p:nvPr></p:nvSpPr><p:spPr/></p:sp><p:sp><p:nvSpPr><p:cNvPr id="3" name="Notes Placeholder 2"/><p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr><p:ph type="body" idx="1"/></p:nvPr></p:nvSpPr><p:spPr/><p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:rPr lang="en-US" dirty="0"/><a:t>${encodeXmlEntities(getNotesFromSlide(slide))}</a:t></a:r><a:endParaRPr lang="en-US" dirty="0"/></a:p></p:txBody></p:sp><p:sp><p:nvSpPr><p:cNvPr id="4" name="Slide Number Placeholder 3"/><p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr><p:ph type="sldNum" sz="quarter" idx="10"/></p:nvPr></p:nvSpPr><p:spPr/><p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:fld id="${SLDNUMFLDID}" type="slidenum"><a:rPr lang="en-US"/><a:t>${slide._slideNum}</a:t></a:fld><a:endParaRPr lang="en-US"/></a:p></p:txBody></p:sp></p:spTree><p:extLst><p:ext uri="{BB962C8B-B14F-4D97-AF65-F5344CB8AC3E}"><p14:creationId xmlns:p14="http://schemas.microsoft.com/office/powerpoint/2010/main" val="1024086991"/></p:ext></p:extLst></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:notes>`;
 }
-function makeXmlLayout(layout) {
+function makeXmlLayout(layout2) {
   return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 		<p:sldLayout xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main" preserve="1">
-		${slideObjectToXml(layout)}
+		${slideObjectToXml(layout2)}
 		<p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sldLayout>`;
 }
 function makeXmlMaster(slide, layouts) {
@@ -125966,7 +125967,7 @@ var init_pptxgen_es = __esm({
         this.getSlide = (slideNum) => this.slides.filter((slide) => slide._slideNum === slideNum)[0];
         this.setSlideNumber = (slideNum) => {
           this.masterSlide._slideNumberProps = slideNum;
-          this.slideLayouts.filter((layout) => layout._name === DEF_PRES_LAYOUT_NAME)[0]._slideNumberProps = slideNum;
+          this.slideLayouts.filter((layout2) => layout2._name === DEF_PRES_LAYOUT_NAME)[0]._slideNumberProps = slideNum;
         };
         this.createChartMediaRels = (slide, zip, chartPromises) => {
           slide._relsChart.forEach((rel2) => chartPromises.push(createExcelWorksheet(rel2, zip)));
@@ -126007,8 +126008,8 @@ var init_pptxgen_es = __esm({
           this.slides.forEach((slide) => {
             arrMediaPromises = arrMediaPromises.concat(encodeSlideMediaRels(slide));
           });
-          this.slideLayouts.forEach((layout) => {
-            arrMediaPromises = arrMediaPromises.concat(encodeSlideMediaRels(layout));
+          this.slideLayouts.forEach((layout2) => {
+            arrMediaPromises = arrMediaPromises.concat(encodeSlideMediaRels(layout2));
           });
           arrMediaPromises = arrMediaPromises.concat(encodeSlideMediaRels(this.masterSlide));
           return yield Promise.all(arrMediaPromises).then(() => __awaiter(this, void 0, void 0, function* () {
@@ -126038,8 +126039,8 @@ var init_pptxgen_es = __esm({
             zip.file("ppt/presProps.xml", makeXmlPresProps());
             zip.file("ppt/tableStyles.xml", makeXmlTableStyles());
             zip.file("ppt/viewProps.xml", makeXmlViewProps());
-            this.slideLayouts.forEach((layout, idx) => {
-              zip.file(`ppt/slideLayouts/slideLayout${idx + 1}.xml`, makeXmlLayout(layout));
+            this.slideLayouts.forEach((layout2, idx) => {
+              zip.file(`ppt/slideLayouts/slideLayout${idx + 1}.xml`, makeXmlLayout(layout2));
               zip.file(`ppt/slideLayouts/_rels/slideLayout${idx + 1}.xml.rels`, makeXmlSlideLayoutRel(idx + 1, this.slideLayouts));
             });
             this.slides.forEach((slide, idx) => {
@@ -126052,8 +126053,8 @@ var init_pptxgen_es = __esm({
             zip.file("ppt/slideMasters/_rels/slideMaster1.xml.rels", makeXmlMasterRel(this.masterSlide, this.slideLayouts));
             zip.file("ppt/notesMasters/notesMaster1.xml", makeXmlNotesMaster());
             zip.file("ppt/notesMasters/_rels/notesMaster1.xml.rels", makeXmlNotesMasterRel());
-            this.slideLayouts.forEach((layout) => {
-              this.createChartMediaRels(layout, zip, arrChartPromises);
+            this.slideLayouts.forEach((layout2) => {
+              this.createChartMediaRels(layout2, zip, arrChartPromises);
             });
             this.slides.forEach((slide) => {
               this.createChartMediaRels(slide, zip, arrChartPromises);
@@ -126194,18 +126195,18 @@ var init_pptxgen_es = __esm({
        * @param {ISectionProps} section - section properties
        * @example pptx.addSection({ title:'Charts' });
        */
-      addSection(section) {
-        if (!section)
+      addSection(section2) {
+        if (!section2)
           console.warn("addSection requires an argument");
-        else if (!section.title)
+        else if (!section2.title)
           console.warn("addSection requires a title");
         const newSection = {
           _type: "user",
           _slides: [],
-          title: section.title
+          title: section2.title
         };
-        if (section.order)
-          this.sections.splice(section.order, 0, newSection);
+        if (section2.order)
+          this.sections.splice(section2.order, 0, newSection);
         else
           this._sections.push(newSection);
       }
@@ -126225,7 +126226,7 @@ var init_pptxgen_es = __esm({
           _slideNum: this.slides.length + 1
         };
         if (masterSlideName) {
-          const tmpLayout = this.slideLayouts.filter((layout) => layout._name === masterSlideName)[0];
+          const tmpLayout = this.slideLayouts.filter((layout2) => layout2._name === masterSlideName)[0];
           if (tmpLayout)
             slideLayout = tmpLayout;
         }
@@ -126241,7 +126242,7 @@ var init_pptxgen_es = __esm({
         });
         this._slides.push(newSlide);
         if (options === null || options === void 0 ? void 0 : options.sectionTitle) {
-          const sect = this.sections.filter((section) => section.title === options.sectionTitle)[0];
+          const sect = this.sections.filter((section2) => section2.title === options.sectionTitle)[0];
           if (!sect)
             console.warn(`addSlide: unable to find section with title: "${options.sectionTitle}"`);
           else
@@ -126265,25 +126266,25 @@ var init_pptxgen_es = __esm({
        * @param {PresLayout} layout - layout properties
        * @example pptx.defineLayout({ name:'A3', width:16.5, height:11.7 });
        */
-      defineLayout(layout) {
-        if (!layout)
+      defineLayout(layout2) {
+        if (!layout2)
           console.warn("defineLayout requires `{name, width, height}`");
-        else if (!layout.name)
+        else if (!layout2.name)
           console.warn("defineLayout requires `name`");
-        else if (!layout.width)
+        else if (!layout2.width)
           console.warn("defineLayout requires `width`");
-        else if (!layout.height)
+        else if (!layout2.height)
           console.warn("defineLayout requires `height`");
-        else if (typeof layout.height !== "number")
+        else if (typeof layout2.height !== "number")
           console.warn("defineLayout `height` should be a number (inches)");
-        else if (typeof layout.width !== "number")
+        else if (typeof layout2.width !== "number")
           console.warn("defineLayout `width` should be a number (inches)");
-        this.LAYOUTS[layout.name] = {
-          name: layout.name,
-          _sizeW: Math.round(Number(layout.width) * EMU),
-          _sizeH: Math.round(Number(layout.height) * EMU),
-          width: Math.round(Number(layout.width) * EMU),
-          height: Math.round(Number(layout.height) * EMU)
+        this.LAYOUTS[layout2.name] = {
+          name: layout2.name,
+          _sizeW: Math.round(Number(layout2.width) * EMU),
+          _sizeH: Math.round(Number(layout2.height) * EMU),
+          width: Math.round(Number(layout2.width) * EMU),
+          height: Math.round(Number(layout2.height) * EMU)
         };
       }
       /**
@@ -126322,7 +126323,7 @@ var init_pptxgen_es = __esm({
        * @param {TableToSlidesProps} options - generation options
        */
       tableToSlides(eleId, options = {}) {
-        genTableToSlides(this, eleId, options, (options === null || options === void 0 ? void 0 : options.masterSlideName) ? this.slideLayouts.filter((layout) => layout._name === options.masterSlideName)[0] : null);
+        genTableToSlides(this, eleId, options, (options === null || options === void 0 ? void 0 : options.masterSlideName) ? this.slideLayouts.filter((layout2) => layout2._name === options.masterSlideName)[0] : null);
       }
     };
   }
@@ -127616,7 +127617,7 @@ var require_CSSStyleSheet = __commonJS({
         _setTimeout = setTimeout;
       }
       var sheet = this;
-      return new _Promise(function(resolve, reject) {
+      return new _Promise(function(resolve2, reject) {
         if (!sheet.__constructed || sheet.__disallowModification) {
           reject(errorUtils2.createError(
             sheet,
@@ -127639,7 +127640,7 @@ var require_CSSStyleSheet = __commonJS({
           }
           sheet.__cssRules.splice.apply(sheet.__cssRules, [0, sheet.__cssRules.length].concat(rules));
           delete sheet.__disallowModification;
-          resolve(sheet);
+          resolve2(sheet);
         });
       });
     };
@@ -146329,8 +146330,8 @@ var require_lib7 = __commonJS({
 });
 
 // ../open-pencil-headless-mcp/engine.mjs
-import { mkdir, readFile, writeFile } from "node:fs/promises";
-import { basename, dirname, extname, join } from "node:path";
+import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
+import { basename, dirname, extname, join, relative, resolve } from "node:path";
 
 // packages/core/src/rpc/analyze-commands.ts
 init_array();
@@ -149063,24 +149064,24 @@ function applyCornerRadius(node2, radius, ctx) {
 }
 function applyPadding(node2, padding, ctx) {
   if (padding === void 0) return;
-  const resolve = (v3) => typeof v3 === "string" ? isVarRef(v3) && ctx ? ctx.resolveNumber(v3) : Number(v3) || 0 : v3;
+  const resolve2 = (v3) => typeof v3 === "string" ? isVarRef(v3) && ctx ? ctx.resolveNumber(v3) : Number(v3) || 0 : v3;
   if (Array.isArray(padding)) {
     if (padding.length === 2) {
-      const vertical = resolve(padding[0]);
-      const horizontal = resolve(padding[1]);
+      const vertical = resolve2(padding[0]);
+      const horizontal = resolve2(padding[1]);
       node2.paddingTop = vertical;
       node2.paddingRight = horizontal;
       node2.paddingBottom = vertical;
       node2.paddingLeft = horizontal;
       return;
     }
-    node2.paddingTop = resolve(padding[0] ?? 0);
-    node2.paddingRight = resolve(padding[1] ?? 0);
-    node2.paddingBottom = resolve(padding[2] ?? 0);
-    node2.paddingLeft = resolve(padding[3] ?? 0);
+    node2.paddingTop = resolve2(padding[0] ?? 0);
+    node2.paddingRight = resolve2(padding[1] ?? 0);
+    node2.paddingBottom = resolve2(padding[2] ?? 0);
+    node2.paddingLeft = resolve2(padding[3] ?? 0);
     return;
   }
-  const resolved = resolve(padding);
+  const resolved = resolve2(padding);
   node2.paddingTop = resolved;
   node2.paddingRight = resolved;
   node2.paddingBottom = resolved;
@@ -149251,10 +149252,10 @@ function resolveSizing(pen, ctx) {
   const defaultW = isTextLike && pen.width === void 0 ? 1e4 : defaultSize;
   const w3 = parseSize(pen.width, defaultW, ctx);
   const h4 = parseSize(pen.height, defaultSize, ctx);
-  const layout = mapLayoutMode(pen);
-  if (pen.width === void 0 && layout !== "NONE") w3.sizing = "HUG";
-  if (pen.height === void 0 && layout !== "NONE") h4.sizing = "HUG";
-  return { w: w3, h: h4, layout, isTextLike };
+  const layout2 = mapLayoutMode(pen);
+  if (pen.width === void 0 && layout2 !== "NONE") w3.sizing = "HUG";
+  if (pen.height === void 0 && layout2 !== "NONE") h4.sizing = "HUG";
+  return { w: w3, h: h4, layout: layout2, isTextLike };
 }
 function inheritLayoutFromComp(node2, pen, comp) {
   const wasRow = node2.layoutMode === "HORIZONTAL";
@@ -149316,7 +149317,7 @@ function applyTheme(theme, ctx) {
 function createSceneNode(pen, parentId, graph, ctx, componentIds, penSources) {
   if (pen.type === "prompt") return null;
   if (pen.theme) applyTheme(pen.theme, ctx);
-  const { w: w3, h: h4, layout, isTextLike } = resolveSizing(pen, ctx);
+  const { w: w3, h: h4, layout: layout2, isTextLike } = resolveSizing(pen, ctx);
   const overrides = buildBaseOverrides(pen);
   overrides.width = w3.value;
   overrides.height = h4.value;
@@ -149324,10 +149325,10 @@ function createSceneNode(pen, parentId, graph, ctx, componentIds, penSources) {
   if (!hasChildren && w3.fitContentFallback !== void 0) overrides.minWidth = w3.fitContentFallback;
   if (!hasChildren && h4.fitContentFallback !== void 0) overrides.minHeight = h4.fitContentFallback;
   const parentLayout = graph.getNode(parentId)?.layoutMode ?? "NONE";
-  if (layout !== "NONE") {
+  if (layout2 !== "NONE") {
     const widthSizing = parentLayout === "NONE" && w3.sizing === "FILL" ? "FIXED" : w3.sizing;
     const heightSizing = parentLayout === "NONE" && h4.sizing === "FILL" ? "FIXED" : h4.sizing;
-    applyAutoLayout(overrides, layout, pen, widthSizing, heightSizing, ctx);
+    applyAutoLayout(overrides, layout2, pen, widthSizing, heightSizing, ctx);
   }
   const node2 = graph.createNode(mapNodeType2(pen), parentId, overrides);
   if (pen.fill !== void 0) node2.fills = convertFill(pen.fill, ctx, node2);
@@ -150362,13 +150363,13 @@ var componentFindCache = /* @__PURE__ */ new WeakMap();
 var sourcePathCache = /* @__PURE__ */ new WeakMap();
 var overridePathTargetCache = /* @__PURE__ */ new WeakMap();
 function preComputeRoots(ctx) {
-  function resolve(nodeId, depth = 0) {
+  function resolve2(nodeId, depth = 0) {
     const cached = ctx.preComputedRoot.get(nodeId);
     if (cached !== void 0) return cached;
     if (depth > MAX_CHAIN_DEPTH) return nodeId;
     const node2 = ctx.graph.getNode(nodeId);
     if (node2?.componentId && node2.componentId !== nodeId) {
-      const root = resolve(node2.componentId, depth + 1);
+      const root = resolve2(node2.componentId, depth + 1);
       ctx.preComputedRoot.set(nodeId, root);
       return root;
     }
@@ -150377,7 +150378,7 @@ function preComputeRoots(ctx) {
   }
   for (const node2 of overrideCandidates(ctx.graph, ctx.activeNodeIds)) {
     if (!node2.componentId) continue;
-    resolve(node2.id);
+    resolve2(node2.id);
     const clones = ctx.preComputedClones.get(node2.componentId);
     if (clones) clones.push(node2.id);
     else ctx.preComputedClones.set(node2.componentId, [node2.id]);
@@ -152560,7 +152561,7 @@ function buildVariableColorResolver(changeMap, assetRefs) {
     }
     return null;
   }
-  return function resolve(alias) {
+  return function resolve2(alias) {
     const id = resolveAliasId2(alias, assetRefs);
     return id ? resolveById(id, void 0, 0) : null;
   };
@@ -153096,7 +153097,7 @@ function createPopulationWorkerClient(graph, worker, port) {
       if (stale) return Promise.resolve(null);
       const requestId = randomHex();
       const baseRevision = revision;
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve2, reject) => {
         const abort = () => {
           const request = pending.get(requestId);
           if (!request) return;
@@ -153108,7 +153109,7 @@ function createPopulationWorkerClient(graph, worker, port) {
         signal?.addEventListener("abort", abort, { once: true });
         const timeout = setTimeout(() => fail(), FIG_POPULATION_WORKER_TIMEOUT_MS);
         pending.set(requestId, {
-          resolve,
+          resolve: resolve2,
           abort: () => signal?.removeEventListener("abort", abort),
           revision: baseRevision,
           startedAt: performance.now(),
@@ -153150,7 +153151,7 @@ function parseFigFileSync(buffer, options = {}) {
   return graph;
 }
 function parseViaWorker(buffer, options) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve2, reject) => {
     options.signal?.throwIfAborted();
     const worker = createFigSessionWorker();
     const channel = new MessageChannel();
@@ -153201,7 +153202,7 @@ function parseViaWorker(buffer, options) {
           channel.port1.close();
           worker.terminate();
         }
-        resolve(graph);
+        resolve2(graph);
       } catch (error2) {
         cleanupAbort();
         channel.port1.close();
@@ -153852,12 +153853,12 @@ function canUseWorker() {
   return typeof Worker !== "undefined" && IS_BROWSER;
 }
 function compressViaWorker(schemaDeflated, kiwiData, thumbnailPNG, metaJSON, imageEntries, figKiwiVersion) {
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve2, reject) => {
     const worker = new Worker(new URL("./export-worker.ts", import.meta.url), {
       type: "module"
     });
     worker.onmessage = (e6) => {
-      resolve(e6.data);
+      resolve2(e6.data);
       worker.terminate();
     };
     worker.onerror = (err3) => {
@@ -154884,55 +154885,620 @@ function sceneGraphToDesignDocument(graph, options = {}) {
 var io = new IORegistry(BUILTIN_IO_FORMATS);
 var RASTER = /* @__PURE__ */ new Set(["png", "jpg", "webp"]);
 var FORMATS = /* @__PURE__ */ new Set([...RASTER, "svg", "pdf", "pptx", "jsx", "html", "fig"]);
+var ROOT = resolve(process.env.OPENPENCIL_MCP_ROOT ?? process.cwd());
+var docs = /* @__PURE__ */ new Map();
+var INDEX_VERSION = 3;
+var SHELL = /* @__PURE__ */ new Set(["SECTION", "FRAME", "COMPONENT", "INSTANCE", "GROUP"]);
+var GENERIC = /^(frame|container|rectangle|ellipse|vector|group|line|boolean)(\s+\d+.*)?$/i;
+function cachePath(path) {
+  const rel2 = relative(ROOT, path);
+  const key = rel2 && !rel2.startsWith("..") ? rel2 : basename(path);
+  return join(ROOT, ".cache", "pencil", `${key}.json`);
+}
+function pageList(entry) {
+  if (entry.index) return entry.index.pages;
+  return entry.graph.getPages();
+}
+function genericName(name) {
+  return !name?.trim() || GENERIC.test(name.trim());
+}
+function keepNode(node2) {
+  if (node2.type === "TEXT") return true;
+  return SHELL.has(node2.type) && !genericName(node2.name);
+}
+function clipText(node2) {
+  if (!node2.text?.length) return 0;
+  return node2.text.length > 200 ? `${node2.text.slice(0, 200)}\u2026` : node2.text;
+}
+function snapshot(graph, mtimeMs) {
+  populateAll(graph);
+  const pageIndex = new Map(graph.getPages().map((page, i2) => [page.name, i2]));
+  const kept = {};
+  const pageKids = Object.fromEntries(graph.getPages().map((page) => [page.name, []]));
+  const types2 = {};
+  const fonts = /* @__PURE__ */ new Set();
+  const pageCounts = {};
+  function walk(id, pageName2, parentId) {
+    const node2 = graph.getNode(id);
+    if (!node2) return;
+    if (keepNode(node2)) {
+      kept[id] = { node: node2, pageName: pageName2, parentId, childIds: [] };
+      if (parentId && kept[parentId]) kept[parentId].childIds.push(id);
+      else pageKids[pageName2].push(id);
+      for (const childId of node2.childIds) walk(childId, pageName2, id);
+      return;
+    }
+    for (const childId of node2.childIds) walk(childId, pageName2, parentId);
+  }
+  for (const page of graph.getPages()) {
+    for (const childId of page.childIds) walk(childId, page.name, 0);
+    pageCounts[page.name] = 0;
+  }
+  const nodes = {};
+  for (const [id, item] of Object.entries(kept)) {
+    const { node: node2, pageName: pageName2, parentId, childIds } = item;
+    types2[node2.type] = (types2[node2.type] ?? 0) + 1;
+    if (node2.fontFamily) fonts.add(node2.fontFamily);
+    pageCounts[pageName2] += 1;
+    nodes[id] = [
+      node2.name,
+      node2.type,
+      pageIndex.get(pageName2),
+      parentId || 0,
+      childIds,
+      Math.round(node2.x),
+      Math.round(node2.y),
+      Math.round(node2.width),
+      Math.round(node2.height),
+      clipText(node2),
+      node2.fontFamily || 0,
+      node2.fontSize || 0,
+      node2.fontWeight || 0
+    ];
+  }
+  const pages2 = graph.getPages().map((page) => ({
+    id: page.id,
+    name: page.name,
+    type: page.type,
+    childIds: pageKids[page.name]
+  }));
+  return {
+    v: INDEX_VERSION,
+    mtimeMs,
+    pages: pages2,
+    nodes,
+    info: {
+      pages: pages2.length,
+      totalNodes: Object.keys(nodes).length,
+      types: types2,
+      fonts: [...fonts].sort(),
+      pageCounts
+    }
+  };
+}
+function hydrate(index) {
+  if (index.byName) return index;
+  const pages2 = index.pages;
+  const live = {};
+  const names = /* @__PURE__ */ new Set();
+  const byName = /* @__PURE__ */ new Map();
+  const byPage = Object.fromEntries(pages2.map((page) => [page.name, []]));
+  for (const [id, row] of Object.entries(index.nodes)) {
+    const name = row[0];
+    const page = pages2[row[2]]?.name;
+    const childIds = row[4];
+    const node2 = {
+      id,
+      name,
+      type: row[1],
+      page,
+      parentId: row[3] || void 0,
+      childIds,
+      x: row[5],
+      y: row[6],
+      width: row[7],
+      height: row[8],
+      text: row[9] || null,
+      fontFamily: row[10] || void 0,
+      fontSize: row[11] || void 0,
+      fontWeight: row[12] || void 0,
+      children: childIds.length,
+      nameLower: name.toLowerCase()
+    };
+    live[id] = node2;
+    if (name) names.add(name);
+    const group = byName.get(node2.nameLower);
+    if (group) group.push(node2);
+    else byName.set(node2.nameLower, [node2]);
+    if (page) byPage[page].push(node2);
+  }
+  index.nodes = live;
+  index.names = names;
+  index.byName = byName;
+  index.byPage = byPage;
+  return index;
+}
+async function readIndex(path, mtimeMs) {
+  try {
+    const data = JSON.parse(await readFile(cachePath(path), "utf8"));
+    if (data.v !== INDEX_VERSION || data.mtimeMs !== mtimeMs || !data.nodes || !data.pages) {
+      return null;
+    }
+    return hydrate(data);
+  } catch {
+    return null;
+  }
+}
+async function writeIndex(path, index) {
+  const dest = cachePath(path);
+  await mkdir(dirname(dest), { recursive: true });
+  await writeFile(dest, JSON.stringify(index));
+}
+function entryFromIndex(path, mtimeMs, index) {
+  return {
+    path,
+    mtimeMs,
+    graph: void 0,
+    index,
+    whole: true,
+    pages: new Set(index.pages.map((page) => page.id)),
+    laid: /* @__PURE__ */ new Set(),
+    laidAll: false,
+    names: index.names
+  };
+}
 function dump(value) {
-  return JSON.stringify(value, null, 2);
+  return JSON.stringify(value);
 }
 function pageName(args) {
   return typeof args?.page === "string" ? args.page : void 0;
 }
-async function load(path) {
+async function readGraph(path) {
   const { graph } = await io.readDocument({
     name: path,
     data: new Uint8Array(await readFile(path))
   });
-  computeAllLayouts(graph);
   return graph;
 }
+function layout(entry, pageId) {
+  if (pageId) {
+    if (entry.laid.has(pageId)) return;
+    computeAllLayouts(entry.graph, pageId);
+    entry.laid.add(pageId);
+    return;
+  }
+  if (entry.laidAll) return;
+  computeAllLayouts(entry.graph);
+  entry.laidAll = true;
+  for (const page of entry.graph.getPages()) entry.laid.add(page.id);
+}
+async function load(path) {
+  const entry = await open(path);
+  await ensureGraph(entry);
+  return entry.graph;
+}
+async function warm(path) {
+  const entry = await open(path);
+  await ensureGraph(entry);
+}
+async function ensureGraph(entry, pageName2) {
+  if (!entry.graph) {
+    entry.loading ??= readGraph(entry.path).then((graph) => {
+      entry.graph = graph;
+      entry.whole = false;
+      entry.pages = /* @__PURE__ */ new Set();
+      entry.loading = void 0;
+      return graph;
+    });
+    await entry.loading;
+  }
+  if (!pageName2) {
+    touchAll(entry);
+    return entry.graph;
+  }
+  const page = entry.graph.getPages().find((item) => item.name === pageName2);
+  if (page) touchPage(entry, page.id);
+  else touchAll(entry);
+  return entry.graph;
+}
+async function open(path) {
+  const { mtimeMs } = await stat(path);
+  const cached = docs.get(path);
+  if (cached && cached.mtimeMs === mtimeMs) return cached;
+  const index = await readIndex(path, mtimeMs);
+  if (index) {
+    const entry2 = entryFromIndex(path, mtimeMs, index);
+    docs.set(path, entry2);
+    return entry2;
+  }
+  const graph = await readGraph(path);
+  const built = snapshot(graph, mtimeMs);
+  await writeIndex(path, built).catch(() => {
+  });
+  hydrate(built);
+  const entry = {
+    path,
+    mtimeMs,
+    graph,
+    index: built,
+    whole: true,
+    pages: new Set(graph.getPages().map((page) => page.id)),
+    laid: /* @__PURE__ */ new Set(),
+    laidAll: false,
+    names: built.names
+  };
+  docs.set(path, entry);
+  return entry;
+}
+function resolvePage(entry, hint) {
+  if (!hint) return void 0;
+  const pages2 = pageList(entry);
+  const exact = pages2.find((page) => page.name === hint);
+  if (exact) return exact.name;
+  const lower = hint.trim().toLowerCase();
+  const fuzzy = pages2.find((page) => page.name.toLowerCase().includes(lower));
+  if (fuzzy) return fuzzy.name;
+  const available = pages2.map((page) => `"${page.name}"`).join(", ");
+  throw new Error(`Page "${hint}" not found. Available pages: ${available || "none"}.`);
+}
+function nameMatches(names, pattern2) {
+  const needle = pattern2.toLowerCase();
+  for (const name of names) {
+    if (name.toLowerCase().includes(needle)) return true;
+  }
+  return false;
+}
+function suggestNames(names, pattern2, limit = 8) {
+  const parts = pattern2.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase().split(/\s+/).filter(Boolean);
+  const scored = [...names].map((name) => {
+    const lower = name.toLowerCase();
+    let score = 0;
+    for (const part of parts) {
+      if (lower.includes(part)) score += 1;
+    }
+    return { name, score };
+  }).filter((item) => item.score > 0).sort((a4, b5) => b5.score - a4.score || a4.name.localeCompare(b5.name));
+  return scored.slice(0, limit).map((item) => item.name);
+}
+function findHint(entry, args, meta) {
+  const lines = [];
+  if (meta.pageResolved && meta.pageResolved !== args.page) {
+    lines.push(`Page "${args.page}" resolved to "${meta.pageResolved}".`);
+  }
+  if (args.name && !nameMatches(entry.names, args.name)) {
+    const suggestions = suggestNames(entry.names, args.name);
+    if (suggestions.length > 0) {
+      lines.push(
+        `No layer name contains "${args.name}". Similar layers: ${suggestions.map((name) => `"${name}"`).join(", ")}.`
+      );
+    } else {
+      lines.push(`No layer name contains "${args.name}" in the loaded document index.`);
+    }
+  }
+  return lines.join("\n");
+}
+function findFromIndex(entry, args) {
+  const cap = args.limit ?? 100;
+  const needle = args.name?.toLowerCase();
+  const typeFilter = args.type?.toUpperCase();
+  const pageFilter = args.page;
+  const results = [];
+  const pool = needle ? namePool(entry.index.byName, needle) : pageFilter ? entry.index.byPage[pageFilter] ?? [] : Object.values(entry.index.nodes);
+  for (const node2 of pool) {
+    if (pageFilter && node2.page !== pageFilter) continue;
+    if (typeFilter && node2.type !== typeFilter) continue;
+    results.push({
+      id: node2.id,
+      name: node2.name,
+      type: node2.type,
+      width: node2.width,
+      height: node2.height
+    });
+    if (results.length >= cap) break;
+  }
+  return results;
+}
+function namePool(byName, needle) {
+  const exact = byName.get(needle);
+  if (exact) return exact;
+  const out = [];
+  for (const [name, group] of byName) {
+    if (name.includes(needle)) out.push(...group);
+  }
+  return out;
+}
+function styleOf(node2) {
+  return {
+    fills: node2.fills,
+    strokes: node2.strokes,
+    effects: node2.effects,
+    opacity: node2.opacity,
+    cornerRadius: node2.cornerRadius,
+    padding: {
+      top: node2.paddingTop,
+      right: node2.paddingRight,
+      bottom: node2.paddingBottom,
+      left: node2.paddingLeft
+    },
+    gap: node2.itemSpacing,
+    counterGap: node2.counterAxisSpacing,
+    layoutMode: node2.layoutMode,
+    layoutWrap: node2.layoutWrap,
+    layoutDirection: node2.layoutDirection,
+    primaryAxisAlign: node2.primaryAxisAlign,
+    counterAxisAlign: node2.counterAxisAlign,
+    clipsContent: node2.clipsContent,
+    blendMode: node2.blendMode,
+    fontFamily: node2.fontFamily,
+    fontSize: node2.fontSize,
+    fontWeight: node2.fontWeight,
+    lineHeight: node2.lineHeight,
+    letterSpacing: node2.letterSpacing,
+    textAlignHorizontal: node2.textAlignHorizontal
+  };
+}
+function inspectNode(graph, id) {
+  const node2 = graph.getNode(id);
+  if (!node2) return { error: `Node "${id}" not found` };
+  const parent = node2.parentId ? graph.getNode(node2.parentId) : void 0;
+  const boundVariables = {};
+  for (const [field, varId] of Object.entries(node2.boundVariables ?? {})) {
+    const variable = graph.variables.get(varId);
+    boundVariables[field] = variable?.name ?? varId;
+  }
+  return {
+    id: node2.id,
+    name: node2.name,
+    type: node2.type,
+    x: Math.round(node2.x),
+    y: Math.round(node2.y),
+    width: Math.round(node2.width),
+    height: Math.round(node2.height),
+    visible: node2.visible,
+    locked: node2.locked,
+    rotation: node2.rotation,
+    text: node2.text?.length ? node2.text.length > 200 ? `${node2.text.slice(0, 200)}\u2026` : node2.text : null,
+    parent: parent ? { id: parent.id, name: parent.name, type: parent.type } : null,
+    children: node2.childIds.length,
+    boundVariables,
+    ...styleOf(node2)
+  };
+}
+function treeFromIndex(entry, args) {
+  const pages2 = entry.index.pages;
+  const maxDepth = args.depth ?? Infinity;
+  const name = args.page ? resolvePage(entry, args.page) : pages2[0]?.name;
+  const page = pages2.find((item) => item.name === name);
+  if (!page) {
+    return {
+      error: `Page "${args.page}" not found. Available: ${pages2.map((item) => item.name).join(", ")}`
+    };
+  }
+  function build(id, depth) {
+    const node2 = entry.index.nodes[id];
+    if (!node2) return null;
+    const result = {
+      id: node2.id,
+      name: node2.name,
+      type: node2.type,
+      x: node2.x,
+      y: node2.y,
+      width: node2.width,
+      height: node2.height
+    };
+    if (node2.childIds.length > 0 && depth < maxDepth) {
+      result.children = node2.childIds.map((childId) => build(childId, depth + 1)).filter(Boolean);
+    }
+    return result;
+  }
+  return {
+    page: { id: page.id, name: page.name, type: page.type },
+    children: page.childIds.map((id) => build(id, 0)).filter(Boolean)
+  };
+}
+function pagesFromIndex(entry) {
+  return entry.index.pages.map((page) => ({
+    id: page.id,
+    name: page.name,
+    nodes: entry.index.info.pageCounts[page.name] ?? 0
+  }));
+}
+var SECTION_RANK = {
+  SECTION: 0,
+  FRAME: 1,
+  COMPONENT: 2,
+  INSTANCE: 3,
+  GROUP: 4,
+  TEXT: 9
+};
+function ancestry(entry, node2) {
+  const names = [node2.name];
+  let id = node2.parentId;
+  while (id) {
+    const parent = entry.index.nodes[id];
+    if (!parent) break;
+    names.unshift(parent.name);
+    id = parent.parentId;
+  }
+  names.unshift(node2.page);
+  return names;
+}
+function textsUnder(entry, id, out = []) {
+  const node2 = entry.index.nodes[id];
+  if (!node2) return out;
+  if (node2.type === "TEXT" && node2.text) {
+    out.push({
+      id: node2.id,
+      name: node2.name,
+      text: node2.text,
+      fontFamily: node2.fontFamily,
+      fontSize: node2.fontSize,
+      fontWeight: node2.fontWeight
+    });
+  }
+  for (const childId of node2.childIds) textsUnder(entry, childId, out);
+  return out;
+}
+function pickSection(entry, hits, within) {
+  let pool = hits.map((hit) => entry.index.nodes[hit.id]).filter(Boolean);
+  if (within) {
+    const needle = within.toLowerCase();
+    const scoped = pool.filter(
+      (node2) => ancestry(entry, node2).some((name) => name.toLowerCase().includes(needle))
+    );
+    if (scoped.length > 0) pool = scoped;
+  }
+  pool.sort((a4, b5) => (SECTION_RANK[a4.type] ?? 8) - (SECTION_RANK[b5.type] ?? 8));
+  return pool[0];
+}
+function describeSection(entry, node2, graph) {
+  const live = graph?.getNode(node2.id);
+  const texts = textsUnder(entry, node2.id).map((item) => {
+    const textNode = graph?.getNode(item.id);
+    return textNode ? { ...item, ...styleOf(textNode) } : item;
+  });
+  return {
+    page: node2.page,
+    id: node2.id,
+    name: node2.name,
+    type: node2.type,
+    box: { x: node2.x, y: node2.y, width: node2.width, height: node2.height },
+    path: ancestry(entry, node2),
+    style: live ? styleOf(live) : void 0,
+    texts,
+    children: node2.childIds.map((id) => entry.index.nodes[id]).filter(Boolean).map((child) => ({ id: child.id, name: child.name, type: child.type }))
+  };
+}
+async function rpcSection(path, args) {
+  const entry = await open(path);
+  const search = { name: args.name, page: args.page, limit: args.limit ?? 20 };
+  const meta = { pageResolved: void 0 };
+  if (search.page) {
+    meta.pageResolved = resolvePage(entry, search.page);
+    search.page = meta.pageResolved;
+  }
+  const hits = findFromIndex(entry, search);
+  const node2 = pickSection(entry, hits, args.within);
+  if (!node2) {
+    const hint = findHint(entry, args, meta);
+    return dump({ results: [], hint, searched: search });
+  }
+  await ensureGraph(entry, search.page || node2.page);
+  return dump(describeSection(entry, node2, entry.graph));
+}
 function populatePage(graph, pageId) {
-  if (populateLazyFigImportRoots(graph, [pageId])) computeAllLayouts(graph, pageId);
+  populateLazyFigImportRoots(graph, [pageId]);
 }
 function populateAll(graph) {
-  if (populateAllLazyFigImportRoots(graph)) computeAllLayouts(graph);
+  populateAllLazyFigImportRoots(graph);
 }
-function prepare2(graph, command, args) {
+function touchPage(entry, pageId) {
+  if (entry.whole || entry.pages.has(pageId)) return;
+  populatePage(entry.graph, pageId);
+  entry.pages.add(pageId);
+}
+function touchAll(entry) {
+  if (entry.whole) return;
+  populateAll(entry.graph);
+  entry.whole = true;
+  for (const page of entry.graph.getPages()) entry.pages.add(page.id);
+}
+function touchForCommand(entry, command, args) {
   if (command === "pages" || command === "variables") return;
   if (command === "tree") {
-    const pages2 = graph.getPages();
+    const pages2 = entry.graph.getPages();
     const name = pageName(args);
     const page = name ? pages2.find((item) => item.name === name) : pages2[0];
-    if (page) populatePage(graph, page.id);
+    if (page) touchPage(entry, page.id);
     return;
   }
-  if (command === "find" || command === "query") {
+  if (command === "find") return;
+  if (command === "query") {
     const name = pageName(args);
     if (name) {
-      const page = graph.getPages().find((item) => item.name === name);
-      if (page) populatePage(graph, page.id);
-      return;
+      const page = entry.graph.getPages().find((item) => item.name === name);
+      if (page) touchPage(entry, page.id);
     }
-    populateAll(graph);
     return;
   }
-  populateAll(graph);
+  if (command === "node") {
+    const id = args?.id;
+    if (typeof id === "string" && entry.graph.getNode(id)) return;
+    touchAll(entry);
+    return;
+  }
+  touchAll(entry);
 }
-async function rpc(path, command, args) {
-  const graph = await load(path);
-  prepare2(graph, command, args);
-  const result = await executeRPCCommand(graph, command, args);
+async function runRpc(entry, command, args) {
+  touchForCommand(entry, command, args);
+  const result = await executeRPCCommand(entry.graph, command, args);
   if (result && typeof result === "object" && "error" in result) {
     throw new Error(result.error);
   }
+  return result;
+}
+async function pagedRpc(entry, command, args) {
+  const cap = args.limit ?? 100;
+  const merged = [];
+  for (const page of entry.graph.getPages()) {
+    touchPage(entry, page.id);
+    const batch = await runRpc(entry, command, {
+      ...args,
+      page: page.name,
+      limit: cap - merged.length
+    });
+    if (!Array.isArray(batch)) return batch;
+    merged.push(...batch);
+    if (merged.length >= cap) break;
+  }
+  return merged.slice(0, cap);
+}
+async function rpcFind(path, args) {
+  const entry = await open(path);
+  const search = { ...args };
+  const meta = { pageResolved: void 0 };
+  if (search.page) {
+    meta.pageResolved = resolvePage(entry, search.page);
+    search.page = meta.pageResolved;
+  }
+  const result = findFromIndex(entry, search);
+  if (Array.isArray(result) && result.length === 0) {
+    const hint = findHint(entry, args, meta);
+    if (hint) return dump({ results: [], hint, searched: search });
+  }
   return dump(result);
+}
+async function rpc(path, command, args) {
+  if (command === "find") return rpcFind(path, args);
+  const entry = await open(path);
+  if (entry.index) {
+    if (command === "info") return dump(entry.index.info);
+    if (command === "pages") return dump(pagesFromIndex(entry));
+    if (command === "node") {
+      const page = entry.index.nodes[args.id]?.page;
+      await ensureGraph(entry, page);
+      let result2 = inspectNode(entry.graph, args.id);
+      if (result2.error) {
+        await ensureGraph(entry);
+        result2 = inspectNode(entry.graph, args.id);
+      }
+      if (result2.error) throw new Error(result2.error);
+      return dump(result2);
+    }
+    if (command === "tree") {
+      const result2 = treeFromIndex(entry, args);
+      if (result2.error) throw new Error(result2.error);
+      return dump(result2);
+    }
+  }
+  await ensureGraph(entry);
+  const paged = command === "query" && !pageName(args);
+  const result = paged ? await pagedRpc(entry, command, args) : await runRpc(entry, command, args);
+  return dump(result);
+}
+function prepare2(graph, command, args) {
+  const entry = { graph, whole: false, pages: /* @__PURE__ */ new Set() };
+  touchForCommand(entry, command, args);
 }
 function info(path) {
   return rpc(path, "info");
@@ -154964,6 +155530,9 @@ function find(path, args = {}) {
     limit: args.limit
   });
 }
+function section(path, args) {
+  return rpcSection(path, args);
+}
 function variables(path, args = {}) {
   return rpc(path, "variables", {
     collection: args.collection,
@@ -154973,18 +155542,24 @@ function variables(path, args = {}) {
 function fontStatus(path) {
   return rpc(path, "font-status");
 }
-function analyze(path, args) {
-  return rpc(path, `analyze_${args.kind}`, {
-    threshold: args.threshold,
-    similar: args.similar,
-    limit: args.limit,
-    minSize: args.minSize,
-    minCount: args.minCount,
-    scope: args.scope,
-    severity: args.severity,
-    categories: args.categories,
-    minRatio: args.minRatio
-  });
+async function analyze(path, args) {
+  const entry = await open(path);
+  await ensureGraph(entry);
+  touchAll(entry);
+  layout(entry);
+  return dump(
+    await executeRPCCommand(entry.graph, `analyze_${args.kind}`, {
+      threshold: args.threshold,
+      similar: args.similar,
+      limit: args.limit,
+      minSize: args.minSize,
+      minCount: args.minCount,
+      scope: args.scope,
+      severity: args.severity,
+      categories: args.categories,
+      minRatio: args.minRatio
+    })
+  );
 }
 function formats() {
   return dump(
@@ -155000,14 +155575,18 @@ function formats() {
   );
 }
 async function lint(path, args = {}) {
-  const graph = await load(path);
-  populateAll(graph);
-  return dump(createLinter({ preset: args.preset ?? "recommended" }).lintGraph(graph));
+  const entry = await open(path);
+  await ensureGraph(entry);
+  touchAll(entry);
+  layout(entry);
+  return dump(createLinter({ preset: args.preset ?? "recommended" }).lintGraph(entry.graph));
 }
 async function convert2(path, output) {
-  const graph = await load(path);
-  populateAll(graph);
-  const result = await io.writeDocument("fig", graph);
+  const entry = await open(path);
+  await ensureGraph(entry);
+  touchAll(entry);
+  layout(entry);
+  const result = await io.writeDocument("fig", entry.graph);
   await writeFile(output, result.data);
   return dump({ output, bytes: result.data.byteLength });
 }
@@ -155044,8 +155623,9 @@ async function exportDocument(path, args) {
   if (!FORMATS.has(format)) {
     throw new Error(`Invalid format "${args.format}". Use ${[...FORMATS].join(", ")}.`);
   }
-  const graph = await load(path);
-  const pages2 = graph.getPages();
+  const entry = await open(path);
+  await ensureGraph(entry);
+  const pages2 = entry.graph.getPages();
   const page = args.page ? pages2.find((item) => item.name === args.page) : pages2[0];
   if (!page) {
     const available = pages2.map((item) => `"${item.name}"`).join(", ");
@@ -155054,21 +155634,30 @@ async function exportDocument(path, args) {
     );
   }
   const whole = (format === "fig" || format === "pptx") && !args.page;
-  if (whole) populateAll(graph);
-  else populatePage(graph, page.id);
+  if (whole) {
+    touchAll(entry);
+    layout(entry);
+  } else {
+    touchPage(entry, page.id);
+    layout(entry, page.id);
+  }
   const target = { scope: "page", pageId: page.id };
-  const warning = await fontWarning(graph, whole ? pages2.map((item) => item.id) : [page.id], format);
+  const warning = await fontWarning(
+    entry.graph,
+    whole ? pages2.map((item) => item.id) : [page.id],
+    format
+  );
   await mkdir(dirname(args.output), { recursive: true });
   if (format === "html") {
-    return dump({ ...await writeHtml(graph, target, args.output), warning });
+    return dump({ ...await writeHtml(entry.graph, target, args.output), warning });
   }
   let options;
   if (format === "jsx") options = { format: "openpencil" };
   else if (format === "fig") options = { renderThumbnail: true };
   else if (RASTER.has(format)) options = { format: format.toUpperCase(), scale: args.scale ?? 1 };
-  const result = whole && format === "fig" ? await io.writeDocument(format, graph, options) : await io.exportContent(
+  const result = whole && format === "fig" ? await io.writeDocument(format, entry.graph, options) : await io.exportContent(
     format,
-    { graph, target: whole ? { scope: "document" } : target },
+    { graph: entry.graph, target: whole ? { scope: "document" } : target },
     options
   );
   await writeFile(args.output, result.data);
@@ -155091,8 +155680,10 @@ export {
   populatePage,
   prepare2 as prepare,
   query,
+  section,
   tree,
-  variables
+  variables,
+  warm
 };
 /*! Bundled license information:
 

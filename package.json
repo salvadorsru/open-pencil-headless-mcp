@@ -16,7 +16,8 @@
   ],
   "scripts": {
     "bundle": "node scripts/bundle.mjs",
-    "test": "node scripts/smoke.mjs"
+    "test": "node scripts/smoke.mjs",
+    "bench:search": "node scripts/bench-search.mjs"
   },
   "engines": {
     "node": ">=20"
