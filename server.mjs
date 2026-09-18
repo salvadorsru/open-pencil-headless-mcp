@@ -5,7 +5,9 @@ import { McpServer } from '@modelcontextprotocol/server'
 import { StdioServerTransport } from '@modelcontextprotocol/server/stdio'
 import { z } from 'zod'
 
-process.stderr.write('open-pencil-headless: starting\n')
+import { version } from './package.json' with { type: 'json' }
+
+process.stderr.write(`open-pencil-headless ${version}: starting\n`)
 
 const {
   analyze,
@@ -22,7 +24,7 @@ const {
   tree,
   variables,
 } = await import('./dist/engine.mjs')
-process.stderr.write('open-pencil-headless: engine loaded\n')
+process.stderr.write(`open-pencil-headless ${version}: engine loaded\n`)
 
 const root = resolve(process.env.OPENPENCIL_MCP_ROOT ?? process.cwd())
 const design = z.string().min(1).describe('Path relative to the Pencil root')
@@ -66,7 +68,7 @@ function register(name, description, schema, run, readOnly = true) {
 
 const server = new McpServer({
   name: 'open-pencil-headless',
-  version: '0.1.0',
+  version,
 })
 
 register(
@@ -245,9 +247,9 @@ try {
   await server.connect(transport)
 } catch (error) {
   process.stderr.write(
-    `open-pencil-headless: connect failed — ${error instanceof Error ? error.message : error}\n`,
+    `open-pencil-headless ${version}: connect failed — ${error instanceof Error ? error.message : error}\n`,
   )
   process.exit(1)
 }
 
-process.stderr.write(`open-pencil-headless: ready (root ${root})\n`)
+process.stderr.write(`open-pencil-headless ${version}: ready (root ${root})\n`)

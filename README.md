@@ -31,25 +31,25 @@ npx -y github:salvadorsru/open-pencil-headless-mcp
 `-y` skips the install prompt. The first run clones this repo into the `npx`
 cache and installs the npm dependencies listed above. Later runs reuse that
 cache. The process speaks MCP over stdin/stdout; leave it to the client. Progress
-goes to stderr (`starting`, `engine loaded`, `ready`) so the client log
-shows when the server is up. In Cursor: MCP server → Output / Logs.
+goes to stderr (`starting`, `engine loaded`, `ready`, each with the package
+version) so the client log shows when the server is up. In Cursor: MCP
+server → Output / Logs.
 
 Set `OPENPENCIL_MCP_ROOT` to the folder that holds your `.fig` / `.pen` files
 (the client config below does that). Without it, the working directory of the
 `npx` process is used.
 
-Pin a commit or tag if you do not want `main`:
+Pin a commit or tag if you do not want floating `main`:
 
 ```sh
 npx -y github:salvadorsru/open-pencil-headless-mcp#main
 ```
 
-If `npx` keeps an old install that still calls the CLI (`spawn openpencil ENOENT`),
-clear the cache and try again:
+To pick up a newly pushed `main` without touching the disk by hand, add
+`--prefer-online` so npm checks GitHub before reusing a stale install:
 
 ```sh
-npx clear-npx-cache
-# or: rm -rf ~/.npm/_npx
+npx -y --prefer-online github:salvadorsru/open-pencil-headless-mcp#main
 ```
 
 ### Cursor
@@ -62,7 +62,7 @@ restart the MCP server:
   "mcpServers": {
     "open-pencil": {
       "command": "npx",
-      "args": ["-y", "github:salvadorsru/open-pencil-headless-mcp"],
+      "args": ["-y", "--prefer-online", "github:salvadorsru/open-pencil-headless-mcp#main"],
       "env": {
         "OPENPENCIL_MCP_ROOT": "/absolute/path/to/your/designs"
       }
@@ -81,7 +81,7 @@ Any stdio client uses the same command. Example for Claude Desktop
   "mcpServers": {
     "open-pencil": {
       "command": "npx",
-      "args": ["-y", "github:salvadorsru/open-pencil-headless-mcp"],
+      "args": ["-y", "--prefer-online", "github:salvadorsru/open-pencil-headless-mcp#main"],
       "env": {
         "OPENPENCIL_MCP_ROOT": "/absolute/path/to/your/designs"
       }
