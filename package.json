@@ -1,7 +1,7 @@
 {
   "name": "open-pencil-headless-mcp",
   "version": "0.1.0",
-  "description": "Headless MCP server for inspecting and exporting OpenPencil .fig and .pen files via the OpenPencil CLI.",
+  "description": "Headless MCP server for inspecting and exporting OpenPencil .fig and .pen files via the OpenPencil engine.",
   "type": "module",
   "license": "MIT",
   "author": "salvadorsru",
@@ -10,9 +10,14 @@
   },
   "files": [
     "server.mjs",
+    "dist",
     "README.md",
     "LICENSE"
   ],
+  "scripts": {
+    "bundle": "node scripts/bundle.mjs",
+    "test": "node scripts/smoke.mjs"
+  },
   "engines": {
     "node": ">=20"
   },
@@ -28,6 +33,11 @@
   ],
   "dependencies": {
     "@modelcontextprotocol/server": "^2.0.0",
+    "canvaskit-wasm": "^0.41.1",
+    "css-tree": "^3.2.1",
     "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0"
   }
 }

@@ -1,15 +1,18 @@
 # OpenPencil headless MCP
 
-MCP server that inspects and exports OpenPencil `.fig` and `.pen` files through the
-[OpenPencil CLI](https://github.com/open-pencil/open-pencil), without opening OpenPencil Desktop.
+MCP server that inspects and exports OpenPencil `.fig` and `.pen` files through
+the [OpenPencil](https://github.com/salvadorsru/open-pencil) engine, without
+opening OpenPencil Desktop or installing the CLI.
 
-It is a small wrapper around these CLI commands: `info`, `tree`, `query`, `lint`, `export`, and `convert`.
-All file paths are confined to `OPENPENCIL_MCP_ROOT`.
+The engine from the fork is bundled in `dist/engine.mjs`. File paths are confined
+to `OPENPENCIL_MCP_ROOT`.
 
 ## Requirements
 
 - Node.js 20+
-- OpenPencil CLI on your `PATH` (`bun add -g @open-pencil/cli`), or `OPENPENCIL_CLI` pointing at the binary
+
+Raster export (`png`, `jpg`, `webp`, `pdf`) uses `canvaskit-wasm` from npm. `npx`
+installs it automatically; no login required.
 
 ## Cursor
 
@@ -29,7 +32,9 @@ Add this to `~/.cursor/mcp.json` (or the project `.cursor/mcp.json`):
 }
 ```
 
-`OPENPENCIL_MCP_ROOT` is the only directory the tools can read or write. Point it at the folder that contains your `.fig` / `.pen` files, then pass paths relative to that root (for example `woments/woments.fig`).
+`OPENPENCIL_MCP_ROOT` is the only directory the tools can read or write. Point it
+at the folder that contains your `.fig` / `.pen` files, then pass paths relative
+to that root (for example `woments/woments.fig`).
 
 To use a local clone instead of `npx`:
 
@@ -40,8 +45,7 @@ To use a local clone instead of `npx`:
       "command": "node",
       "args": ["/absolute/path/to/open-pencil-headless-mcp/server.mjs"],
       "env": {
-        "OPENPENCIL_MCP_ROOT": "/absolute/path/to/your/designs",
-        "OPENPENCIL_CLI": "openpencil"
+        "OPENPENCIL_MCP_ROOT": "/absolute/path/to/your/designs"
       }
     }
   }
@@ -53,7 +57,7 @@ To use a local clone instead of `npx`:
 | Variable | Default | Purpose |
 | --- | --- | --- |
 | `OPENPENCIL_MCP_ROOT` | process working directory | Allowed design directory |
-| `OPENPENCIL_CLI` | `openpencil` | CLI binary or path |
+| `OPENPENCIL_SRC` | `../open-pencil` | Fork checkout used only when regenerating the bundle |
 
 ## Tools
 
@@ -64,4 +68,17 @@ To use a local clone instead of `npx`:
 - `pencil_export` — `png`, `jpg`, `webp`, `svg`, `pdf`, `pptx`, `jsx`, `html`, `fig`
 - `pencil_convert` — convert to `.fig`
 
-This is not the official [`@open-pencil/mcp`](https://www.npmjs.com/package/@open-pencil/mcp) package. That server exposes many more tools, including live editor control. This one only runs the CLI in headless mode against a sandboxed folder.
+## Regenerate the engine
+
+After changing the local OpenPencil fork:
+
+```sh
+cd ../open-pencil   # optional: bun run build:packages
+cd ../open-pencil-headless-mcp
+bun run bundle
+bun run test
+```
+
+This is not the official [`@open-pencil/mcp`](https://www.npmjs.com/package/@open-pencil/mcp)
+package. That server talks to the desktop app. This one runs the bundled engine
+against a sandboxed folder.

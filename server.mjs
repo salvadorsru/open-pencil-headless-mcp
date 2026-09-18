@@ -1,29 +1,25 @@
 #!/usr/bin/env node
 
-import { spawn } from 'node:child_process'
 import { relative, resolve } from 'node:path'
 import { McpServer } from '@modelcontextprotocol/server'
 import { StdioServerTransport } from '@modelcontextprotocol/server/stdio'
 import { z } from 'zod'
 
+import { convert, exportDocument, info, lint, query, tree } from './dist/engine.mjs'
+
 const root = resolve(process.env.OPENPENCIL_MCP_ROOT ?? process.cwd())
-const cli = process.env.OPENPENCIL_CLI ?? 'openpencil'
+const design = z.string().min(1).describe('Path relative to the Pencil root')
 
 function pathize(value, label = 'file') {
   const path = resolve(root, value)
-  const outside = relative(root, path).startsWith('..')
-
-  if (outside) {
+  if (relative(root, path).startsWith('..')) {
     throw new Error(`${label} must be inside ${root}`)
   }
-
   return path
 }
 
 function output(value) {
-  return {
-    content: [{ type: 'text', text: value }],
-  }
+  return { content: [{ type: 'text', text: value }] }
 }
 
 function fail(error) {
@@ -33,49 +29,17 @@ function fail(error) {
   }
 }
 
-function run(command, args) {
-  return new Promise((resolveRun, reject) => {
-    const child = spawn(cli, [command, ...args], {
-      cwd: root,
-      stdio: ['ignore', 'pipe', 'pipe'],
-    })
-    let stdout = ''
-    let stderr = ''
-
-    child.stdout.on('data', (chunk) => {
-      stdout += chunk
-    })
-    child.stderr.on('data', (chunk) => {
-      stderr += chunk
-    })
-    child.on('error', reject)
-    child.on('close', (code) => {
-      if (code === 0) {
-        resolveRun(stdout.trim())
-        return
-      }
-
-      reject(new Error(stderr.trim() || stdout.trim() || `openpencil exited with code ${code}`))
-    })
-  })
-}
-
-function file(value) {
-  return pathize(value)
-}
-
-function register(server, name, description, schema, command, args) {
+function register(name, description, schema, run, readOnly = true) {
   server.registerTool(
     name,
     {
       description,
       inputSchema: schema,
-      annotations: { readOnlyHint: command !== 'convert', destructiveHint: false },
+      annotations: { readOnlyHint: readOnly, destructiveHint: false },
     },
     async (input) => {
       try {
-        const values = args(input)
-        return output(await run(command, values))
+        return output(await run(input))
       } catch (error) {
         return fail(error)
       }
@@ -83,24 +47,19 @@ function register(server, name, description, schema, command, args) {
   )
 }
 
-const design = z.string().min(1).describe('Path relative to the Pencil root')
-
 const server = new McpServer({
   name: 'open-pencil-headless',
   version: '0.1.0',
 })
 
 register(
-  server,
   'pencil_info',
   'Get information about an OpenPencil document without opening the app.',
   { file: design },
-  'info',
-  (input) => [file(input.file), '--json'],
+  (input) => info(pathize(input.file)),
 )
 
 register(
-  server,
   'pencil_tree',
   'Get the node tree of an OpenPencil document without opening the app.',
   {
@@ -108,17 +67,10 @@ register(
     page: z.string().optional().describe('Page name'),
     depth: z.number().int().positive().optional().describe('Maximum depth'),
   },
-  'tree',
-  (input) => [
-    file(input.file),
-    ...(input.page ? ['--page', input.page] : []),
-    ...(input.depth ? ['--depth', String(input.depth)] : []),
-    '--json',
-  ],
+  (input) => tree(pathize(input.file), { page: input.page, depth: input.depth }),
 )
 
 register(
-  server,
   'pencil_query',
   'Find nodes with XPath in an OpenPencil document.',
   {
@@ -127,30 +79,25 @@ register(
     page: z.string().optional().describe('Page name'),
     limit: z.number().int().positive().max(10000).optional().describe('Maximum results'),
   },
-  'query',
-  (input) => [
-    file(input.file),
-    input.selector,
-    ...(input.page ? ['--page', input.page] : []),
-    ...(input.limit ? ['--limit', String(input.limit)] : []),
-    '--json',
-  ],
+  (input) =>
+    query(pathize(input.file), {
+      selector: input.selector,
+      page: input.page,
+      limit: input.limit,
+    }),
 )
 
 register(
-  server,
   'pencil_lint',
   'Lint an OpenPencil document with quality and accessibility rules.',
   {
     file: design,
     preset: z.enum(['recommended', 'strict', 'accessibility']).optional(),
   },
-  'lint',
-  (input) => [file(input.file), '--preset', input.preset ?? 'recommended', '--json'],
+  (input) => lint(pathize(input.file), { preset: input.preset }),
 )
 
 register(
-  server,
   'pencil_export',
   'Export an OpenPencil document without opening the app. The destination must be inside the root.',
   {
@@ -160,28 +107,24 @@ register(
     page: z.string().optional().describe('Page name'),
     scale: z.number().positive().optional().describe('Export scale'),
   },
-  'export',
-  (input) => [
-    file(input.file),
-    '--format',
-    input.format,
-    '--output',
-    pathize(input.output, 'output'),
-    ...(input.page ? ['--page', input.page] : []),
-    ...(input.scale ? ['--scale', String(input.scale)] : []),
-  ],
+  (input) =>
+    exportDocument(pathize(input.file), {
+      format: input.format,
+      output: pathize(input.output, 'output'),
+      page: input.page,
+      scale: input.scale,
+    }),
 )
 
 register(
-  server,
   'pencil_convert',
   'Convert an OpenPencil document to .fig without opening the app.',
   {
     file: design,
     output: z.string().min(1).describe('Relative output path inside the root'),
   },
-  'convert',
-  (input) => [file(input.file), '--output', pathize(input.output, 'output'), '--format', 'fig'],
+  (input) => convert(pathize(input.file), pathize(input.output, 'output')),
+  false,
 )
 
 const transport = new StdioServerTransport()
