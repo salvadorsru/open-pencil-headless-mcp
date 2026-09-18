@@ -22,7 +22,23 @@ time `npx` runs. Nothing else is required on `PATH`.
 
 ## Install with npx
 
-There is no global CLI to install. The MCP client starts the server with `npx`:
+From the project that holds (or points at) your `.fig` files:
+
+```sh
+npx -y --prefer-online github:salvadorsru/open-pencil-headless-mcp#main -- install
+```
+
+`--` keeps `install` as an argument to this package. That writes `.cursor/mcp.json`
+in the current directory with the standard `npx` command. Point the sandbox at
+another folder with `--root`:
+
+```sh
+npx -y --prefer-online github:salvadorsru/open-pencil-headless-mcp#main -- install --root /absolute/path/to/your/designs
+```
+
+Restart the MCP server in Cursor. Each repo gets its own config and its own root.
+
+The MCP client starts the server with `npx`:
 
 ```sh
 npx -y github:salvadorsru/open-pencil-headless-mcp

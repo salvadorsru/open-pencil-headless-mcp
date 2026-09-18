@@ -10,6 +10,13 @@ import pkg from './package.json' with { type: 'json' }
 
 const { version } = pkg
 
+const argv = process.argv.slice(2).filter((arg) => arg !== '--')
+if (argv[0] === 'install') {
+  const { install } = await import('./install.mjs')
+  await install(argv.slice(1))
+  process.exit(0)
+}
+
 process.stderr.write(`open-pencil-headless ${version}: starting\n`)
 
 const {

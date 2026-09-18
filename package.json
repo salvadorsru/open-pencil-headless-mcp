@@ -1,6 +1,6 @@
 {
   "name": "open-pencil-headless-mcp",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Headless MCP server for inspecting and exporting OpenPencil .fig and .pen files via the OpenPencil engine.",
   "type": "module",
   "license": "MIT",
@@ -10,13 +10,14 @@
   },
   "files": [
     "server.mjs",
+    "install.mjs",
     "dist",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
     "bundle": "node scripts/bundle.mjs",
-    "test": "node scripts/smoke.mjs",
+    "test": "node scripts/check-install.mjs && node scripts/smoke.mjs",
     "bench:search": "node scripts/bench-search.mjs"
   },
   "engines": {
