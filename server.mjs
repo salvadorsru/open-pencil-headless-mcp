@@ -7,7 +7,21 @@ import { z } from 'zod'
 
 process.stderr.write('open-pencil-headless: starting\n')
 
-const { convert, exportDocument, info, lint, query, tree } = await import('./dist/engine.mjs')
+const {
+  analyze,
+  convert,
+  exportDocument,
+  find,
+  fontStatus,
+  formats,
+  info,
+  lint,
+  node,
+  pages,
+  query,
+  tree,
+  variables,
+} = await import('./dist/engine.mjs')
 process.stderr.write('open-pencil-headless: engine loaded\n')
 
 const root = resolve(process.env.OPENPENCIL_MCP_ROOT ?? process.cwd())
@@ -87,6 +101,102 @@ register(
       selector: input.selector,
       page: input.page,
       limit: input.limit,
+    }),
+)
+
+register(
+  'pencil_pages',
+  'List pages in an OpenPencil document.',
+  { file: design },
+  (input) => pages(pathize(input.file)),
+)
+
+register(
+  'pencil_node',
+  'Get detailed properties of a node by ID, including text, fills, and typography.',
+  {
+    file: design,
+    id: z.string().min(1).describe('Node ID'),
+  },
+  (input) => node(pathize(input.file), { id: input.id }),
+)
+
+register(
+  'pencil_find',
+  'Find nodes by name or type.',
+  {
+    file: design,
+    name: z.string().optional().describe('Partial name, case-insensitive'),
+    type: z.string().optional().describe('Node type, e.g. FRAME, TEXT, COMPONENT'),
+    page: z.string().optional().describe('Page name'),
+    limit: z.number().int().positive().max(10000).optional().describe('Maximum results'),
+  },
+  (input) =>
+    find(pathize(input.file), {
+      name: input.name,
+      type: input.type,
+      page: input.page,
+      limit: input.limit,
+    }),
+)
+
+register(
+  'pencil_variables',
+  'List design variables and collections.',
+  {
+    file: design,
+    collection: z.string().optional().describe('Filter by collection name'),
+    type: z.string().optional().describe('COLOR, FLOAT, STRING, or BOOLEAN'),
+  },
+  (input) =>
+    variables(pathize(input.file), {
+      collection: input.collection,
+      type: input.type,
+    }),
+)
+
+register(
+  'pencil_fonts',
+  'Report fonts used by a document and whether they resolve.',
+  { file: design },
+  (input) => fontStatus(pathize(input.file)),
+)
+
+register(
+  'pencil_formats',
+  'List supported document and export formats.',
+  {},
+  () => formats(),
+)
+
+register(
+  'pencil_analyze',
+  'Analyze design tokens and patterns (colors, typography, spacing, clusters, overlaps).',
+  {
+    file: design,
+    kind: z.enum(['colors', 'typography', 'spacing', 'clusters', 'overlaps']),
+    threshold: z.number().optional().describe('Color distance threshold (colors)'),
+    similar: z.boolean().optional().describe('Cluster similar colors'),
+    limit: z.number().int().positive().optional(),
+    minSize: z.number().positive().optional().describe('Minimum node size (clusters)'),
+    minCount: z.number().int().positive().optional().describe('Minimum repeats (clusters)'),
+    scope: z.string().optional().describe('Overlap scope'),
+    severity: z.string().optional().describe('Overlap severity'),
+    categories: z.string().optional().describe('Overlap categories'),
+    minRatio: z.number().min(0).max(1).optional().describe('Overlap min ratio'),
+  },
+  (input) =>
+    analyze(pathize(input.file), {
+      kind: input.kind,
+      threshold: input.threshold,
+      similar: input.similar,
+      limit: input.limit,
+      minSize: input.minSize,
+      minCount: input.minCount,
+      scope: input.scope,
+      severity: input.severity,
+      categories: input.categories,
+      minRatio: input.minRatio,
     }),
 )
 

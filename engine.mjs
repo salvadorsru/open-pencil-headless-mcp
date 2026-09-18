@@ -89,6 +89,64 @@ export function query(path, args) {
   })
 }
 
+export function pages(path) {
+  return rpc(path, 'pages')
+}
+
+export function node(path, args) {
+  return rpc(path, 'node', { id: args.id })
+}
+
+export function find(path, args = {}) {
+  return rpc(path, 'find', {
+    name: args.name,
+    type: args.type,
+    page: args.page,
+    limit: args.limit,
+  })
+}
+
+export function variables(path, args = {}) {
+  return rpc(path, 'variables', {
+    collection: args.collection,
+    type: args.type,
+  })
+}
+
+export function fontStatus(path) {
+  return rpc(path, 'font-status')
+}
+
+export function analyze(path, args) {
+  return rpc(path, `analyze_${args.kind}`, {
+    threshold: args.threshold,
+    similar: args.similar,
+    limit: args.limit,
+    minSize: args.minSize,
+    minCount: args.minCount,
+    scope: args.scope,
+    severity: args.severity,
+    categories: args.categories,
+    minRatio: args.minRatio,
+  })
+}
+
+export function formats() {
+  return dump(
+    io.listFormats().map((format) => ({
+      id: format.id,
+      label: format.label,
+      role: format.role,
+      category: format.category,
+      extensions: format.extensions,
+      mimeTypes: format.mimeTypes,
+      support: Object.entries(format.support)
+        .filter(([, enabled]) => enabled)
+        .map(([name]) => name),
+    })),
+  )
+}
+
 export async function lint(path, args = {}) {
   const graph = await load(path)
   populateAll(graph)
@@ -103,7 +161,7 @@ export async function convert(path, output) {
   return dump({ output, bytes: result.data.byteLength })
 }
 
-async function fonts(graph, roots, format) {
+async function fontWarning(graph, roots, format) {
   if (!['png', 'jpg', 'webp', 'pdf'].includes(format)) return
   const status = await prepareGraphFonts(graph, roots)
   if (status.faithful) return
@@ -157,7 +215,7 @@ export async function exportDocument(path, args) {
   else populatePage(graph, page.id)
 
   const target = { scope: 'page', pageId: page.id }
-  const warning = await fonts(graph, whole ? pages.map((item) => item.id) : [page.id], format)
+  const warning = await fontWarning(graph, whole ? pages.map((item) => item.id) : [page.id], format)
   await mkdir(dirname(args.output), { recursive: true })
 
   if (format === 'html') {

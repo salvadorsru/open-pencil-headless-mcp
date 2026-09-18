@@ -123,11 +123,22 @@ Absolute paths or `../` that escape the root are rejected.
 
 ## Tools
 
-Every tool takes `file`. Responses are JSON text.
+Responses are JSON text. File-scoped tools take `file` relative to the root.
+
+These match the headless CLI. App-only commands (`documents`, `selection`,
+`eval`) are omitted: they need OpenPencil Desktop.
 
 ### `pencil_info`
 
 Document metadata: page count, node counts by type, fonts.
+
+```
+file: project/file.fig
+```
+
+### `pencil_pages`
+
+Page list with node counts.
 
 ```
 file: project/file.fig
@@ -148,7 +159,8 @@ Omitting `page` uses the first page. Large `.fig` files can be heavy without
 
 ### `pencil_query`
 
-XPath over the document. Optional `page` and `limit` (max 10000).
+XPath over the document. Optional `page` and `limit` (max 10000). Returns id,
+name, type, and box. Use `pencil_node` for text and styles.
 
 ```
 file: project/file.fig
@@ -166,6 +178,49 @@ Useful selectors:
 ```
 
 Layer names must match the document exactly.
+
+### `pencil_find`
+
+Find nodes by partial `name` and/or `type` (`FRAME`, `TEXT`, `COMPONENT`, …).
+Optional `page` and `limit`.
+
+```
+file: project/file.fig
+name: Hero
+type: FRAME
+```
+
+### `pencil_node`
+
+Full properties for one node: text, fills, strokes, font, layout, parent.
+
+```
+file: project/file.fig
+id: 12:34
+```
+
+### `pencil_variables`
+
+Design variables and collections. Optional `collection` and `type`
+(`COLOR`, `FLOAT`, `STRING`, `BOOLEAN`).
+
+### `pencil_fonts`
+
+Fonts used in the document and whether they resolve.
+
+### `pencil_analyze`
+
+`kind`: `colors`, `typography`, `spacing`, `clusters`, `overlaps`.
+
+```
+file: project/file.fig
+kind: colors
+similar: true
+```
+
+### `pencil_formats`
+
+Supported read / write / export formats. No `file`.
 
 ### `pencil_lint`
 

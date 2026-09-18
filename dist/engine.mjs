@@ -5214,14 +5214,14 @@ function computeBounds(items) {
   for (const item of items) includeRect(bounds, item);
   return boundsToRect(bounds);
 }
-function polygonVertices(node) {
-  const cx = node.width / 2;
-  const cy = node.height / 2;
-  const rx = node.width / 2;
-  const ry = node.height / 2;
-  const pointCount = Math.max(3, node.pointCount);
-  const isStar = node.type === "STAR";
-  const innerRatio = isStar ? node.starInnerRadius : 1;
+function polygonVertices(node2) {
+  const cx = node2.width / 2;
+  const cy = node2.height / 2;
+  const rx = node2.width / 2;
+  const ry = node2.height / 2;
+  const pointCount = Math.max(3, node2.pointCount);
+  const isStar = node2.type === "STAR";
+  const innerRatio = isStar ? node2.starInnerRadius : 1;
   const totalPoints = isStar ? pointCount * 2 : pointCount;
   const angleOffset = -Math.PI / 2;
   return Array.from({ length: totalPoints }, (_3, index) => {
@@ -5328,24 +5328,24 @@ function geometryBlobBounds(paths) {
   }
   return bounds.minX === Infinity ? null : boundsToRect(bounds);
 }
-function transformLocalPoint(node, point) {
-  let x3 = node.flipX ? node.width - point.x : point.x;
-  let y3 = node.flipY ? node.height - point.y : point.y;
-  const rotation = node.rotation ?? 0;
+function transformLocalPoint(node2, point) {
+  let x3 = node2.flipX ? node2.width - point.x : point.x;
+  let y3 = node2.flipY ? node2.height - point.y : point.y;
+  const rotation = node2.rotation ?? 0;
   if (rotation !== 0) {
-    const rotated2 = rotatePoint(x3, y3, node.width / 2, node.height / 2, degToRad2(rotation));
+    const rotated2 = rotatePoint(x3, y3, node2.width / 2, node2.height / 2, degToRad2(rotation));
     x3 = rotated2.x;
     y3 = rotated2.y;
   }
   return { x: x3, y: y3 };
 }
-function transformedLocalBounds(node, local, abs2) {
+function transformedLocalBounds(node2, local, abs2) {
   const points = [
     { x: local.x, y: local.y },
     { x: local.x + local.width, y: local.y },
     { x: local.x + local.width, y: local.y + local.height },
     { x: local.x, y: local.y + local.height }
-  ].map((point) => transformLocalPoint(node, point));
+  ].map((point) => transformLocalPoint(node2, point));
   return {
     minX: abs2.x + Math.min(...points.map((point) => point.x)),
     minY: abs2.y + Math.min(...points.map((point) => point.y)),
@@ -5353,52 +5353,52 @@ function transformedLocalBounds(node, local, abs2) {
     maxY: abs2.y + Math.max(...points.map((point) => point.y))
   };
 }
-function nodeVisualBounds(node, getAbsolutePosition2) {
-  const abs2 = getAbsolutePosition2(node.id);
-  const base = computeVisualBounds([node], getAbsolutePosition2);
+function nodeVisualBounds(node2, getAbsolutePosition2) {
+  const abs2 = getAbsolutePosition2(node2.id);
+  const base = computeVisualBounds([node2], getAbsolutePosition2);
   let bounds = {
     minX: base.x,
     minY: base.y,
     maxX: base.x + base.width,
     maxY: base.y + base.height
   };
-  const hasNonInsideStroke = node.strokes?.some(
+  const hasNonInsideStroke = node2.strokes?.some(
     (stroke) => stroke.visible && stroke.align !== "INSIDE"
   );
   const localGeometry = geometryBlobBounds([
-    ...node.fillGeometry ?? [],
-    ...hasNonInsideStroke ? node.strokeGeometry ?? [] : []
+    ...node2.fillGeometry ?? [],
+    ...hasNonInsideStroke ? node2.strokeGeometry ?? [] : []
   ]);
   if (localGeometry) {
-    bounds = unionVisualBounds(bounds, transformedLocalBounds(node, localGeometry, abs2)) ?? bounds;
+    bounds = unionVisualBounds(bounds, transformedLocalBounds(node2, localGeometry, abs2)) ?? bounds;
   }
-  if (node.type === "TEXT" && node.textDecoration && node.textDecoration !== "NONE") {
-    const fontSize = node.fontSize ?? 14;
-    const underlineOffset = node.textUnderlineOffset ?? fontSize * 0.18;
-    const thickness = node.textDecorationThickness ?? Math.max(1, fontSize / 16);
+  if (node2.type === "TEXT" && node2.textDecoration && node2.textDecoration !== "NONE") {
+    const fontSize = node2.fontSize ?? 14;
+    const underlineOffset = node2.textUnderlineOffset ?? fontSize * 0.18;
+    const thickness = node2.textDecorationThickness ?? Math.max(1, fontSize / 16);
     bounds.maxY += underlineOffset + thickness + fontSize * 0.35;
   }
   return bounds;
 }
 function collectDescendantVisualBounds(nodeId, getNode, getAbsolutePosition2, clip = null) {
-  const node = getNode(nodeId);
-  if (!node?.visible) return null;
-  const own = nodeVisualBounds(node, getAbsolutePosition2);
+  const node2 = getNode(nodeId);
+  if (!node2?.visible) return null;
+  const own = nodeVisualBounds(node2, getAbsolutePosition2);
   let bounds = clip ? intersectVisualBounds(own, clip) : own;
-  const isClippableContainer = node.type === "FRAME" || node.type === "COMPONENT" || node.type === "INSTANCE";
+  const isClippableContainer = node2.type === "FRAME" || node2.type === "COMPONENT" || node2.type === "INSTANCE";
   let childClip = clip;
-  if (isClippableContainer && node.clipsContent) {
-    const abs2 = getAbsolutePosition2(node.id);
+  if (isClippableContainer && node2.clipsContent) {
+    const abs2 = getAbsolutePosition2(node2.id);
     const nodeClip = {
       minX: abs2.x,
       minY: abs2.y,
-      maxX: abs2.x + node.width,
-      maxY: abs2.y + node.height
+      maxX: abs2.x + node2.width,
+      maxY: abs2.y + node2.height
     };
     childClip = childClip ? intersectVisualBounds(childClip, nodeClip) : nodeClip;
     if (!childClip) return bounds;
   }
-  for (const childId of node.childIds ?? []) {
+  for (const childId of node2.childIds ?? []) {
     bounds = unionVisualBounds(
       bounds,
       collectDescendantVisualBounds(childId, getNode, getAbsolutePosition2, childClip)
@@ -6245,16 +6245,16 @@ function parseOkHCLPayload(value) {
     return null;
   }
 }
-function getNodeOkHCLPayloads(node) {
-  return node.pluginData.filter((entry) => entry.pluginId === "open-pencil" && entry.key === OKHCL_PLUGIN_KEY).map((entry) => parseOkHCLPayload(entry.value)).filter((payload) => payload !== null);
+function getNodeOkHCLPayloads(node2) {
+  return node2.pluginData.filter((entry) => entry.pluginId === "open-pencil" && entry.key === OKHCL_PLUGIN_KEY).map((entry) => parseOkHCLPayload(entry.value)).filter((payload) => payload !== null);
 }
-function getFillOkHCL(node, index) {
-  return getNodeOkHCLPayloads(node).find(
+function getFillOkHCL(node2, index) {
+  return getNodeOkHCLPayloads(node2).find(
     (payload) => payload.kind === "fill" && payload.index === index
   ) ?? null;
 }
-function getStrokeOkHCL(node, index) {
-  return getNodeOkHCLPayloads(node).find(
+function getStrokeOkHCL(node2, index) {
+  return getNodeOkHCLPayloads(node2).find(
     (payload) => payload.kind === "stroke" && payload.index === index
   ) ?? null;
 }
@@ -6363,13 +6363,13 @@ function resolveRGBAForPreview(color, options) {
     clipped: false
   };
 }
-function resolveNodeFillColor(fill2, fillIndex, node, options) {
-  const okhcl = getFillOkHCL(node, fillIndex)?.color;
+function resolveNodeFillColor(fill2, fillIndex, node2, options) {
+  const okhcl = getFillOkHCL(node2, fillIndex)?.color;
   if (okhcl) return resolveOkHCLForPreview(okhcl, options);
   return resolveRGBAForPreview(fill2.color, options);
 }
-function resolveNodeStrokeColor(stroke, strokeIndex, node, options) {
-  const okhcl = getStrokeOkHCL(node, strokeIndex)?.color;
+function resolveNodeStrokeColor(stroke, strokeIndex, node2, options) {
+  const okhcl = getStrokeOkHCL(node2, strokeIndex)?.color;
   if (okhcl) return resolveOkHCLForPreview(okhcl, options);
   return resolveRGBAForPreview(stroke.color, options);
 }
@@ -6431,6 +6431,7 @@ function colorDistance(c1, c22) {
 var toRGB3, euclideanRGB255;
 var init_color = __esm({
   "packages/core/src/color/index.ts"() {
+    "use strict";
     init_management();
     init_okhcl();
     init_src();
@@ -6532,9 +6533,9 @@ var init_matrix = __esm({
 });
 
 // packages/scene-graph/src/coordinate.ts
-function getWorldMatrix(node, graph) {
+function getWorldMatrix(node2, graph) {
   const chain = [];
-  let current = node;
+  let current = node2;
   while (current) {
     chain.unshift(current);
     if (!current.parentId) break;
@@ -6547,17 +6548,17 @@ function getWorldMatrix(node, graph) {
   }
   return matrix;
 }
-function getAxisAlignedWorldBounds(node, graph) {
-  const matrix = getWorldMatrix(node, graph);
+function getAxisAlignedWorldBounds(node2, graph) {
+  const matrix = getWorldMatrix(node2, graph);
   const points = matrix_default.mapPoints(matrix, [
     0,
     0,
-    node.width,
+    node2.width,
     0,
-    node.width,
-    node.height,
+    node2.width,
+    node2.height,
     0,
-    node.height
+    node2.height
   ]);
   const xs = [points[0], points[2], points[4], points[6]];
   const ys = [points[1], points[3], points[5], points[7]];
@@ -6567,28 +6568,28 @@ function getAxisAlignedWorldBounds(node, graph) {
   const maxY = Math.max(...ys);
   return { x: minX, y: minY, width: maxX - minX, height: maxY - minY };
 }
-function getAbsolutePosition(node, graph) {
-  const matrix = getWorldMatrix(node, graph);
+function getAbsolutePosition(node2, graph) {
+  const matrix = getWorldMatrix(node2, graph);
   const p6 = matrix_default.mapPoints(matrix, [0, 0]);
   return {
     x: p6[0],
     y: p6[1]
   };
 }
-function getAbsolutePositionFull(node, graph) {
-  const matrix = getWorldMatrix(node, graph);
+function getAbsolutePositionFull(node2, graph) {
+  const matrix = getWorldMatrix(node2, graph);
   const origin = matrix_default.mapPoints(matrix, [0, 0]);
   const x3 = origin[0];
   const y3 = origin[1];
   const pts = matrix_default.mapPoints(matrix, [
     0,
     0,
-    node.width,
+    node2.width,
     0,
-    node.width,
-    node.height,
+    node2.width,
+    node2.height,
     0,
-    node.height
+    node2.height
   ]);
   const [x1, y1, x22, y22, x32, y32, x4, y4] = pts;
   const minX = Math.min(x1, x22, x32, x4);
@@ -6603,7 +6604,7 @@ function getAbsolutePositionFull(node, graph) {
     angle = -angle;
   }
   const rotation = angle * (180 / Math.PI);
-  const center2 = matrix_default.mapPoints(matrix, [node.width / 2, node.height / 2]);
+  const center2 = matrix_default.mapPoints(matrix, [node2.width / 2, node2.height / 2]);
   const centerX = center2[0];
   const centerY = center2[1];
   return {
@@ -6747,9 +6748,9 @@ function sortInstanceChildren(graph, instParent, instParentId, compChildOrder, o
   const ranks = /* @__PURE__ */ new Map();
   for (let index = 0; index < instParent.childIds.length; index++) {
     const childId = instParent.childIds[index];
-    const node = graph.nodes.get(childId);
-    const source = node ? getInstanceOverride(overrides, instParentId, node.id, "sourceComponentId") : void 0;
-    const mapped = typeof source === "string" ? source : node?.componentId;
+    const node2 = graph.nodes.get(childId);
+    const source = node2 ? getInstanceOverride(overrides, instParentId, node2.id, "sourceComponentId") : void 0;
+    const mapped = typeof source === "string" ? source : node2?.componentId;
     const componentIndex = mapped ? orderMap.get(mapped) : void 0;
     ranks.set(childId, componentIndex ?? compChildOrder.length + index);
   }
@@ -6879,27 +6880,27 @@ function syncInstances(graph, componentId) {
   }
 }
 function detachInstance(graph, instanceId) {
-  const node = graph.nodes.get(instanceId);
-  if (node?.type !== "INSTANCE") return;
-  if (node.componentId) {
-    graph.instanceIndex.get(node.componentId)?.delete(instanceId);
+  const node2 = graph.nodes.get(instanceId);
+  if (node2?.type !== "INSTANCE") return;
+  if (node2.componentId) {
+    graph.instanceIndex.get(node2.componentId)?.delete(instanceId);
   }
-  node.type = "FRAME";
-  node.componentId = null;
-  clearInstanceOverrides(node.instanceOverrides);
+  node2.type = "FRAME";
+  node2.componentId = null;
+  clearInstanceOverrides(node2.instanceOverrides);
 }
 function getMainComponent(graph, instanceId) {
-  const node = graph.nodes.get(instanceId);
-  if (!node?.componentId) return void 0;
-  return graph.nodes.get(node.componentId);
+  const node2 = graph.nodes.get(instanceId);
+  if (!node2?.componentId) return void 0;
+  return graph.nodes.get(node2.componentId);
 }
 function getInstances(graph, componentId) {
   const ids = graph.instanceIndex.get(componentId);
   if (!ids) return [];
   const instances = [];
   for (const id of ids) {
-    const node = graph.nodes.get(id);
-    if (node) instances.push(node);
+    const node2 = graph.nodes.get(id);
+    if (node2) instances.push(node2);
   }
   return instances;
 }
@@ -7046,10 +7047,10 @@ function start(nodeSize, grid, size) {
   if (alignment(grid) === "MAX") return nodeSize - span - offset;
   return offset;
 }
-function layoutGuideSections(node, grid) {
+function layoutGuideSections(node2, grid) {
   if (grid.visible === false || pattern(grid) === "GRID") return [];
   const axis = pattern(grid) === "ROWS" ? "y" : "x";
-  const nodeSize = axis === "x" ? node.width : node.height;
+  const nodeSize = axis === "x" ? node2.width : node2.height;
   const size = sectionSize(nodeSize, grid);
   const count = normalizedCount(grid);
   if (count <= 0 || size <= 0) return [];
@@ -7126,24 +7127,24 @@ var init_font_style = __esm({
 });
 
 // packages/scene-graph/src/shared-styles.ts
-function styleDetachmentChanges(node, changes) {
+function styleDetachmentChanges(node2, changes) {
   const next = { ...changes };
-  if ("fills" in changes && !("fillStyleId" in changes) && node.fillStyleId) {
+  if ("fills" in changes && !("fillStyleId" in changes) && node2.fillStyleId) {
     next.fillStyleId = null;
   }
-  if ("strokes" in changes && !("strokeStyleId" in changes) && node.strokeStyleId) {
+  if ("strokes" in changes && !("strokeStyleId" in changes) && node2.strokeStyleId) {
     next.strokeStyleId = null;
   }
-  if ("effects" in changes && !("effectStyleId" in changes) && node.effectStyleId) {
+  if ("effects" in changes && !("effectStyleId" in changes) && node2.effectStyleId) {
     next.effectStyleId = null;
   }
-  if ("layoutGrids" in changes && !("gridStyleId" in changes) && node.gridStyleId) {
+  if ("layoutGrids" in changes && !("gridStyleId" in changes) && node2.gridStyleId) {
     next.gridStyleId = null;
   }
   const changesTextStyle = Object.keys(changes).some(
     (key) => TEXT_STYLE_KEYS.has(key)
   );
-  if (changesTextStyle && !("textStyleId" in changes) && node.textStyleId) {
+  if (changesTextStyle && !("textStyleId" in changes) && node2.textStyleId) {
     next.textStyleId = null;
   }
   return next;
@@ -7227,17 +7228,17 @@ var init_object = __esm({
 });
 
 // packages/scene-graph/src/bindings.ts
-function removeStaleBindings(node, field, changes) {
-  const length = node[field].length;
-  const stale = Object.keys(node.boundVariables).filter((key) => {
+function removeStaleBindings(node2, field, changes) {
+  const length = node2[field].length;
+  const stale = Object.keys(node2.boundVariables).filter((key) => {
     if (key === field) return true;
     if (!key.startsWith(`${field}/`)) return false;
     const index = Number.parseInt(key.split("/")[1] ?? "", 10);
     return Number.isNaN(index) || index < 0 || index >= length;
   });
   if (stale.length === 0) return;
-  node.boundVariables = omit(node.boundVariables, stale);
-  changes.boundVariables = { ...node.boundVariables };
+  node2.boundVariables = omit(node2.boundVariables, stale);
+  changes.boundVariables = { ...node2.boundVariables };
 }
 var init_bindings = __esm({
   "packages/scene-graph/src/bindings.ts"() {
@@ -7267,27 +7268,27 @@ var init_events = __esm({
 });
 
 // packages/scene-graph/src/hit-test.ts
-function hasVisibleFillOrStroke(node) {
-  return node.fills.some((f5) => f5.visible) || node.strokes.some((s2) => s2.visible);
+function hasVisibleFillOrStroke(node2) {
+  return node2.fills.some((f5) => f5.visible) || node2.strokes.some((s2) => s2.visible);
 }
-function hasTransformedAncestor(node, graph, cache) {
-  const cached = cache.get(node.id);
+function hasTransformedAncestor(node2, graph, cache) {
+  const cached = cache.get(node2.id);
   if (cached !== void 0) return cached;
-  const parent = node.parentId ? graph.getNode(node.parentId) : void 0;
-  const transformed = node.rotation !== 0 || node.flipX || node.flipY || (parent ? hasTransformedAncestor(parent, graph, cache) : false);
-  cache.set(node.id, transformed);
+  const parent = node2.parentId ? graph.getNode(node2.parentId) : void 0;
+  const transformed = node2.rotation !== 0 || node2.flipX || node2.flipY || (parent ? hasTransformedAncestor(parent, graph, cache) : false);
+  cache.set(node2.id, transformed);
   return transformed;
 }
-function containsPoint(px2, py, node, graph, transformCache) {
-  if (!hasTransformedAncestor(node, graph, transformCache)) {
-    const absolute = graph.getAbsolutePosition(node.id);
-    return px2 >= absolute.x && px2 <= absolute.x + node.width && py >= absolute.y && py <= absolute.y + node.height;
+function containsPoint(px2, py, node2, graph, transformCache) {
+  if (!hasTransformedAncestor(node2, graph, transformCache)) {
+    const absolute = graph.getAbsolutePosition(node2.id);
+    return px2 >= absolute.x && px2 <= absolute.x + node2.width && py >= absolute.y && py <= absolute.y + node2.height;
   }
-  const m2 = getWorldMatrix(node, graph);
+  const m2 = getWorldMatrix(node2, graph);
   const inv = matrix_default.invert(m2);
   if (!inv) return false;
   const [localX, localY] = matrix_default.mapPoints(inv, [px2, py]);
-  return localX >= 0 && localX <= node.width && localY >= 0 && localY <= node.height;
+  return localX >= 0 && localX <= node2.width && localY >= 0 && localY <= node2.height;
 }
 function hitTestOpaqueContainer(graph, px2, py, child, childId, deep, transformCache) {
   if (!containsPoint(px2, py, child, graph, transformCache)) return null;
@@ -7384,13 +7385,13 @@ var init_hit_test = __esm({
 });
 
 // packages/scene-graph/src/text-picture.ts
-function invalidateTextCaches(node, changes) {
+function invalidateTextCaches(node2, changes) {
   const keys = Object.keys(changes);
-  if (node.textPicture && keys.some((key) => TEXT_PICTURE_KEYS.has(key))) node.textPicture = null;
+  if (node2.textPicture && keys.some((key) => TEXT_PICTURE_KEYS.has(key))) node2.textPicture = null;
   const glyphsInvalidated = keys.some((key) => GLYPH_AFFECTING_KEYS.has(key));
-  if (node.derivedTextGlyphs && glyphsInvalidated && !changes.derivedTextGlyphs) {
-    node.derivedTextGlyphs = null;
-    node.textPathData = null;
+  if (node2.derivedTextGlyphs && glyphsInvalidated && !changes.derivedTextGlyphs) {
+    node2.derivedTextGlyphs = null;
+    node2.textPathData = null;
   }
 }
 var TEXT_PICTURE_KEYS, GLYPH_AFFECTING_KEYS;
@@ -7432,20 +7433,20 @@ var init_text_picture = __esm({
 
 // packages/scene-graph/src/preview.ts
 function updateNodePreview(graph, id, changes) {
-  const node = graph.nodes.get(id);
-  if (!node) return null;
+  const node2 = graph.nodes.get(id);
+  if (!node2) return null;
   changes = Object.fromEntries(
     Object.entries(changes).filter(([, value]) => value !== void 0)
   );
-  if (Object.keys(changes).every((key) => node[key] === changes[key])) {
+  if (Object.keys(changes).every((key) => node2[key] === changes[key])) {
     return null;
   }
   const affectsLayout = Object.keys(changes).some((key) => LAYOUT_AFFECTING_KEYS.has(key));
   if (affectsLayout) graph.clearAbsPosCache();
-  if (node.type === "TEXT") invalidateTextCaches(node, changes);
+  if (node2.type === "TEXT") invalidateTextCaches(node2, changes);
   const normalizedChanges = changes.vectorNetwork ? { ...changes, vectorNetwork: normalizeVectorNetwork(changes.vectorNetwork) } : changes;
   graph.positionPreviewVersion++;
-  Object.assign(node, normalizedChanges);
+  Object.assign(node2, normalizedChanges);
   return normalizedChanges;
 }
 var LAYOUT_AFFECTING_KEYS;
@@ -7494,11 +7495,11 @@ var init_preview = __esm({
 });
 
 // packages/scene-graph/src/source-metadata.ts
-function markSourceFieldsEdited(node, changeKeys) {
+function markSourceFieldsEdited(node2, changeKeys) {
   if (changeKeys.length === 0) return;
-  const editedFields = new Set(node.source.editedFields);
+  const editedFields = new Set(node2.source.editedFields);
   for (const key of changeKeys) editedFields.add(key);
-  node.source.editedFields = [...editedFields];
+  node2.source.editedFields = [...editedFields];
 }
 var init_source_metadata = __esm({
   "packages/scene-graph/src/source-metadata.ts"() {
@@ -7522,12 +7523,12 @@ function removeVariable(graph, id) {
   if (collection) {
     collection.variableIds = collection.variableIds.filter((vid) => vid !== id);
   }
-  for (const node of graph.nodes.values()) {
-    const hadBinding = Object.values(node.boundVariables).includes(id);
+  for (const node2 of graph.nodes.values()) {
+    const hadBinding = Object.values(node2.boundVariables).includes(id);
     if (!hadBinding) continue;
-    node.boundVariables = omitBy(node.boundVariables, (varId) => varId === id);
-    graph.emitter.emit("node:updated", node.id, { boundVariables: { ...node.boundVariables } });
-    markBoundVariablesOverrideOnInstance(graph, node.id);
+    node2.boundVariables = omitBy(node2.boundVariables, (varId) => varId === id);
+    graph.emitter.emit("node:updated", node2.id, { boundVariables: { ...node2.boundVariables } });
+    markBoundVariablesOverrideOnInstance(graph, node2.id);
   }
 }
 function addCollection(graph, collection) {
@@ -7594,11 +7595,11 @@ function getActiveModeId(graph, collectionId) {
   return collection?.defaultModeId ?? "";
 }
 function getNodeVariableModeId(graph, nodeId, collectionId) {
-  let node = graph.nodes.get(nodeId);
-  while (node) {
-    const modeId = node.variableModes[collectionId];
+  let node2 = graph.nodes.get(nodeId);
+  while (node2) {
+    const modeId = node2.variableModes[collectionId];
     if (modeId) return modeId;
-    node = node.parentId ? graph.nodes.get(node.parentId) : void 0;
+    node2 = node2.parentId ? graph.nodes.get(node2.parentId) : void 0;
   }
   return getActiveModeId(graph, collectionId);
 }
@@ -7697,8 +7698,8 @@ function getVariablesByType(graph, type) {
   return [...graph.variables.values()].filter((v3) => v3.type === type);
 }
 function bindVariable(graph, nodeId, field, variableId) {
-  const node = graph.nodes.get(nodeId);
-  if (!node) return;
+  const node2 = graph.nodes.get(nodeId);
+  if (!node2) return;
   const variable = graph.variables.get(variableId);
   if (!variable) {
     throw new Error(`Variable "${variableId}" not found`);
@@ -7710,13 +7711,13 @@ function bindVariable(graph, nodeId, field, variableId) {
     }
     const arrayKey = colorFieldMatch[1];
     const index = Number.parseInt(colorFieldMatch[2], 10);
-    const currentLength = node[arrayKey]?.length ?? 0;
+    const currentLength = node2[arrayKey]?.length ?? 0;
     if (index >= currentLength) {
       throw new Error(`Index ${index} out of range for ${arrayKey} (length ${currentLength})`);
     }
     const topLevelKey = colorFieldMatch[1];
-    if (topLevelKey in node.boundVariables) {
-      node.boundVariables = omit(node.boundVariables, [topLevelKey]);
+    if (topLevelKey in node2.boundVariables) {
+      node2.boundVariables = omit(node2.boundVariables, [topLevelKey]);
     }
   }
   if (SCALAR_BINDING_FIELDS.has(field) && variable.type !== "FLOAT") {
@@ -7732,26 +7733,26 @@ function bindVariable(graph, nodeId, field, variableId) {
   if (!isKnownField) {
     throw new Error(`Unknown binding field "${field}"`);
   }
-  node.boundVariables = { ...node.boundVariables, [field]: variableId };
-  graph.emitter.emit("node:updated", nodeId, { boundVariables: { ...node.boundVariables } });
+  node2.boundVariables = { ...node2.boundVariables, [field]: variableId };
+  graph.emitter.emit("node:updated", nodeId, { boundVariables: { ...node2.boundVariables } });
   markBoundVariablesOverrideOnInstance(graph, nodeId);
 }
 function unbindVariable(graph, nodeId, field) {
-  const node = graph.nodes.get(nodeId);
-  if (!node) return;
-  if (!(field in node.boundVariables)) return;
-  node.boundVariables = omit(node.boundVariables, [field]);
-  graph.emitter.emit("node:updated", nodeId, { boundVariables: { ...node.boundVariables } });
+  const node2 = graph.nodes.get(nodeId);
+  if (!node2) return;
+  if (!(field in node2.boundVariables)) return;
+  node2.boundVariables = omit(node2.boundVariables, [field]);
+  graph.emitter.emit("node:updated", nodeId, { boundVariables: { ...node2.boundVariables } });
   markBoundVariablesOverrideOnInstance(graph, nodeId);
 }
 function markBoundVariablesOverrideOnInstance(graph, nodeId) {
-  const node = graph.nodes.get(nodeId);
-  if (!node) return;
-  if (node.type === "INSTANCE") {
-    setInstanceOverride(node.instanceOverrides, node.id, node.id, "boundVariables");
+  const node2 = graph.nodes.get(nodeId);
+  if (!node2) return;
+  if (node2.type === "INSTANCE") {
+    setInstanceOverride(node2.instanceOverrides, node2.id, node2.id, "boundVariables");
     return;
   }
-  let current = node;
+  let current = node2;
   while (current.parentId) {
     const parent = graph.nodes.get(current.parentId);
     if (!parent) break;
@@ -7913,10 +7914,10 @@ var init_src2 = __esm({
         return bindNodeEvents(this.emitter, handlers);
       }
       countDescendants(nodeId) {
-        const node = this.nodes.get(nodeId);
-        if (!node) return 0;
+        const node2 = this.nodes.get(nodeId);
+        if (!node2) return 0;
         let count = 0;
-        const stack = [...node.childIds];
+        const stack = [...node2.childIds];
         while (stack.length > 0) {
           const id = stack.pop();
           if (id === void 0) break;
@@ -7997,13 +7998,13 @@ var init_src2 = __esm({
         unbindVariable(this, nodeId, field);
       }
       getChildren(id) {
-        const node = this.nodes.get(id);
-        if (!node) return [];
-        return node.childIds.map((cid) => this.nodes.get(cid)).filter((n2) => n2 !== void 0);
+        const node2 = this.nodes.get(id);
+        if (!node2) return [];
+        return node2.childIds.map((cid) => this.nodes.get(cid)).filter((n2) => n2 !== void 0);
       }
       isContainer(id) {
-        const node = this.nodes.get(id);
-        return node ? CONTAINER_TYPES.has(node.type) : false;
+        const node2 = this.nodes.get(id);
+        return node2 ? CONTAINER_TYPES.has(node2.type) : false;
       }
       isDescendant(childId, ancestorId) {
         let current = this.nodes.get(childId);
@@ -8019,20 +8020,20 @@ var init_src2 = __esm({
       getAbsolutePosition(id) {
         const cached = this.absPosCache.get(id);
         if (cached) return cached;
-        const node = this.getNode(id);
-        if (!node) return { x: 0, y: 0 };
-        const result = getAbsolutePosition(node, this);
+        const node2 = this.getNode(id);
+        if (!node2) return { x: 0, y: 0 };
+        const result = getAbsolutePosition(node2, this);
         this.absPosCache.set(id, result);
         return result;
       }
       getAbsoluteBounds(id) {
         const pos = this.getAbsolutePosition(id);
-        const node = this.nodes.get(id);
+        const node2 = this.nodes.get(id);
         return {
           x: pos.x,
           y: pos.y,
-          width: node?.width ?? 0,
-          height: node?.height ?? 0
+          width: node2?.width ?? 0,
+          height: node2?.height ?? 0
         };
       }
       generateNodeId() {
@@ -8040,31 +8041,31 @@ var init_src2 = __esm({
         while (this.nodes.has(id)) id = generateId();
         return id;
       }
-      registerNode(node, parentId) {
-        node.parentId = parentId;
-        this.nodes.set(node.id, node);
-        if (node.type === "INSTANCE" && node.componentId) {
-          let set = this.instanceIndex.get(node.componentId);
+      registerNode(node2, parentId) {
+        node2.parentId = parentId;
+        this.nodes.set(node2.id, node2);
+        if (node2.type === "INSTANCE" && node2.componentId) {
+          let set = this.instanceIndex.get(node2.componentId);
           if (!set) {
             set = /* @__PURE__ */ new Set();
-            this.instanceIndex.set(node.componentId, set);
+            this.instanceIndex.set(node2.componentId, set);
           }
-          set.add(node.id);
+          set.add(node2.id);
         }
-        this.emitter.emit("node:created", node);
-        return node;
+        this.emitter.emit("node:created", node2);
+        return node2;
       }
       createNode(type, parentId, overrides = {}) {
-        const node = createDefaultNode(() => this.generateNodeId(), type, overrides);
-        this.nodes.get(parentId)?.childIds.push(node.id);
-        return this.registerNode(node, parentId);
+        const node2 = createDefaultNode(() => this.generateNodeId(), type, overrides);
+        this.nodes.get(parentId)?.childIds.push(node2.id);
+        return this.registerNode(node2, parentId);
       }
       createNodeWithId(id, type, parentId, overrides = {}) {
-        const node = createDefaultNode(() => id, type, overrides);
-        node.id = id;
+        const node2 = createDefaultNode(() => id, type, overrides);
+        node2.id = id;
         const parent = parentId ? this.nodes.get(parentId) : void 0;
         if (parent && !parent.childIds.includes(id)) parent.childIds.push(id);
-        return this.registerNode(node, parentId);
+        return this.registerNode(node2, parentId);
       }
       static TEXT_PICTURE_KEYS = TEXT_PICTURE_KEYS;
       static GLYPH_AFFECTING_KEYS = GLYPH_AFFECTING_KEYS;
@@ -8145,26 +8146,26 @@ var init_src2 = __esm({
           this.updateNodePreview(id, changes);
           return;
         }
-        const node = this.nodes.get(id);
-        if (!node) return;
-        changes = stripUndefinedProps(styleDetachmentChanges(node, stripUndefinedProps(changes)));
-        this.applyNodeChanges(node, changes);
+        const node2 = this.nodes.get(id);
+        if (!node2) return;
+        changes = stripUndefinedProps(styleDetachmentChanges(node2, stripUndefinedProps(changes)));
+        this.applyNodeChanges(node2, changes);
       }
       /** Replay captured properties without dropping explicit undefined values or absent keys. */
       restoreNodeProperties(id, changes, absent) {
-        const node = this.nodes.get(id);
-        if (node) this.applyNodeChanges(node, changes, absent);
+        const node2 = this.nodes.get(id);
+        if (node2) this.applyNodeChanges(node2, changes, absent);
       }
-      applyNodeChanges(node, changes, absent = []) {
-        const { id } = node;
+      applyNodeChanges(node2, changes, absent = []) {
+        const { id } = node2;
         if (absent.length) {
           changes = { ...changes };
           for (const key of absent) Reflect.set(changes, key, void 0);
         }
         const affectsLayout = Object.keys(changes).some((k4) => _SceneGraph.LAYOUT_AFFECTING_KEYS.has(k4));
         if (affectsLayout) this.absPosCache.clear();
-        if (node.type === "INSTANCE" && "componentId" in changes && changes.componentId !== node.componentId) {
-          if (node.componentId) this.instanceIndex.get(node.componentId)?.delete(id);
+        if (node2.type === "INSTANCE" && "componentId" in changes && changes.componentId !== node2.componentId) {
+          if (node2.componentId) this.instanceIndex.get(node2.componentId)?.delete(id);
           if (changes.componentId) {
             let set = this.instanceIndex.get(changes.componentId);
             if (!set) {
@@ -8174,28 +8175,28 @@ var init_src2 = __esm({
             set.add(id);
           }
         }
-        if (node.type === "TEXT") invalidateTextCaches(node, changes);
+        if (node2.type === "TEXT") invalidateTextCaches(node2, changes);
         if (this.sourceMetadataPreservationDepth === 0) {
-          markSourceFieldsEdited(node, Object.keys(changes));
+          markSourceFieldsEdited(node2, Object.keys(changes));
         }
         if (changes.vectorNetwork) {
           changes = { ...changes, vectorNetwork: normalizeVectorNetwork(changes.vectorNetwork) };
         }
-        Object.assign(node, changes);
-        if (changes.fills) removeStaleBindings(node, "fills", changes);
-        if (changes.strokes) removeStaleBindings(node, "strokes", changes);
-        for (const key of absent) Reflect.deleteProperty(node, key);
+        Object.assign(node2, changes);
+        if (changes.fills) removeStaleBindings(node2, "fills", changes);
+        if (changes.strokes) removeStaleBindings(node2, "strokes", changes);
+        for (const key of absent) Reflect.deleteProperty(node2, key);
         this.emitter.emit("node:updated", id, changes);
       }
       reparentNode(nodeId, newParentId) {
-        const node = this.nodes.get(nodeId);
-        if (!node || nodeId === this.rootId) return;
+        const node2 = this.nodes.get(nodeId);
+        if (!node2 || nodeId === this.rootId) return;
         if (this.isDescendant(newParentId, nodeId)) return;
-        const oldParent = node.parentId ? this.nodes.get(node.parentId) : void 0;
+        const oldParent = node2.parentId ? this.nodes.get(node2.parentId) : void 0;
         const newParent = this.nodes.get(newParentId);
         if (!newParent) return;
-        if (node.parentId === newParentId) return;
-        const oldParentId = node.parentId;
+        if (node2.parentId === newParentId) return;
+        const oldParentId = node2.parentId;
         this.absPosCache.clear();
         const absPos = this.getAbsolutePosition(nodeId);
         const newParentNode = this.nodes.get(newParentId);
@@ -8203,16 +8204,16 @@ var init_src2 = __esm({
         if (oldParent) {
           oldParent.childIds = oldParent.childIds.filter((cid) => cid !== nodeId);
         }
-        node.parentId = newParentId;
+        node2.parentId = newParentId;
         newParent.childIds.push(nodeId);
-        node.x = absPos.x - newParentAbs.x;
-        node.y = absPos.y - newParentAbs.y;
+        node2.x = absPos.x - newParentAbs.x;
+        node2.y = absPos.y - newParentAbs.y;
         this.emitter.emit("node:reparented", nodeId, oldParentId, newParentId);
       }
       reorderChild(nodeId, parentId, insertIndex) {
-        const node = this.nodes.get(nodeId);
-        if (!node) return;
-        const previousParentId = node.parentId;
+        const node2 = this.nodes.get(nodeId);
+        if (!node2) return;
+        const previousParentId = node2.parentId;
         const oldParent = previousParentId ? this.nodes.get(previousParentId) : void 0;
         const newParent = this.nodes.get(parentId);
         if (!newParent || this.isDescendant(parentId, nodeId)) return;
@@ -8222,44 +8223,44 @@ var init_src2 = __esm({
         let idx = insertIndex;
         if (oldParent === newParent && idx > (!oldParent.childIds.includes(nodeId) ? idx : oldParent.childIds.length)) {
         }
-        node.parentId = parentId;
+        node2.parentId = parentId;
         this.absPosCache.clear();
         idx = Math.min(idx, newParent.childIds.length);
         newParent.childIds.splice(idx, 0, nodeId);
         this.emitter.emit("node:reordered", nodeId, parentId, idx, previousParentId);
       }
       insertChildAt(childId, parentId, index) {
-        const node = this.getNode(childId);
+        const node2 = this.getNode(childId);
         const newParent = this.getNode(parentId);
-        if (!node || !newParent || childId === parentId || this.isDescendant(parentId, childId)) return;
-        const previousParentId = node.parentId;
+        if (!node2 || !newParent || childId === parentId || this.isDescendant(parentId, childId)) return;
+        const previousParentId = node2.parentId;
         const oldParent = previousParentId ? this.getNode(previousParentId) : void 0;
         if (oldParent) {
           oldParent.childIds = oldParent.childIds.filter((id) => id !== childId);
         }
         newParent.childIds = newParent.childIds.filter((id) => id !== childId);
         newParent.childIds.splice(index, 0, childId);
-        node.parentId = parentId;
+        node2.parentId = parentId;
         this.clearAbsPosCache();
         this.emitter.emit("node:reordered", childId, parentId, index, previousParentId);
       }
       deleteNode(id) {
-        const node = this.nodes.get(id);
-        if (!node || id === this.rootId) return;
-        if (node.parentId) {
-          const parent = this.nodes.get(node.parentId);
+        const node2 = this.nodes.get(id);
+        if (!node2 || id === this.rootId) return;
+        if (node2.parentId) {
+          const parent = this.nodes.get(node2.parentId);
           if (parent) {
             parent.childIds = parent.childIds.filter((cid) => cid !== id);
           }
         }
-        for (const childId of Array.from(node.childIds)) {
+        for (const childId of Array.from(node2.childIds)) {
           this.deleteNode(childId);
         }
-        if (node.type === "INSTANCE" && node.componentId) {
-          this.instanceIndex.get(node.componentId)?.delete(id);
+        if (node2.type === "INSTANCE" && node2.componentId) {
+          this.instanceIndex.get(node2.componentId)?.delete(id);
         }
         this.nodes.delete(id);
-        this.emitter.emit("node:deleted", id, node.parentId);
+        this.emitter.emit("node:deleted", id, node2.parentId);
       }
       hitTest(px2, py, scopeId) {
         return hitTest(this, px2, py, scopeId);
@@ -8376,23 +8377,23 @@ function fractionalPosition(index) {
   const lastChar = String.fromCharCode(FIRST + index % BASE);
   return String.fromCharCode(TILDE).repeat(numTildes) + lastChar;
 }
-function computeExportTransform(node) {
-  const sx = node.flipX ? -1 : 1;
-  const cos = Math.cos(node.rotation * Math.PI / 180);
-  const sin = Math.sin(node.rotation * Math.PI / 180);
+function computeExportTransform(node2) {
+  const sx = node2.flipX ? -1 : 1;
+  const cos = Math.cos(node2.rotation * Math.PI / 180);
+  const sin = Math.sin(node2.rotation * Math.PI / 180);
   const m00 = cos * sx;
   const m01 = -sin * sx;
   const m10 = sin;
   const m11 = cos;
-  const centerX = node.width / 2;
-  const centerY = node.height / 2;
+  const centerX = node2.width / 2;
+  const centerY = node2.height / 2;
   return {
     m00,
     m01,
-    m02: node.x + centerX - m00 * centerX - m01 * centerY,
+    m02: node2.x + centerX - m00 * centerX - m01 * centerY,
     m10,
     m11,
-    m12: node.y + centerY - m10 * centerX - m11 * centerY
+    m12: node2.y + centerY - m10 * centerX - m11 * centerY
   };
 }
 var init_basics = __esm({
@@ -8886,25 +8887,25 @@ var init_text_layout = __esm({
 function staleFigmaRawFields(editedFields = []) {
   return new Set(editedFields.flatMap((key) => EDITED_RAW_FIELDS[key] ?? []));
 }
-function effectiveFigmaRawNodeFields(node) {
-  const staleFields = staleFigmaRawFields(node.source.editedFields ?? []);
-  if (staleFields.size === 0) return node.source.fig.rawNodeFields;
+function effectiveFigmaRawNodeFields(node2) {
+  const staleFields = staleFigmaRawFields(node2.source.editedFields ?? []);
+  if (staleFields.size === 0) return node2.source.fig.rawNodeFields;
   return Object.fromEntries(
-    Object.entries(node.source.fig.rawNodeFields).filter(([key]) => !staleFields.has(key))
+    Object.entries(node2.source.fig.rawNodeFields).filter(([key]) => !staleFields.has(key))
   );
 }
-function effectiveFigmaSourcePayload(node) {
-  const sourceEditedFields = node.source.editedFields ?? [];
+function effectiveFigmaSourcePayload(node2) {
+  const sourceEditedFields = node2.source.editedFields ?? [];
   return {
-    ...node.source.fig,
-    rawNodeFields: effectiveFigmaRawNodeFields(node),
-    rawSize: sourceEditedFields.some((key) => RAW_SIZE_KEYS.has(key)) ? null : node.source.fig.rawSize,
-    rawTransform: sourceEditedFields.some((key) => RAW_TRANSFORM_KEYS.has(key)) ? null : node.source.fig.rawTransform
+    ...node2.source.fig,
+    rawNodeFields: effectiveFigmaRawNodeFields(node2),
+    rawSize: sourceEditedFields.some((key) => RAW_SIZE_KEYS.has(key)) ? null : node2.source.fig.rawSize,
+    rawTransform: sourceEditedFields.some((key) => RAW_TRANSFORM_KEYS.has(key)) ? null : node2.source.fig.rawTransform
   };
 }
-function readEffectiveFigmaRawField(node, field) {
-  if (staleFigmaRawFields(node.source.editedFields ?? []).has(field)) return void 0;
-  return node.source.fig.rawNodeFields[field];
+function readEffectiveFigmaRawField(node2, field) {
+  if (staleFigmaRawFields(node2.source.editedFields ?? []).has(field)) return void 0;
+  return node2.source.fig.rawNodeFields[field];
 }
 var RAW_SIZE_KEYS, RAW_TRANSFORM_KEYS, TEXT_DERIVED_RAW_FIELDS, STROKE_GEOMETRY_RAW_FIELDS, EDITED_RAW_FIELDS;
 var init_source_metadata2 = __esm({
@@ -9088,23 +9089,23 @@ var init_variable_bindings = __esm({
 });
 
 // packages/fig/src/node-change/plugin-data.ts
-function upsertPluginData(node, key, value) {
-  const pluginData = node.pluginData.filter(
+function upsertPluginData(node2, key, value) {
+  const pluginData = node2.pluginData.filter(
     (entry) => !(entry.pluginId === OPEN_PENCIL_PLUGIN_ID && entry.key === key)
   );
   pluginData.push({ pluginId: OPEN_PENCIL_PLUGIN_ID, key, value });
-  node.pluginData = pluginData;
+  node2.pluginData = pluginData;
 }
-function applyExportSettingsPluginData(node) {
-  if (node.exportSettings.length === 0) return;
-  if (!hasOpenPencilExportSettingsPluginData(node.pluginData) && Array.isArray(readEffectiveFigmaRawField(node, "exportSettings"))) {
+function applyExportSettingsPluginData(node2) {
+  if (node2.exportSettings.length === 0) return;
+  if (!hasOpenPencilExportSettingsPluginData(node2.pluginData) && Array.isArray(readEffectiveFigmaRawField(node2, "exportSettings"))) {
     return;
   }
-  upsertPluginData(node, EXPORT_SETTINGS_PLUGIN_KEY, JSON.stringify(node.exportSettings));
+  upsertPluginData(node2, EXPORT_SETTINGS_PLUGIN_KEY, JSON.stringify(node2.exportSettings));
 }
-function applyTextPathBoxPluginData(node) {
-  if (!node.textPathBox) return;
-  upsertPluginData(node, TEXT_PATH_BOX_PLUGIN_KEY, JSON.stringify(node.textPathBox));
+function applyTextPathBoxPluginData(node2) {
+  if (!node2.textPathBox) return;
+  upsertPluginData(node2, TEXT_PATH_BOX_PLUGIN_KEY, JSON.stringify(node2.textPathBox));
 }
 function extractTextPathBox(nc) {
   const value = getOpenPencilPluginValue(nc, TEXT_PATH_BOX_PLUGIN_KEY);
@@ -9243,11 +9244,11 @@ function extractLibrarySource(nc) {
     return null;
   }
 }
-function applyLibrarySourcePluginData(node) {
-  if (node.librarySource) {
-    upsertPluginData(node, LIBRARY_SOURCE_PLUGIN_KEY, JSON.stringify(node.librarySource));
+function applyLibrarySourcePluginData(node2) {
+  if (node2.librarySource) {
+    upsertPluginData(node2, LIBRARY_SOURCE_PLUGIN_KEY, JSON.stringify(node2.librarySource));
   } else {
-    node.pluginData = node.pluginData.filter(
+    node2.pluginData = node2.pluginData.filter(
       (entry) => !(entry.pluginId === OPEN_PENCIL_PLUGIN_ID && entry.key === LIBRARY_SOURCE_PLUGIN_KEY)
     );
   }
@@ -10506,8 +10507,8 @@ function buildAssetRefToVarGuidMap(graph, varIdToGuid) {
   }
   return map;
 }
-function applyColorVariableBinding(context2, node, paint, field) {
-  const variableId = node.boundVariables[field];
+function applyColorVariableBinding(context2, node2, paint, field) {
+  const variableId = node2.boundVariables[field];
   if (!variableId) return paint;
   return {
     ...paint,
@@ -10516,11 +10517,11 @@ function applyColorVariableBinding(context2, node, paint, field) {
     }
   };
 }
-function createStrokePaints(context2, node) {
-  return node.strokes.map(
+function createStrokePaints(context2, node2) {
+  return node2.strokes.map(
     (stroke, index) => applyColorVariableBinding(
       context2,
-      node,
+      node2,
       {
         type: "SOLID",
         color: context2.safeColor(stroke.color),
@@ -10548,8 +10549,8 @@ function componentPropertyValue(type, value, context2, localIdCounter) {
 function parseGuidOrNull(value) {
   return /^\d+:\d+$/.test(value) ? stringToGuid(value) : null;
 }
-function serializeVariableModes(node, variableIdToGuid, modeIdToGuid) {
-  const entries = Object.entries(node.variableModes).flatMap(([collectionId, modeId]) => {
+function serializeVariableModes(node2, variableIdToGuid, modeIdToGuid) {
+  const entries = Object.entries(node2.variableModes).flatMap(([collectionId, modeId]) => {
     const collectionGuid = variableIdToGuid?.get(collectionId) ?? parseGuidOrNull(collectionId);
     const modeGuid = modeIdToGuid?.get(modeId) ?? parseGuidOrNull(modeId);
     if (!collectionGuid || !modeGuid) return [];
@@ -10635,18 +10636,18 @@ function resolveInstanceComponentId(context2, componentId) {
   let currentId = componentId;
   while (!seen.has(currentId)) {
     seen.add(currentId);
-    const node = context2.graph.getNode(currentId);
-    if (node?.type !== "INSTANCE" || !node.componentId) return currentId;
-    currentId = node.componentId;
+    const node2 = context2.graph.getNode(currentId);
+    if (node2?.type !== "INSTANCE" || !node2.componentId) return currentId;
+    currentId = node2.componentId;
   }
   return componentId;
 }
 function getOrCreateNodeGuid(context2, nodeId, localIdCounter) {
-  const node = context2.graph.getNode(nodeId);
-  if (!node) return void 0;
+  const node2 = context2.graph.getNode(nodeId);
+  if (!node2) return void 0;
   const existing = context2.nodeIdToGuid?.get(nodeId);
   if (existing) return existing;
-  const importedGuid = node.source.id ? parseGuidOrNull(node.source.id) : null;
+  const importedGuid = node2.source.id ? parseGuidOrNull(node2.source.id) : null;
   if (importedGuid && context2.assignedGuidValues) {
     const key = `${importedGuid.sessionID}:${importedGuid.localID}`;
     if (context2.assignedGuidValues.has(key)) {
@@ -10735,21 +10736,21 @@ function mergeOverrides(symbolOverrides, newOverrides) {
     else symbolOverrides[existingIndex] = { ...symbolOverrides[existingIndex], ...override };
   }
 }
-function isReflowedStrokedPathText(node) {
-  if (node.type !== "TEXT" || node.textPathData === null) return false;
-  if ((node.derivedTextGlyphs?.length ?? 0) === 0 || node.textPathBox === null) return false;
-  if (node.strokeGeometry.length !== 0) return false;
-  return node.strokes.length > 0;
+function isReflowedStrokedPathText(node2) {
+  if (node2.type !== "TEXT" || node2.textPathData === null) return false;
+  if ((node2.derivedTextGlyphs?.length ?? 0) === 0 || node2.textPathBox === null) return false;
+  if (node2.strokeGeometry.length !== 0) return false;
+  return node2.strokes.length > 0;
 }
-function isEditedPathText(node) {
-  return node.type === "TEXT" && node.textPathData !== null && // "Edited" = the raw transform no longer backs the node. Editing does not
+function isEditedPathText(node2) {
+  return node2.type === "TEXT" && node2.textPathData !== null && // "Edited" = the raw transform no longer backs the node. Editing does not
   // clear source.fig.rawTransform directly; effectiveFigmaSourcePayload
   // derives it from source.editedFields, so ask that, not the raw field.
-  effectiveFigmaSourcePayload(node).rawTransform === null && (node.derivedTextGlyphs?.length ?? 0) > 0;
+  effectiveFigmaSourcePayload(node2).rawTransform === null && (node2.derivedTextGlyphs?.length ?? 0) > 0;
 }
-function applyRawFigmaNodeFields(context2, node, nc) {
-  let rawFields = effectiveFigmaRawNodeFields(node);
-  if (isReflowedStrokedPathText(node) || isEditedPathText(node)) {
+function applyRawFigmaNodeFields(context2, node2, nc) {
+  let rawFields = effectiveFigmaRawNodeFields(node2);
+  if (isReflowedStrokedPathText(node2) || isEditedPathText(node2)) {
     rawFields = { ...rawFields };
     delete rawFields.strokeGeometry;
     delete rawFields.derivedTextData;
@@ -10761,19 +10762,19 @@ function applyRawFigmaNodeFields(context2, node, nc) {
   });
   for (const key of Object.keys(materialized)) {
     if (RAW_FIELDS_OVERRIDE_BLOCKLIST.has(String(key))) continue;
-    if ((key === "fillPaints" || key === "strokePaints") && node.source.id) {
+    if ((key === "fillPaints" || key === "strokePaints") && node2.source.id) {
       nc[key] = materialized[key];
       continue;
     }
-    if (key === "effects" && node.source.id && context2.assetRefToVarGuid && context2.assetRefToVarGuid.size > 0) {
+    if (key === "effects" && node2.source.id && context2.assetRefToVarGuid && context2.assetRefToVarGuid.size > 0) {
       nc[key] = convertColorVarAssetRefs(materialized[key], context2.assetRefToVarGuid);
       continue;
     }
-    if (key === "derivedTextData" && node.source.id) {
+    if (key === "derivedTextData" && node2.source.id) {
       nc.derivedTextData = materialized.derivedTextData;
       continue;
     }
-    if (key === "textDecorationFillPaints" && node.source.id) {
+    if (key === "textDecorationFillPaints" && node2.source.id) {
       nc.textDecorationFillPaints = materialized.textDecorationFillPaints;
       continue;
     }
@@ -10801,36 +10802,36 @@ function convertColorVarAssetRefs(values, assetRefToVarGuid) {
   });
   return converted2.some((value, index) => value !== values[index]) ? converted2 : values;
 }
-function applyInstancePayload(context2, node, nc, localIdCounter) {
-  if (node.type !== "INSTANCE" || !node.componentId) return;
+function applyInstancePayload(context2, node2, nc, localIdCounter) {
+  if (node2.type !== "INSTANCE" || !node2.componentId) return;
   const symbolID = getOrCreateNodeGuid(
     context2,
-    resolveInstanceComponentId(context2, node.componentId),
+    resolveInstanceComponentId(context2, node2.componentId),
     localIdCounter
   );
   if (symbolID) {
     const symbolData = { symbolID };
     const symbolOverrides = [];
-    if (node.source.fig.symbolOverrides.length > 0) {
+    if (node2.source.fig.symbolOverrides.length > 0) {
       symbolOverrides.push(
-        ...materializeFigmaPayload(node.source.fig.symbolOverrides, context2.blobs, {
+        ...materializeFigmaPayload(node2.source.fig.symbolOverrides, context2.blobs, {
           blobIndexByHex: context2.blobIndexByHex,
           includePaintVariables: true,
           includeVariableMaps: true
         })
       );
     }
-    mergeOverrides(symbolOverrides, serializeTextOverrides(context2, node, localIdCounter));
-    mergeOverrides(symbolOverrides, serializeFillOverrides(context2, node, localIdCounter));
+    mergeOverrides(symbolOverrides, serializeTextOverrides(context2, node2, localIdCounter));
+    mergeOverrides(symbolOverrides, serializeFillOverrides(context2, node2, localIdCounter));
     if (symbolOverrides.length > 0) symbolData.symbolOverrides = symbolOverrides;
-    if (node.source.fig.uniformScaleFactor != null) {
-      symbolData.uniformScaleFactor = node.source.fig.uniformScaleFactor;
+    if (node2.source.fig.uniformScaleFactor != null) {
+      symbolData.uniformScaleFactor = node2.source.fig.uniformScaleFactor;
     }
     nc.symbolData = symbolData;
   }
-  if (node.source.fig.componentPropAssignments.length > 0 && !node.source.editedFields.includes("componentPropertyAssignments")) {
+  if (node2.source.fig.componentPropAssignments.length > 0 && !node2.source.editedFields.includes("componentPropertyAssignments")) {
     nc.componentPropAssignments = materializeFigmaPayload(
-      node.source.fig.componentPropAssignments,
+      node2.source.fig.componentPropAssignments,
       context2.blobs,
       {
         blobIndexByHex: context2.blobIndexByHex,
@@ -10839,9 +10840,9 @@ function applyInstancePayload(context2, node, nc, localIdCounter) {
       }
     );
   }
-  if (node.source.fig.derivedSymbolData.length > 0) {
+  if (node2.source.fig.derivedSymbolData.length > 0) {
     nc.derivedSymbolData = materializeFigmaPayload(
-      node.source.fig.derivedSymbolData,
+      node2.source.fig.derivedSymbolData,
       context2.blobs,
       {
         blobIndexByHex: context2.blobIndexByHex,
@@ -10850,8 +10851,8 @@ function applyInstancePayload(context2, node, nc, localIdCounter) {
       }
     );
   }
-  if (node.source.fig.derivedSymbolDataLayoutVersion != null) {
-    nc.derivedSymbolDataLayoutVersion = node.source.fig.derivedSymbolDataLayoutVersion;
+  if (node2.source.fig.derivedSymbolDataLayoutVersion != null) {
+    nc.derivedSymbolDataLayoutVersion = node2.source.fig.derivedSymbolDataLayoutVersion;
   }
 }
 function componentPropertyPreferredValues(definition29, context2) {
@@ -10883,42 +10884,42 @@ function buildComponentPropIndex(graph) {
   }
   return definitions;
 }
-function shouldSerializeRawBackedField(node, rawField, hasValue, alreadySerialized = false) {
-  return hasValue && !(rawField in effectiveFigmaRawNodeFields(node)) && !alreadySerialized;
+function shouldSerializeRawBackedField(node2, rawField, hasValue, alreadySerialized = false) {
+  return hasValue && !(rawField in effectiveFigmaRawNodeFields(node2)) && !alreadySerialized;
 }
-function applyComponentMetadata(context2, node, nc, localIdCounter) {
-  if (node.componentKey) nc.componentKey = node.componentKey;
-  if (node.sourceLibraryKey) nc.sourceLibraryKey = node.sourceLibraryKey;
-  const publishId = node.publishId ? parseGuidOrNull(node.publishId) : null;
-  const overrideKey = node.overrideKey ? parseGuidOrNull(node.overrideKey) : null;
+function applyComponentMetadata(context2, node2, nc, localIdCounter) {
+  if (node2.componentKey) nc.componentKey = node2.componentKey;
+  if (node2.sourceLibraryKey) nc.sourceLibraryKey = node2.sourceLibraryKey;
+  const publishId = node2.publishId ? parseGuidOrNull(node2.publishId) : null;
+  const overrideKey = node2.overrideKey ? parseGuidOrNull(node2.overrideKey) : null;
   if (publishId) nc.publishID = publishId;
   if (overrideKey) nc.overrideKey = overrideKey;
-  if (node.sharedSymbolVersion) nc.sharedSymbolVersion = node.sharedSymbolVersion;
-  if (node.publishedVersion) nc.publishedVersion = node.publishedVersion;
-  if (node.type === "COMPONENT_SET" || node.isPublishable) nc.isPublishable = node.isPublishable;
-  if (node.type === "COMPONENT" || node.isSymbolPublishable) {
-    nc.isSymbolPublishable = node.isSymbolPublishable;
+  if (node2.sharedSymbolVersion) nc.sharedSymbolVersion = node2.sharedSymbolVersion;
+  if (node2.publishedVersion) nc.publishedVersion = node2.publishedVersion;
+  if (node2.type === "COMPONENT_SET" || node2.isPublishable) nc.isPublishable = node2.isPublishable;
+  if (node2.type === "COMPONENT" || node2.isSymbolPublishable) {
+    nc.isSymbolPublishable = node2.isSymbolPublishable;
   }
-  if (node.symbolDescription) nc.symbolDescription = node.symbolDescription;
-  if (node.symbolLinks.length > 0) nc.symbolLinks = structuredClone(node.symbolLinks);
-  const componentPropDefs = node.componentPropertyDefinitions.map((def) => ({
+  if (node2.symbolDescription) nc.symbolDescription = node2.symbolDescription;
+  if (node2.symbolLinks.length > 0) nc.symbolLinks = structuredClone(node2.symbolLinks);
+  const componentPropDefs = node2.componentPropertyDefinitions.map((def) => ({
     id: getOrCreatePropertyGuid(context2, def.id, localIdCounter),
     name: def.name,
     type: componentPropertyTypeForKiwi(def.type),
     initialValue: componentPropertyValue(def.type, def.defaultValue, context2, localIdCounter),
     preferredValues: componentPropertyPreferredValues(def, context2)
   }));
-  if (shouldSerializeRawBackedField(node, "componentPropDefs", componentPropDefs.length > 0)) {
+  if (shouldSerializeRawBackedField(node2, "componentPropDefs", componentPropDefs.length > 0)) {
     nc.componentPropDefs = componentPropDefs;
   }
-  const componentPropRefs = node.componentPropertyReferences.map((ref) => ({
+  const componentPropRefs = node2.componentPropertyReferences.map((ref) => ({
     defID: getOrCreatePropertyGuid(context2, ref.propertyId, localIdCounter),
     componentPropNodeField: componentPropertyNodeField(ref.field)
   }));
-  if (shouldSerializeRawBackedField(node, "componentPropRefs", componentPropRefs.length > 0)) {
+  if (shouldSerializeRawBackedField(node2, "componentPropRefs", componentPropRefs.length > 0)) {
     nc.componentPropRefs = componentPropRefs;
   }
-  const componentPropAssignments = Object.entries(node.componentPropertyAssignments).map(([propertyId, value]) => {
+  const componentPropAssignments = Object.entries(node2.componentPropertyAssignments).map(([propertyId, value]) => {
     const definition29 = context2.componentPropertyDefinitionsById.get(propertyId);
     if (!definition29) return null;
     return {
@@ -10927,81 +10928,81 @@ function applyComponentMetadata(context2, node, nc, localIdCounter) {
     };
   }).filter((assignment) => assignment !== null);
   if (shouldSerializeRawBackedField(
-    node,
+    node2,
     "componentPropAssignments",
     componentPropAssignments.length > 0,
     Boolean(nc.componentPropAssignments)
   )) {
     nc.componentPropAssignments = componentPropAssignments;
   }
-  const variantPropSpecs = node.variantPropSpecs.map((spec) => ({
+  const variantPropSpecs = node2.variantPropSpecs.map((spec) => ({
     propDefId: getOrCreatePropertyGuid(context2, spec.propDefId, localIdCounter),
     value: spec.value
   }));
-  if (shouldSerializeRawBackedField(node, "variantPropSpecs", variantPropSpecs.length > 0)) {
+  if (shouldSerializeRawBackedField(node2, "variantPropSpecs", variantPropSpecs.length > 0)) {
     nc.variantPropSpecs = variantPropSpecs;
   }
 }
-function exportNodeSize(node) {
-  const payload = effectiveFigmaSourcePayload(node);
-  return payload.rawSize && payload.rawTransform ? { ...payload.rawSize } : { x: node.width, y: node.height };
+function exportNodeSize(node2) {
+  const payload = effectiveFigmaSourcePayload(node2);
+  return payload.rawSize && payload.rawTransform ? { ...payload.rawSize } : { x: node2.width, y: node2.height };
 }
-function exportNodeTransform(context2, node) {
-  const rawTransform = effectiveFigmaSourcePayload(node).rawTransform;
-  return rawTransform ? { ...rawTransform } : context2.computeExportTransform(node);
+function exportNodeTransform(context2, node2) {
+  const rawTransform = effectiveFigmaSourcePayload(node2).rawTransform;
+  return rawTransform ? { ...rawTransform } : context2.computeExportTransform(node2);
 }
-function hasRawGeometryPayload(node) {
-  const rawNodeFields = effectiveFigmaRawNodeFields(node);
+function hasRawGeometryPayload(node2) {
+  const rawNodeFields = effectiveFigmaRawNodeFields(node2);
   return "fillGeometry" in rawNodeFields || "strokeGeometry" in rawNodeFields;
 }
-function hasRawVectorPayload(node) {
-  return "vectorData" in effectiveFigmaRawNodeFields(node);
+function hasRawVectorPayload(node2) {
+  return "vectorData" in effectiveFigmaRawNodeFields(node2);
 }
-function hasRawUnsupportedEffects(node) {
-  const effects = effectiveFigmaRawNodeFields(node).effects;
+function hasRawUnsupportedEffects(node2) {
+  const effects = effectiveFigmaRawNodeFields(node2).effects;
   return Array.isArray(effects) && effects.some(
     (effect) => effect && typeof effect === "object" && "type" in effect && !SUPPORTED_NORMALIZED_EFFECT_TYPES.has(String(effect.type))
   );
 }
-function nodeForGeometryExport(node) {
-  if (!hasRawGeometryPayload(node) && !hasRawVectorPayload(node)) return node;
+function nodeForGeometryExport(node2) {
+  if (!hasRawGeometryPayload(node2) && !hasRawVectorPayload(node2)) return node2;
   return {
-    ...node,
-    fillGeometry: hasRawGeometryPayload(node) ? [] : node.fillGeometry,
-    strokeGeometry: hasRawGeometryPayload(node) ? [] : node.strokeGeometry,
-    vectorNetwork: hasRawVectorPayload(node) ? null : node.vectorNetwork
+    ...node2,
+    fillGeometry: hasRawGeometryPayload(node2) ? [] : node2.fillGeometry,
+    strokeGeometry: hasRawGeometryPayload(node2) ? [] : node2.strokeGeometry,
+    vectorNetwork: hasRawVectorPayload(node2) ? null : node2.vectorNetwork
   };
 }
-function applySharedStyleProps(node, nc) {
-  if (node.fillStyleId) nc.styleIdForFill = { guid: stringToGuid(node.fillStyleId) };
-  if (node.strokeStyleId) nc.styleIdForStrokeFill = { guid: stringToGuid(node.strokeStyleId) };
-  if (node.textStyleId) nc.styleIdForText = { guid: stringToGuid(node.textStyleId) };
-  if (node.effectStyleId) nc.styleIdForEffect = { guid: stringToGuid(node.effectStyleId) };
-  if (node.gridStyleId) nc.styleIdForGrid = { guid: stringToGuid(node.gridStyleId) };
-  if (node.layoutGrids.length > 0) nc.layoutGrids = structuredClone(node.layoutGrids);
-  if (node.guides.length > 0) nc.guides = exportCanvasGuides(node.guides);
+function applySharedStyleProps(node2, nc) {
+  if (node2.fillStyleId) nc.styleIdForFill = { guid: stringToGuid(node2.fillStyleId) };
+  if (node2.strokeStyleId) nc.styleIdForStrokeFill = { guid: stringToGuid(node2.strokeStyleId) };
+  if (node2.textStyleId) nc.styleIdForText = { guid: stringToGuid(node2.textStyleId) };
+  if (node2.effectStyleId) nc.styleIdForEffect = { guid: stringToGuid(node2.effectStyleId) };
+  if (node2.gridStyleId) nc.styleIdForGrid = { guid: stringToGuid(node2.gridStyleId) };
+  if (node2.layoutGrids.length > 0) nc.layoutGrids = structuredClone(node2.layoutGrids);
+  if (node2.guides.length > 0) nc.guides = exportCanvasGuides(node2.guides);
 }
-function applyNodeVisualProps(context2, node, nc) {
-  if (node.independentStrokeWeights) {
+function applyNodeVisualProps(context2, node2, nc) {
+  if (node2.independentStrokeWeights) {
     nc.borderStrokeWeightsIndependent = true;
-    nc.borderTopWeight = node.borderTopWeight;
-    nc.borderRightWeight = node.borderRightWeight;
-    nc.borderBottomWeight = node.borderBottomWeight;
-    nc.borderLeftWeight = node.borderLeftWeight;
+    nc.borderTopWeight = node2.borderTopWeight;
+    nc.borderRightWeight = node2.borderRightWeight;
+    nc.borderBottomWeight = node2.borderBottomWeight;
+    nc.borderLeftWeight = node2.borderLeftWeight;
   }
-  if (node.fills.length > 0) {
-    nc.fillPaints = node.fills.map(
+  if (node2.fills.length > 0) {
+    nc.fillPaints = node2.fills.map(
       (fill2, index) => applyColorVariableBinding(
         context2,
-        node,
+        node2,
         context2.fillToKiwiPaint(fill2),
         `fills/${index}/color`
       )
     );
   }
-  context2.serializeCornerRadii(node, nc);
-  if (node.effects.length > 0 && !hasRawUnsupportedEffects(node)) {
-    nc.effects = node.effects.map((effect) => ({
+  context2.serializeCornerRadii(node2, nc);
+  if (node2.effects.length > 0 && !hasRawUnsupportedEffects(node2)) {
+    nc.effects = node2.effects.map((effect) => ({
       type: effect.type === "LAYER_BLUR" ? "FOREGROUND_BLUR" : effect.type,
       color: context2.safeColor(effect.color),
       offset: effect.offset,
@@ -11012,9 +11013,9 @@ function applyNodeVisualProps(context2, node, nc) {
       showShadowBehindNode: effect.showShadowBehindNode
     }));
   }
-  if (node.type === "TEXT") {
+  if (node2.type === "TEXT") {
     context2.serializeTextProps(
-      node,
+      node2,
       nc,
       context2.graph,
       context2.fontDigestMap,
@@ -11022,90 +11023,90 @@ function applyNodeVisualProps(context2, node, nc) {
       context2.glyphBlobMap
     );
   }
-  if (node.type !== "VECTOR") nc.frameMaskDisabled = !node.clipsContent;
-  applySharedStyleProps(node, nc);
-  if (node.horizontalConstraint !== "MIN") nc.horizontalConstraint = node.horizontalConstraint;
-  if (node.verticalConstraint !== "MIN") nc.verticalConstraint = node.verticalConstraint;
-  if (node.strokeCap !== "NONE") nc.strokeCap = node.strokeCap;
-  const rawNodeFields = effectiveFigmaRawNodeFields(node);
-  if (node.strokeJoin !== "MITER" || "strokeJoin" in rawNodeFields) {
-    nc.strokeJoin = node.strokeJoin;
+  if (node2.type !== "VECTOR") nc.frameMaskDisabled = !node2.clipsContent;
+  applySharedStyleProps(node2, nc);
+  if (node2.horizontalConstraint !== "MIN") nc.horizontalConstraint = node2.horizontalConstraint;
+  if (node2.verticalConstraint !== "MIN") nc.verticalConstraint = node2.verticalConstraint;
+  if (node2.strokeCap !== "NONE") nc.strokeCap = node2.strokeCap;
+  const rawNodeFields = effectiveFigmaRawNodeFields(node2);
+  if (node2.strokeJoin !== "MITER" || "strokeJoin" in rawNodeFields) {
+    nc.strokeJoin = node2.strokeJoin;
   }
-  if (node.strokeMiterLimit !== DEFAULT_STROKE_MITER_LIMIT || "miterLimit" in rawNodeFields) {
-    nc.miterLimit = node.strokeMiterLimit;
+  if (node2.strokeMiterLimit !== DEFAULT_STROKE_MITER_LIMIT || "miterLimit" in rawNodeFields) {
+    nc.miterLimit = node2.strokeMiterLimit;
   }
-  if (node.dashPattern.length > 0) nc.dashPattern = node.dashPattern;
-  if (node.arcData) {
+  if (node2.dashPattern.length > 0) nc.dashPattern = node2.dashPattern;
+  if (node2.arcData) {
     nc.arcData = {
-      startingAngle: node.arcData.startingAngle,
-      endingAngle: node.arcData.endingAngle,
-      innerRadius: node.arcData.innerRadius
+      startingAngle: node2.arcData.startingAngle,
+      endingAngle: node2.arcData.endingAngle,
+      innerRadius: node2.arcData.innerRadius
     };
   }
-  if (!node.autoRename) nc.autoRename = false;
+  if (!node2.autoRename) nc.autoRename = false;
 }
-function exportKiwiNodeType(node, context2) {
-  const isPathText = node.textPathData !== null && node.type === "TEXT" && (node.derivedTextGlyphs?.length ?? 0) > 0;
-  return isPathText ? "TEXT_PATH" : context2.mapToFigmaType(node.type);
+function exportKiwiNodeType(node2, context2) {
+  const isPathText = node2.textPathData !== null && node2.type === "TEXT" && (node2.derivedTextGlyphs?.length ?? 0) > 0;
+  return isPathText ? "TEXT_PATH" : context2.mapToFigmaType(node2.type);
 }
-function sceneNodeToKiwiWithContext(node, parentGuid, childIndex, localIdCounter, context2) {
-  const guid = getOrCreateNodeGuid(context2, node.id, localIdCounter) ?? {
+function sceneNodeToKiwiWithContext(node2, parentGuid, childIndex, localIdCounter, context2) {
+  const guid = getOrCreateNodeGuid(context2, node2.id, localIdCounter) ?? {
     sessionID: 1,
     localID: localIdCounter.value++
   };
-  const strokePaints = createStrokePaints(context2, node);
-  const exportType = exportKiwiNodeType(node, context2);
+  const strokePaints = createStrokePaints(context2, node2);
+  const exportType = exportKiwiNodeType(node2, context2);
   const nc = {
     guid,
     parentIndex: {
       guid: parentGuid,
-      position: node.source.orderKey ?? context2.fractionalPosition(childIndex)
+      position: node2.source.orderKey ?? context2.fractionalPosition(childIndex)
     },
     type: exportType,
-    name: node.name,
-    visible: node.visible,
-    opacity: node.opacity,
+    name: node2.name,
+    visible: node2.visible,
+    opacity: node2.opacity,
     phase: "CREATED",
-    size: exportNodeSize(node),
-    transform: exportNodeTransform(context2, node)
+    size: exportNodeSize(node2),
+    transform: exportNodeTransform(context2, node2)
   };
-  if (node.sharedStyleType) nc.styleType = node.sharedStyleType;
-  if (node.type === "GROUP") {
+  if (node2.sharedStyleType) nc.styleType = node2.sharedStyleType;
+  if (node2.type === "GROUP") {
     nc.resizeToFit = true;
   }
-  if (node.strokes.length > 0) {
-    nc.strokeWeight = node.strokes[0].weight;
-    nc.strokeAlign = node.strokes[0].align;
+  if (node2.strokes.length > 0) {
+    nc.strokeWeight = node2.strokes[0].weight;
+    nc.strokeAlign = node2.strokes[0].align;
   }
-  if (node.locked) nc.locked = true;
-  applyNodeVisualProps(context2, node, nc);
-  applyComponentMetadata(context2, node, nc, localIdCounter);
-  applyInstancePayload(context2, node, nc, localIdCounter);
-  if (node.type === "COMPONENT_SET") upsertPluginData(node, NODE_TYPE_PLUGIN_KEY, node.type);
+  if (node2.locked) nc.locked = true;
+  applyNodeVisualProps(context2, node2, nc);
+  applyComponentMetadata(context2, node2, nc, localIdCounter);
+  applyInstancePayload(context2, node2, nc, localIdCounter);
+  if (node2.type === "COMPONENT_SET") upsertPluginData(node2, NODE_TYPE_PLUGIN_KEY, node2.type);
   if (nc.type === "CANVAS") nc.pageType = "DESIGN";
-  if (node.type === "BOOLEAN_OPERATION")
-    nc.booleanOperation = toKiwiBooleanOperation(node.booleanOperation);
+  if (node2.type === "BOOLEAN_OPERATION")
+    nc.booleanOperation = toKiwiBooleanOperation(node2.booleanOperation);
   if (strokePaints.length > 0) nc.strokePaints = strokePaints;
-  context2.serializeLayoutProps(node, nc);
-  context2.serializeGeometry(nodeForGeometryExport(node), nc, context2.blobs);
-  context2.serializeVariableBindings(node, nc, context2.graph, context2.varIdToGuid);
-  applyRawFigmaNodeFields(context2, node, nc);
+  context2.serializeLayoutProps(node2, nc);
+  context2.serializeGeometry(nodeForGeometryExport(node2), nc, context2.blobs);
+  context2.serializeVariableBindings(node2, nc, context2.graph, context2.varIdToGuid);
+  applyRawFigmaNodeFields(context2, node2, nc);
   const variableModeBySetMap = serializeVariableModes(
-    node,
+    node2,
     context2.varIdToGuid,
     context2.modeIdToGuid
   );
   if (variableModeBySetMap) nc.variableModeBySetMap = variableModeBySetMap;
-  applyExportSettingsPluginData(node);
-  applyLibrarySourcePluginData(node);
-  applyTextPathBoxPluginData(node);
-  const pluginData = mergePluginData(node.pluginData);
+  applyExportSettingsPluginData(node2);
+  applyLibrarySourcePluginData(node2);
+  applyTextPathBoxPluginData(node2);
+  const pluginData = mergePluginData(node2.pluginData);
   if (pluginData.length > 0) nc.pluginData = pluginData;
-  if (node.pluginRelaunchData.length > 0) {
-    nc.pluginRelaunchData = serializePluginRelaunchData(node.pluginRelaunchData);
+  if (node2.pluginRelaunchData.length > 0) {
+    nc.pluginRelaunchData = serializePluginRelaunchData(node2.pluginRelaunchData);
   }
   const result = [nc];
-  const children = node.type === "INSTANCE" ? [] : context2.graph.getChildren(node.id).filter((child) => !child.internalOnly);
+  const children = node2.type === "INSTANCE" ? [] : context2.graph.getChildren(node2.id).filter((child) => !child.internalOnly);
   for (let i2 = 0; i2 < children.length; i2++) {
     result.push(...context2.sceneNodeToKiwi(children[i2], guid, i2, localIdCounter, context2));
   }
@@ -11229,12 +11230,12 @@ function linkSubtree(graph, compParentId, instParentId, instRootId) {
 }
 function linkImportedInstanceChildren(graph, instanceIds) {
   graph.preserveSourceMetadataDuring(() => {
-    for (const node of graph.getAllNodes()) {
-      if (node.type !== "INSTANCE" || !node.componentId) continue;
-      if (instanceIds && !instanceIds.has(node.id)) continue;
-      const comp = graph.getNode(node.componentId);
+    for (const node2 of graph.getAllNodes()) {
+      if (node2.type !== "INSTANCE" || !node2.componentId) continue;
+      if (instanceIds && !instanceIds.has(node2.id)) continue;
+      const comp = graph.getNode(node2.componentId);
       if (!comp) continue;
-      linkSubtree(graph, comp.id, node.id, node.id);
+      linkSubtree(graph, comp.id, node2.id, node2.id);
     }
   });
 }
@@ -13016,12 +13017,12 @@ function applyTextDecorationOverrideFields(override, style, fillToKiwiPaint2) {
     override.textDecorationFillPaints = style.textDecorationFills.map(fillToKiwiPaint2);
   }
 }
-function textStyleOverrideToKiwi(id, style, node, fillToKiwiPaint2) {
+function textStyleOverrideToKiwi(id, style, node2, fillToKiwiPaint2) {
   const override = { styleID: id };
-  const weight = style.fontWeight ?? node.fontWeight;
-  const italic = style.italic ?? node.italic;
+  const weight = style.fontWeight ?? node2.fontWeight;
+  const italic = style.italic ?? node2.italic;
   override.fontName = {
-    family: normalizeFontFamily(style.fontFamily ?? node.fontFamily),
+    family: normalizeFontFamily(style.fontFamily ?? node2.fontFamily),
     style: weightToFigmaStyle(weight, italic),
     postscript: ""
   };
@@ -13044,11 +13045,11 @@ function textStyleOverrideToKiwi(id, style, node, fillToKiwiPaint2) {
   }
   return override;
 }
-function collectTextStyleOverrides(node) {
-  const charIds = Array.from({ length: node.text.length }).fill(0);
+function collectTextStyleOverrides(node2) {
+  const charIds = Array.from({ length: node2.text.length }).fill(0);
   const styleMap = /* @__PURE__ */ new Map();
   let nextId = 1;
-  for (const run of node.styleRuns) {
+  for (const run of node2.styleRuns) {
     const key = JSON.stringify(run.style);
     let entry = styleMap.get(key);
     if (!entry) {
@@ -13061,17 +13062,17 @@ function collectTextStyleOverrides(node) {
   }
   return { charIds, styleMap };
 }
-function exportTextData(node, textLines3, fillToKiwiPaint2) {
-  if (node.styleRuns.length === 0) {
-    return { characters: node.text, lines: textLines3(node.text) };
+function exportTextData(node2, textLines3, fillToKiwiPaint2) {
+  if (node2.styleRuns.length === 0) {
+    return { characters: node2.text, lines: textLines3(node2.text) };
   }
-  const { charIds, styleMap } = collectTextStyleOverrides(node);
+  const { charIds, styleMap } = collectTextStyleOverrides(node2);
   const overrideTable = [...styleMap.values()].map(
-    ({ id, style }) => textStyleOverrideToKiwi(id, style, node, fillToKiwiPaint2)
+    ({ id, style }) => textStyleOverrideToKiwi(id, style, node2, fillToKiwiPaint2)
   );
   return {
-    characters: node.text,
-    lines: textLines3(node.text),
+    characters: node2.text,
+    lines: textLines3(node2.text),
     characterStyleIDs: charIds,
     styleOverrideTable: overrideTable
   };
@@ -13099,7 +13100,7 @@ function appendGlyphBlob(blobs, glyphBlobMap, blob) {
   glyphBlobMap.set(key, index);
   return index;
 }
-function buildDerivedTextData2(node, digestMap, blobs, glyphBlobMap, runtime) {
+function buildDerivedTextData2(node2, digestMap, blobs, glyphBlobMap, runtime) {
   const fontMeta = [];
   const seen = /* @__PURE__ */ new Set();
   const addFont = (family, weight, italic) => {
@@ -13116,17 +13117,17 @@ function buildDerivedTextData2(node, digestMap, blobs, glyphBlobMap, runtime) {
       fontWeight: weight
     });
   };
-  addFont(node.fontFamily, node.fontWeight, node.italic);
-  for (const run of node.styleRuns) {
+  addFont(node2.fontFamily, node2.fontWeight, node2.italic);
+  for (const run of node2.styleRuns) {
     addFont(
-      run.style.fontFamily ?? node.fontFamily,
-      run.style.fontWeight ?? node.fontWeight,
-      run.style.italic ?? node.italic
+      run.style.fontFamily ?? node2.fontFamily,
+      run.style.fontWeight ?? node2.fontWeight,
+      run.style.italic ?? node2.italic
     );
   }
-  const lineHeight2 = node.lineHeight ?? Math.ceil(node.fontSize * 1.2);
-  const glyphAdvance2 = node.text.length > 0 ? node.width / Math.max(node.text.length, 1) : 0;
-  const derivedGlyphs = node.derivedTextGlyphs ?? [];
+  const lineHeight2 = node2.lineHeight ?? Math.ceil(node2.fontSize * 1.2);
+  const glyphAdvance2 = node2.text.length > 0 ? node2.width / Math.max(node2.text.length, 1) : 0;
+  const derivedGlyphs = node2.derivedTextGlyphs ?? [];
   const glyphs = derivedGlyphs.length > 0 ? derivedGlyphs.map((glyph, index) => ({
     commandsBlob: appendGlyphBlob(
       blobs,
@@ -13145,115 +13146,115 @@ function buildDerivedTextData2(node, digestMap, blobs, glyphBlobMap, runtime) {
     // Preserve path-text radians; hardcoding 0 used to flatten circular text on re-export.
     rotation: glyph.rotation ?? 0
   })) : (runtime.getGlyphOutlineMetrics(
-    node.fontFamily,
-    weightToStyle(node.fontWeight, node.italic),
-    node.text,
-    node.fontSize
+    node2.fontFamily,
+    weightToStyle(node2.fontWeight, node2.italic),
+    node2.text,
+    node2.fontSize
   ) ?? []).map((glyph, index) => ({
     commandsBlob: appendGlyphBlob(
       blobs,
       glyphBlobMap,
-      encodePathCommandsBlob(glyph.commands, node.fontSize)
+      encodePathCommandsBlob(glyph.commands, node2.fontSize)
     ),
     position: { x: glyph.x || index * glyphAdvance2, y: lineHeight2 },
-    fontSize: node.fontSize,
+    fontSize: node2.fontSize,
     firstCharacter: index,
     advance: glyph.advance || glyphAdvance2,
     rotation: 0
   }));
   const logicalIndexToCharacterOffsetMap = Array.from(
-    { length: node.text.length + 1 },
+    { length: node2.text.length + 1 },
     (_3, index) => index * glyphAdvance2
   );
   return buildDerivedTextData({
-    node,
+    node: node2,
     glyphs,
     fontMetaData: fontMeta,
     baseline: lineHeight2,
-    width: node.width,
+    width: node2.width,
     lineHeight: lineHeight2,
-    lineAscent: Math.max(lineHeight2 - node.fontSize * 0.2, 0),
+    lineAscent: Math.max(lineHeight2 - node2.fontSize * 0.2, 0),
     logicalIndexToCharacterOffsetMap
   });
 }
-function serializeCornerRadii(node, nc) {
-  const anyIndividual = node.topLeftRadius > 0 || node.topRightRadius > 0 || node.bottomLeftRadius > 0 || node.bottomRightRadius > 0;
-  if (node.cornerRadius > 0) nc.cornerRadius = node.cornerRadius;
-  if (anyIndividual || node.independentCorners) {
-    const rawIndependent = node.source.id ? effectiveFigmaRawNodeFields(node)?.rectangleCornerRadiiIndependent : void 0;
-    nc.rectangleCornerRadiiIndependent = typeof rawIndependent === "boolean" ? rawIndependent : node.independentCorners;
-    nc.rectangleTopLeftCornerRadius = node.topLeftRadius;
-    nc.rectangleTopRightCornerRadius = node.topRightRadius;
-    nc.rectangleBottomLeftCornerRadius = node.bottomLeftRadius;
-    nc.rectangleBottomRightCornerRadius = node.bottomRightRadius;
+function serializeCornerRadii(node2, nc) {
+  const anyIndividual = node2.topLeftRadius > 0 || node2.topRightRadius > 0 || node2.bottomLeftRadius > 0 || node2.bottomRightRadius > 0;
+  if (node2.cornerRadius > 0) nc.cornerRadius = node2.cornerRadius;
+  if (anyIndividual || node2.independentCorners) {
+    const rawIndependent = node2.source.id ? effectiveFigmaRawNodeFields(node2)?.rectangleCornerRadiiIndependent : void 0;
+    nc.rectangleCornerRadiiIndependent = typeof rawIndependent === "boolean" ? rawIndependent : node2.independentCorners;
+    nc.rectangleTopLeftCornerRadius = node2.topLeftRadius;
+    nc.rectangleTopRightCornerRadius = node2.topRightRadius;
+    nc.rectangleBottomLeftCornerRadius = node2.bottomLeftRadius;
+    nc.rectangleBottomRightCornerRadius = node2.bottomRightRadius;
   }
-  if (node.cornerSmoothing > 0 || "cornerSmoothing" in effectiveFigmaRawNodeFields(node)) {
-    nc.cornerSmoothing = node.cornerSmoothing;
+  if (node2.cornerSmoothing > 0 || "cornerSmoothing" in effectiveFigmaRawNodeFields(node2)) {
+    nc.cornerSmoothing = node2.cornerSmoothing;
   }
 }
-function resolveTextAutoResize(node, graph) {
-  if (node.source.id) return node.textAutoResize;
-  const parent = node.parentId ? graph.getNode(node.parentId) : void 0;
-  if (parent && parent.layoutMode !== "NONE" && parent.layoutMode !== "GRID" && node.layoutPositioning !== "ABSOLUTE") {
+function resolveTextAutoResize(node2, graph) {
+  if (node2.source.id) return node2.textAutoResize;
+  const parent = node2.parentId ? graph.getNode(node2.parentId) : void 0;
+  if (parent && parent.layoutMode !== "NONE" && parent.layoutMode !== "GRID" && node2.layoutPositioning !== "ABSOLUTE") {
     return "HEIGHT";
   }
-  return node.textAutoResize;
+  return node2.textAutoResize;
 }
-function serializeTextProps(node, nc, graph, fontDigestMap, blobs, glyphBlobMap, runtime) {
-  upsertPluginData(node, TEXT_DIRECTION_PLUGIN_KEY, node.textDirection);
-  nc.fontSize = node.fontSize;
+function serializeTextProps(node2, nc, graph, fontDigestMap, blobs, glyphBlobMap, runtime) {
+  upsertPluginData(node2, TEXT_DIRECTION_PLUGIN_KEY, node2.textDirection);
+  nc.fontSize = node2.fontSize;
   nc.fontName = {
-    family: normalizeFontFamily(node.fontFamily),
-    style: weightToFigmaStyle(node.fontWeight, node.italic),
+    family: normalizeFontFamily(node2.fontFamily),
+    style: weightToFigmaStyle(node2.fontWeight, node2.italic),
     postscript: ""
   };
-  nc.textData = exportTextData(node, textLines, fillToKiwiPaint);
-  if (node.fontVariations.length > 0) {
-    nc.fontVariations = node.fontVariations.map(fontVariationToKiwi);
+  nc.textData = exportTextData(node2, textLines, fillToKiwiPaint);
+  if (node2.fontVariations.length > 0) {
+    nc.fontVariations = node2.fontVariations.map(fontVariationToKiwi);
   }
-  const autoResize = resolveTextAutoResize(node, graph);
-  const rawNodeFields = effectiveFigmaRawNodeFields(node);
-  if (!node.source.id || autoResize !== "NONE" || "textAutoResize" in rawNodeFields) {
+  const autoResize = resolveTextAutoResize(node2, graph);
+  const rawNodeFields = effectiveFigmaRawNodeFields(node2);
+  if (!node2.source.id || autoResize !== "NONE" || "textAutoResize" in rawNodeFields) {
     nc.textAutoResize = autoResize;
   }
-  nc.textAlignHorizontal = node.textAlignHorizontal;
-  nc.textAlignVertical = node.textAlignVertical;
+  nc.textAlignHorizontal = node2.textAlignHorizontal;
+  nc.textAlignVertical = node2.textAlignVertical;
   nc.textUserLayoutVersion = 4;
   nc.textExplicitLayoutVersion = 1;
   nc.textBidiVersion = 1;
-  nc.textDecorationSkipInk = node.textDecorationSkipInk;
+  nc.textDecorationSkipInk = node2.textDecorationSkipInk;
   nc.fontVariantCommonLigatures = true;
   nc.fontVariantContextualLigatures = true;
-  applyFontFeaturesToKiwi(nc, node.fontFeatures);
+  applyFontFeaturesToKiwi(nc, node2.fontFeatures);
   nc.fontVersion = "";
   nc.emojiImageSet = "APPLE";
-  if (node.textCase !== "ORIGINAL") nc.textCase = node.textCase;
-  if (node.textTruncation === "ENDING") nc.textTruncation = "ENDING";
-  if (node.maxLines != null) nc.maxLines = node.maxLines;
+  if (node2.textCase !== "ORIGINAL") nc.textCase = node2.textCase;
+  if (node2.textTruncation === "ENDING") nc.textTruncation = "ENDING";
+  if (node2.maxLines != null) nc.maxLines = node2.maxLines;
   if (fontDigestMap) {
     nc.derivedTextData = buildDerivedTextData2(
-      node,
+      node2,
       fontDigestMap,
       blobs,
       glyphBlobMap ?? /* @__PURE__ */ new Map(),
       runtime
     );
   }
-  if (node.leadingTrim !== "NONE") nc.leadingTrim = node.leadingTrim;
-  if (node.lineHeight != null) nc.lineHeight = { value: node.lineHeight, units: "PIXELS" };
-  nc.letterSpacing = { value: node.letterSpacing, units: "PIXELS" };
-  if (node.textDecoration !== "NONE") {
-    nc.textDecoration = node.textDecoration === "UNDERLINE" ? "UNDERLINE" : "STRIKETHROUGH";
+  if (node2.leadingTrim !== "NONE") nc.leadingTrim = node2.leadingTrim;
+  if (node2.lineHeight != null) nc.lineHeight = { value: node2.lineHeight, units: "PIXELS" };
+  nc.letterSpacing = { value: node2.letterSpacing, units: "PIXELS" };
+  if (node2.textDecoration !== "NONE") {
+    nc.textDecoration = node2.textDecoration === "UNDERLINE" ? "UNDERLINE" : "STRIKETHROUGH";
   }
-  if (node.textDecorationStyle !== "SOLID") nc.textDecorationStyle = node.textDecorationStyle;
-  if (node.textDecorationThickness != null) {
-    nc.textDecorationThickness = { value: node.textDecorationThickness, units: "PIXELS" };
+  if (node2.textDecorationStyle !== "SOLID") nc.textDecorationStyle = node2.textDecorationStyle;
+  if (node2.textDecorationThickness != null) {
+    nc.textDecorationThickness = { value: node2.textDecorationThickness, units: "PIXELS" };
   }
-  if (node.textUnderlineOffset != null) {
-    nc.textUnderlineOffset = { value: node.textUnderlineOffset, units: "PIXELS" };
+  if (node2.textUnderlineOffset != null) {
+    nc.textUnderlineOffset = { value: node2.textUnderlineOffset, units: "PIXELS" };
   }
-  if (node.textDecorationFills.length > 0) {
-    nc.textDecorationFillPaints = node.textDecorationFills.map(fillToKiwiPaint);
+  if (node2.textDecorationFills.length > 0) {
+    nc.textDecorationFillPaints = node2.textDecorationFills.map(fillToKiwiPaint);
   }
 }
 function normalizeStackMode(value) {
@@ -13272,10 +13273,10 @@ function normalizeStackCounterAlignItems(value) {
   const normalized2 = normalizeStackCounterAlign(value);
   return normalized2 === "STRETCH" ? "MIN" : normalized2;
 }
-function serializeInheritedCounterAxisStretch(node, nc, graph) {
-  if (!node.parentId || node.layoutAlignSelf !== "AUTO" || node.layoutPositioning === "ABSOLUTE")
+function serializeInheritedCounterAxisStretch(node2, nc, graph) {
+  if (!node2.parentId || node2.layoutAlignSelf !== "AUTO" || node2.layoutPositioning === "ABSOLUTE")
     return;
-  const parent = graph.getNode(node.parentId);
+  const parent = graph.getNode(node2.parentId);
   if (parent?.counterAxisAlign === "STRETCH" && (parent.layoutMode === "HORIZONTAL" || parent.layoutMode === "VERTICAL")) {
     nc.stackChildAlignSelf = "STRETCH";
   }
@@ -13285,23 +13286,23 @@ function preserveTrailingPadding(explicitValue, leadingValue, baseValue, normali
   const inheritedValue = leadingValue ?? baseValue ?? normalizedValue;
   return normalizedValue !== inheritedValue ? normalizedValue : void 0;
 }
-function serializeSizeConstraints(node, nc) {
-  if (node.minWidth != null || node.minHeight != null) {
-    nc.minSize = { value: { x: node.minWidth ?? 0, y: node.minHeight ?? 0 } };
+function serializeSizeConstraints(node2, nc) {
+  if (node2.minWidth != null || node2.minHeight != null) {
+    nc.minSize = { value: { x: node2.minWidth ?? 0, y: node2.minHeight ?? 0 } };
   }
-  if (node.maxWidth != null || node.maxHeight != null) {
+  if (node2.maxWidth != null || node2.maxHeight != null) {
     nc.maxSize = {
       value: {
-        x: node.maxWidth ?? Number.POSITIVE_INFINITY,
-        y: node.maxHeight ?? Number.POSITIVE_INFINITY
+        x: node2.maxWidth ?? Number.POSITIVE_INFINITY,
+        y: node2.maxHeight ?? Number.POSITIVE_INFINITY
       }
     };
   }
 }
-function serializeLayoutProps(node, nc, graph) {
-  if (!node.source.id) upsertPluginData(node, LAYOUT_DIRECTION_PLUGIN_KEY, node.layoutDirection);
-  serializeSizeConstraints(node, nc);
-  const figLayout = node.source.fig.layout;
+function serializeLayoutProps(node2, nc, graph) {
+  if (!node2.source.id) upsertPluginData(node2, LAYOUT_DIRECTION_PLUGIN_KEY, node2.layoutDirection);
+  serializeSizeConstraints(node2, nc);
+  const figLayout = node2.source.fig.layout;
   if (figLayout) {
     nc.stackMode = normalizeStackMode(figLayout.stackMode);
     nc.stackSpacing = figLayout.stackSpacing;
@@ -13310,13 +13311,13 @@ function serializeLayoutProps(node, nc, graph) {
       figLayout.stackPaddingRight,
       figLayout.stackHorizontalPadding,
       figLayout.stackPadding,
-      node.paddingRight
+      node2.paddingRight
     );
     nc.stackPaddingBottom = preserveTrailingPadding(
       figLayout.stackPaddingBottom,
       figLayout.stackVerticalPadding,
       figLayout.stackPadding,
-      node.paddingBottom
+      node2.paddingBottom
     );
     nc.stackCounterAlign = normalizeStackCounterAlign(figLayout.stackCounterAlign);
     nc.stackJustify = normalizeStackJustify(figLayout.stackJustify);
@@ -13335,51 +13336,51 @@ function serializeLayoutProps(node, nc, graph) {
     nc.stackCounterSpacing = figLayout.stackCounterSpacing;
     nc.bordersTakeSpace = figLayout.bordersTakeSpace;
     if (figLayout.stackReverseZIndex) nc.stackReverseZIndex = true;
-    serializeInheritedCounterAxisStretch(node, nc, graph);
+    serializeInheritedCounterAxisStretch(node2, nc, graph);
     return;
   }
-  if (node.layoutMode !== "NONE" && node.layoutMode !== "GRID") {
-    nc.stackMode = node.layoutMode;
-    nc.stackSpacing = node.itemSpacing;
-    nc.stackVerticalPadding = node.paddingTop;
-    nc.stackHorizontalPadding = node.paddingLeft;
-    nc.stackPaddingBottom = node.paddingBottom;
-    nc.stackPaddingRight = node.paddingRight;
-    nc.stackPrimarySizing = node.primaryAxisSizing === "HUG" ? "RESIZE_TO_FIT" : "FIXED";
-    nc.stackCounterSizing = node.counterAxisSizing === "HUG" ? "RESIZE_TO_FIT" : "FIXED";
-    nc.stackPrimaryAlignItems = normalizeStackJustify(node.primaryAxisAlign);
-    nc.stackCounterAlignItems = normalizeStackCounterAlignItems(node.counterAxisAlign);
-    if (node.layoutWrap === "WRAP") nc.stackWrap = "WRAP";
-    if (node.counterAxisSpacing > 0) nc.stackCounterSpacing = node.counterAxisSpacing;
-    nc.bordersTakeSpace = node.strokesIncludedInLayout;
+  if (node2.layoutMode !== "NONE" && node2.layoutMode !== "GRID") {
+    nc.stackMode = node2.layoutMode;
+    nc.stackSpacing = node2.itemSpacing;
+    nc.stackVerticalPadding = node2.paddingTop;
+    nc.stackHorizontalPadding = node2.paddingLeft;
+    nc.stackPaddingBottom = node2.paddingBottom;
+    nc.stackPaddingRight = node2.paddingRight;
+    nc.stackPrimarySizing = node2.primaryAxisSizing === "HUG" ? "RESIZE_TO_FIT" : "FIXED";
+    nc.stackCounterSizing = node2.counterAxisSizing === "HUG" ? "RESIZE_TO_FIT" : "FIXED";
+    nc.stackPrimaryAlignItems = normalizeStackJustify(node2.primaryAxisAlign);
+    nc.stackCounterAlignItems = normalizeStackCounterAlignItems(node2.counterAxisAlign);
+    if (node2.layoutWrap === "WRAP") nc.stackWrap = "WRAP";
+    if (node2.counterAxisSpacing > 0) nc.stackCounterSpacing = node2.counterAxisSpacing;
+    nc.bordersTakeSpace = node2.strokesIncludedInLayout;
   }
-  if (node.itemReverseZIndex) nc.stackReverseZIndex = true;
-  if (node.layoutPositioning === "ABSOLUTE") nc.stackPositioning = "ABSOLUTE";
-  if (node.layoutGrow > 0) nc.stackChildPrimaryGrow = node.layoutGrow;
-  if (node.layoutAlignSelf !== "AUTO") {
-    nc.stackChildAlignSelf = node.layoutAlignSelf;
+  if (node2.itemReverseZIndex) nc.stackReverseZIndex = true;
+  if (node2.layoutPositioning === "ABSOLUTE") nc.stackPositioning = "ABSOLUTE";
+  if (node2.layoutGrow > 0) nc.stackChildPrimaryGrow = node2.layoutGrow;
+  if (node2.layoutAlignSelf !== "AUTO") {
+    nc.stackChildAlignSelf = node2.layoutAlignSelf;
   } else {
-    serializeInheritedCounterAxisStretch(node, nc, graph);
+    serializeInheritedCounterAxisStretch(node2, nc, graph);
   }
 }
-function serializeGeometry(node, nc, blobs) {
-  if (node.isMask) {
+function serializeGeometry(node2, nc, blobs) {
+  if (node2.isMask) {
     nc.mask = true;
-    nc.maskType = node.maskType;
-    if (node.maskIsOutline) nc.maskIsOutline = true;
+    nc.maskType = node2.maskType;
+    if (node2.maskIsOutline) nc.maskIsOutline = true;
   }
   let styleOverrides = [];
   const vectorData = {};
-  if (node.vectorNetwork && node.type === "VECTOR") {
-    const { table, styleToId } = buildStyleOverrideTable(node.vectorNetwork);
+  if (node2.vectorNetwork && node2.type === "VECTOR") {
+    const { table, styleToId } = buildStyleOverrideTable(node2.vectorNetwork);
     styleOverrides = table;
     const blobIdx = blobs.length;
-    blobs.push(encodeVectorNetworkBlob(node.vectorNetwork, styleToId));
+    blobs.push(encodeVectorNetworkBlob(node2.vectorNetwork, styleToId));
     vectorData.vectorNetworkBlob = blobIdx;
-    vectorData.normalizedSize = { x: node.width, y: node.height };
+    vectorData.normalizedSize = { x: node2.width, y: node2.height };
   }
-  if (node.fillGeometry.length > 0) {
-    nc.fillGeometry = node.fillGeometry.map((geometry) => {
+  if (node2.fillGeometry.length > 0) {
+    nc.fillGeometry = node2.fillGeometry.map((geometry) => {
       const blobIdx = blobs.length;
       blobs.push(geometry.commandsBlob);
       if (!geometry.fills || geometry.fills.length === 0) {
@@ -13392,20 +13393,20 @@ function serializeGeometry(node, nc, blobs) {
   }
   if (styleOverrides.length > 0) vectorData.styleOverrideTable = styleOverrides;
   if (Object.keys(vectorData).length > 0) nc.vectorData = vectorData;
-  if (node.strokeGeometry.length > 0) {
-    nc.strokeGeometry = node.strokeGeometry.map((g4) => {
+  if (node2.strokeGeometry.length > 0) {
+    nc.strokeGeometry = node2.strokeGeometry.map((g4) => {
       const blobIdx = blobs.length;
       blobs.push(g4.commandsBlob);
       return { windingRule: g4.windingRule, commandsBlob: blobIdx };
     });
   }
 }
-function serializeVariableBindings(node, nc, graph, varIdToGuid) {
-  if (Object.keys(node.boundVariables).length === 0) return;
+function serializeVariableBindings(node2, nc, graph, varIdToGuid) {
+  if (Object.keys(node2.boundVariables).length === 0) return;
   const entries = [];
   const roundtripBindings = {};
   const typeMap = { COLOR: "COLOR", BOOLEAN: "BOOLEAN", STRING: "STRING" };
-  for (const [field, varId] of Object.entries(node.boundVariables)) {
+  for (const [field, varId] of Object.entries(node2.boundVariables)) {
     const variable = graph.variables.get(varId);
     if (!variable) continue;
     const varGuid = varIdToGuid?.get(varId) ?? stringToGuid(varId);
@@ -13423,13 +13424,13 @@ function serializeVariableBindings(node, nc, graph, varIdToGuid) {
     });
   }
   if (Object.keys(roundtripBindings).length > 0) {
-    upsertPluginData(node, BOUND_VARIABLES_PLUGIN_KEY, JSON.stringify(roundtripBindings));
+    upsertPluginData(node2, BOUND_VARIABLES_PLUGIN_KEY, JSON.stringify(roundtripBindings));
   }
   if (entries.length > 0) nc.variableConsumptionMap = { entries };
 }
-function sceneNodeToKiwi(node, parentGuid, childIndex, localIdCounter, graph, blobs, nodeIdToGuid, fontDigestMap, varIdToGuid, glyphBlobMap = /* @__PURE__ */ new Map(), blobIndexByHex, assignedGuidValues, runtime = EMPTY_EXPORT_RUNTIME, componentPropertyDefinitionsById = buildComponentPropIndex(graph), modeIdToGuid, propertyIdToGuid = /* @__PURE__ */ new Map()) {
+function sceneNodeToKiwi(node2, parentGuid, childIndex, localIdCounter, graph, blobs, nodeIdToGuid, fontDigestMap, varIdToGuid, glyphBlobMap = /* @__PURE__ */ new Map(), blobIndexByHex, assignedGuidValues, runtime = EMPTY_EXPORT_RUNTIME, componentPropertyDefinitionsById = buildComponentPropIndex(graph), modeIdToGuid, propertyIdToGuid = /* @__PURE__ */ new Map()) {
   const assetRefToVarGuid = varIdToGuid ? buildAssetRefToVarGuidMap(graph, varIdToGuid) : void 0;
-  return sceneNodeToKiwiWithContext(node, parentGuid, childIndex, localIdCounter, {
+  return sceneNodeToKiwiWithContext(node2, parentGuid, childIndex, localIdCounter, {
     graph,
     blobs,
     blobIndexByHex,
@@ -13598,15 +13599,15 @@ var init_node_change = __esm({
 });
 
 // packages/core/src/text/font/style.ts
-function chooseLocalFontMatch(fonts2, family, style) {
+function chooseLocalFontMatch(fonts, family, style) {
   const families = [family];
   const normalized2 = normalizeFontFamily(family);
   if (normalized2 !== family) families.push(normalized2);
   const requested = parseFontStyle(style);
   for (const candidateFamily of families) {
-    const exact = style ? fonts2.find((font) => font.family === candidateFamily && font.style === style) : void 0;
+    const exact = style ? fonts.find((font) => font.family === candidateFamily && font.style === style) : void 0;
     if (exact) return exact;
-    const candidates = fonts2.filter((font) => font.family === candidateFamily);
+    const candidates = fonts.filter((font) => font.family === candidateFamily);
     const sameStyle = candidates.find((font) => {
       const parsed = parseFontStyle(font.style);
       return parsed.weight === requested.weight && parsed.italic === requested.italic;
@@ -13785,18 +13786,18 @@ var init_case = __esm({
 });
 
 // packages/core/src/text/requirements.ts
-function collectNodeFontFaces(node) {
-  if (node.type !== "TEXT") return [];
-  const family = node.fontFamily || DEFAULT_FONT_FAMILY;
+function collectNodeFontFaces(node2) {
+  if (node2.type !== "TEXT") return [];
+  const family = node2.fontFamily || DEFAULT_FONT_FAMILY;
   const faces = /* @__PURE__ */ new Map();
   const add = (faceFamily, style) => {
     faces.set(`${faceFamily}\0${style}`, { family: faceFamily, style });
   };
-  add(family, weightToStyle(node.fontWeight || 400, node.italic));
-  for (const run of node.styleRuns) {
+  add(family, weightToStyle(node2.fontWeight || 400, node2.italic));
+  for (const run of node2.styleRuns) {
     const runFamily = run.style.fontFamily ?? family;
-    const weight = run.style.fontWeight ?? node.fontWeight;
-    const italic = run.style.italic ?? node.italic;
+    const weight = run.style.fontWeight ?? node2.fontWeight;
+    const italic = run.style.italic ?? node2.italic;
     add(runFamily, weightToStyle(weight, italic));
   }
   return [...faces.values()];
@@ -13804,14 +13805,14 @@ function collectNodeFontFaces(node) {
 function collectGraphFontKeys(graph, nodeIds) {
   const fontKeys = /* @__PURE__ */ new Set();
   const collect = (nodeId) => {
-    const node = graph.getNode(nodeId);
-    if (!node) return;
-    if (node.type === "TEXT") {
-      for (const { family, style } of collectNodeFontFaces(node)) {
+    const node2 = graph.getNode(nodeId);
+    if (!node2) return;
+    if (node2.type === "TEXT") {
+      for (const { family, style } of collectNodeFontFaces(node2)) {
         fontKeys.add(`${family}\0${style}`);
       }
     }
-    for (const childId of node.childIds) collect(childId);
+    for (const childId of node2.childIds) collect(childId);
   };
   for (const nodeId of nodeIds) collect(nodeId);
   return Array.from(fontKeys, (key) => key.split("\0"));
@@ -13823,15 +13824,15 @@ function fallbackScriptForCharacter(character, language) {
   if (new RegExp("\\p{Script=Han}", "u").test(character)) return cjkFallbackScriptForLanguage(language) ?? "cjk-sc";
   return null;
 }
-function textLanguageAt(node, index) {
-  const run = node.styleRuns.find((item) => index >= item.start && index < item.start + item.length);
-  return run?.style.textLanguage ?? node.textLanguage;
+function textLanguageAt(node2, index) {
+  const run = node2.styleRuns.find((item) => index >= item.start && index < item.start + item.length);
+  return run?.style.textLanguage ?? node2.textLanguage;
 }
-function transformedCharactersWithSourceOffsets(node) {
+function transformedCharactersWithSourceOffsets(node2) {
   const result = [];
   let sourceIndex = 0;
-  for (const sourceCharacter of node.text) {
-    for (const character of transformTextCase(sourceCharacter, node.textCase)) {
+  for (const sourceCharacter of node2.text) {
+    for (const character of transformTextCase(sourceCharacter, node2.textCase)) {
       result.push({ character, sourceIndex });
     }
     sourceIndex += sourceCharacter.length;
@@ -13843,17 +13844,17 @@ function collectGraphFontRequirements(graph, nodeIds) {
   const nodes = [];
   const scripts = /* @__PURE__ */ new Set();
   const collect = (nodeId) => {
-    const node = graph.getNode(nodeId);
-    if (!node) return;
-    nodes.push(node);
-    if (node.type === "TEXT") {
-      for (const { character, sourceIndex } of transformedCharactersWithSourceOffsets(node)) {
+    const node2 = graph.getNode(nodeId);
+    if (!node2) return;
+    nodes.push(node2);
+    if (node2.type === "TEXT") {
+      for (const { character, sourceIndex } of transformedCharactersWithSourceOffsets(node2)) {
         characters.add(character);
-        const script = fallbackScriptForCharacter(character, textLanguageAt(node, sourceIndex));
+        const script = fallbackScriptForCharacter(character, textLanguageAt(node2, sourceIndex));
         if (script) scripts.add(script);
       }
     }
-    for (const childId of node.childIds) collect(childId);
+    for (const childId of node2.childIds) collect(childId);
   };
   for (const nodeId of nodeIds) collect(nodeId);
   return { characters: Array.from(characters).join(""), nodes, scripts: Array.from(scripts) };
@@ -14758,10 +14759,10 @@ var init_dist4 = __esm({
 import { findAll, generate, parse as parse3 } from "css-tree";
 function extractFontFaceData(css, family) {
   const fontFaces = [];
-  for (const node of findAll(parse3(css), (node2) => node2.type === "Atrule" && node2.name === "font-face")) {
-    if (node.type !== "Atrule" || node.name !== "font-face") continue;
+  for (const node2 of findAll(parse3(css), (node3) => node3.type === "Atrule" && node3.name === "font-face")) {
+    if (node2.type !== "Atrule" || node2.name !== "font-face") continue;
     if (family) {
-      if (!node.block?.children.some((child) => {
+      if (!node2.block?.children.some((child) => {
         if (child.type !== "Declaration" || child.property !== "font-family") return false;
         const value = extractCSSValue(child);
         const slug = family.toLowerCase();
@@ -14771,7 +14772,7 @@ function extractFontFaceData(css, family) {
       })) continue;
     }
     const data = {};
-    for (const child of node.block?.children || []) if (child.type === "Declaration" && child.property in extractableKeyMap) {
+    for (const child of node2.block?.children || []) if (child.type === "Declaration" && child.property in extractableKeyMap) {
       const value = extractCSSValue(child);
       data[extractableKeyMap[child.property]] = ["src", "unicode-range"].includes(child.property) && !Array.isArray(value) ? [value] : value;
     }
@@ -14783,11 +14784,11 @@ function extractFontFaceData(css, family) {
 function processRawValue(value) {
   return value.split(",").map((v3) => v3.trim().replace(/^(?<quote>['"])(.*)\k<quote>$/, "$2"));
 }
-function extractCSSValue(node) {
-  if (node.value.type === "Raw") return processRawValue(node.value.value);
+function extractCSSValue(node2) {
+  if (node2.value.type === "Raw") return processRawValue(node2.value.value);
   const values = [];
   let buffer = "";
-  for (const child of node.value.children) {
+  for (const child of node2.value.children) {
     if (child.type === "Function") {
       if (child.name === "local" && child.children.first?.type === "String") values.push({ name: child.children.first.value });
       if (child.name === "format") {
@@ -14888,16 +14889,16 @@ function splitCssIntoSubsets(input) {
         endLine: loc.end.line
       });
     }
-  }), (node) => node.type === "Atrule" && node.name === "font-face");
+  }), (node2) => node2.type === "Atrule" && node2.name === "font-face");
   if (comments.length === 0) return [{
     subset: null,
     css: input
   }];
-  for (const node of nodes) {
-    const comment = comments.filter((comment2) => comment2.endLine < node.loc.start.line).at(-1);
+  for (const node2 of nodes) {
+    const comment = comments.filter((comment2) => comment2.endLine < node2.loc.start.line).at(-1);
     data.push({
       subset: comment?.value ?? null,
-      css: generate(node)
+      css: generate(node2)
     });
   }
   return data;
@@ -14905,11 +14906,11 @@ function splitCssIntoSubsets(input) {
 function computeIdFromSource(source) {
   return "name" in source ? source.name : source.url;
 }
-function cleanFontFaces(fonts2, _formats) {
-  const formats = _formats.map((format) => formatMap[format]);
+function cleanFontFaces(fonts, _formats) {
+  const formats2 = _formats.map((format) => formatMap[format]);
   const result = [];
   const hashToIndex = /* @__PURE__ */ new Map();
-  for (const { src: _src, meta, ...font } of fonts2) {
+  for (const { src: _src, meta, ...font } of fonts) {
     const key = hash(font);
     const index = hashToIndex.get(key);
     const src = _src.map((source) => "name" in source ? source : {
@@ -14918,9 +14919,9 @@ function cleanFontFaces(fonts2, _formats) {
     }).filter((source) => {
       if ("name" in source) return true;
       if (!source.format) return true;
-      if (formats.includes(source.format)) return true;
+      if (formats2.includes(source.format)) return true;
       const baseFormat = variationFormatMap[source.format];
-      return !!baseFormat && formats.includes(baseFormat);
+      return !!baseFormat && formats2.includes(baseFormat);
     });
     if (src.length === 0) continue;
     if (index === void 0) {
@@ -15123,7 +15124,7 @@ var init_dist5 = __esm({
       if (!options.id) return;
       const familyMap = /* @__PURE__ */ new Map();
       const notFoundFamilies = /* @__PURE__ */ new Set();
-      const fonts2 = { kits: [] };
+      const fonts = { kits: [] };
       let lastRefreshKitTime;
       let fetchKitsPromise;
       const kits = typeof options.id === "string" ? [options.id] : options.id;
@@ -15131,7 +15132,7 @@ var init_dist5 = __esm({
       async function fetchKits(bypassCache = false) {
         familyMap.clear();
         notFoundFamilies.clear();
-        fonts2.kits = [];
+        fonts.kits = [];
         await Promise.all(kits.map(async (id) => {
           let meta;
           const key = `adobe:meta-${id}.json`;
@@ -15140,13 +15141,13 @@ var init_dist5 = __esm({
             await ctx.storage.setItem(key, meta);
           } else meta = await ctx.storage.getItem(key, () => getAdobeFontMeta(id));
           if (!meta) throw new TypeError("No font metadata found in adobe response.");
-          fonts2.kits.push(meta);
+          fonts.kits.push(meta);
           for (const family of meta.families) familyMap.set(family.name, family.id);
         }));
       }
       async function getFontDetails(family, options2) {
         options2.weights = options2.weights.map(String);
-        for (const kit of fonts2.kits) {
+        for (const kit of fonts.kits) {
           const font = kit.families.find((f5) => f5.name === family);
           if (!font) continue;
           const weights = prepareWeights({
@@ -15197,11 +15198,11 @@ var init_dist5 = __esm({
     fontAPI$2 = $fetch.create({ baseURL: "https://fonts.bunny.net" });
     bunny_default = defineFontProvider("bunny", async (_options, ctx) => {
       const familyMap = /* @__PURE__ */ new Map();
-      const fonts2 = await ctx.storage.getItem("bunny:meta.json", () => fontAPI$2("/list", { responseType: "json" }));
-      for (const [id, family] of Object.entries(fonts2)) familyMap.set(family.familyName, id);
+      const fonts = await ctx.storage.getItem("bunny:meta.json", () => fontAPI$2("/list", { responseType: "json" }));
+      for (const [id, family] of Object.entries(fonts)) familyMap.set(family.familyName, id);
       async function getFontDetails(family, options) {
         const id = familyMap.get(family);
-        const font = fonts2[id];
+        const font = fonts[id];
         const weights = prepareWeights({
           inputWeights: options.weights,
           hasVariableWeights: false,
@@ -15241,8 +15242,8 @@ var init_dist5 = __esm({
     fontAPI$1 = $fetch.create({ baseURL: "https://api.fontshare.com/v2" });
     fontshare_default = defineFontProvider("fontshare", async (_options, ctx) => {
       const fontshareFamilies = /* @__PURE__ */ new Set();
-      const fonts2 = await ctx.storage.getItem("fontshare:meta.json", async () => {
-        const fonts3 = [];
+      const fonts = await ctx.storage.getItem("fontshare:meta.json", async () => {
+        const fonts2 = [];
         let offset = 0;
         let chunk;
         do {
@@ -15253,14 +15254,14 @@ var init_dist5 = __esm({
               limit: 100
             }
           });
-          fonts3.push(...chunk.fonts);
+          fonts2.push(...chunk.fonts);
           offset++;
         } while (chunk.has_more);
-        return fonts3;
+        return fonts2;
       });
-      for (const font of fonts2) fontshareFamilies.add(font.name);
+      for (const font of fonts) fontshareFamilies.add(font.name);
       async function getFontDetails(family, options) {
-        const font = fonts2.find((f5) => f5.name === family);
+        const font = fonts.find((f5) => f5.name === family);
         const numbers = [];
         const weights = prepareWeights({
           inputWeights: options.weights,
@@ -15288,9 +15289,9 @@ var init_dist5 = __esm({
     });
     fontAPI = $fetch.create({ baseURL: "https://api.fontsource.org/v1" });
     fontsource_default = defineFontProvider("fontsource", async (_options, ctx) => {
-      const fonts2 = await ctx.storage.getItem("fontsource:meta.json", () => fontAPI("/fonts", { responseType: "json" }));
+      const fonts = await ctx.storage.getItem("fontsource:meta.json", () => fontAPI("/fonts", { responseType: "json" }));
       const familyMap = /* @__PURE__ */ new Map();
-      for (const meta of fonts2) familyMap.set(meta.family, meta);
+      for (const meta of fonts) familyMap.set(meta.family, meta);
       async function getFontDetails(family, options) {
         const font = familyMap.get(family);
         const weights = prepareWeights({
@@ -15535,7 +15536,7 @@ var init_dist5 = __esm({
           return src;
         });
       }
-      async function resolveFromLocal(pkgName, cssFile, family, formats) {
+      async function resolveFromLocal(pkgName, cssFile, family, formats2) {
         if (!readFile2) return null;
         const css = await readFile2(`${root}/node_modules/${pkgName}/${cssFile}`).catch(() => null);
         if (!css) return null;
@@ -15551,9 +15552,9 @@ var init_dist5 = __esm({
         } catch {
         }
         resolveUrlsToAbsolute(fontFaces, `${cdn}/${pkgName}@${version2}/`);
-        return cleanFontFaces(fontFaces, formats);
+        return cleanFontFaces(fontFaces, formats2);
       }
-      async function resolveFromCdn(pkgName, pkgVersion, cssFile, family, formats) {
+      async function resolveFromCdn(pkgName, pkgVersion, cssFile, family, formats2) {
         let css;
         try {
           css = await npmFetch(`${pkgName}@${pkgVersion}/${cssFile}`);
@@ -15563,13 +15564,13 @@ var init_dist5 = __esm({
         if (!css) return null;
         const fontFaces = extractFontFaceData(css, family);
         resolveUrlsToAbsolute(fontFaces, `${cdn}/${pkgName}@${pkgVersion}/`);
-        return cleanFontFaces(fontFaces, formats);
+        return cleanFontFaces(fontFaces, formats2);
       }
       return {
         async listFonts() {
-          const fonts2 = await getDetectedFonts();
-          if (fonts2.size === 0) return;
-          return [...fonts2.values()].map((f5) => f5.family);
+          const fonts = await getDetectedFonts();
+          if (fonts.size === 0) return;
+          return [...fonts.values()].map((f5) => f5.family);
         },
         async resolveFont(family, options) {
           const familyOptions = options.options || {};
@@ -15594,14 +15595,14 @@ var init_dist5 = __esm({
             }
           }
           const key = `npm:${pkgName}/${cssFile}-${hash(options)}`;
-          const fonts2 = await ctx.storage.getItem(key, async () => {
+          const fonts = await ctx.storage.getItem(key, async () => {
             const localResult = await resolveFromLocal(pkgName, cssFile, family, options.formats);
             if (localResult) return localResult;
             if (!remote) return null;
             return await resolveFromCdn(pkgName, pkgVersion, cssFile, family, options.formats);
           });
-          if (!fonts2) return;
-          return { fonts: fonts2 };
+          if (!fonts) return;
+          return { fonts };
         }
       };
     });
@@ -16035,10 +16036,10 @@ var init_fonts = __esm({
           return [];
         }
         try {
-          const fonts2 = await window.queryLocalFonts();
+          const fonts = await window.queryLocalFonts();
           const seen = /* @__PURE__ */ new Set();
           const result = [];
-          for (const f5 of fonts2) {
+          for (const f5 of fonts) {
             const key = `${f5.family}|${f5.style}`;
             if (seen.has(key)) continue;
             seen.add(key);
@@ -16063,7 +16064,7 @@ var init_fonts = __esm({
         return options.map((option) => option.family);
       }
       async listFamilyOptions() {
-        const fonts2 = this.localFonts ?? await this.requestLocalFontAccess();
+        const fonts = this.localFonts ?? await this.requestLocalFontAccess();
         const webFontFamilies = await Promise.all(
           this.enabledOnlineFontProviders().map(async (provider) => ({
             provider,
@@ -16077,7 +16078,7 @@ var init_fonts = __esm({
             if (!byFamily.has(family)) byFamily.set(family, { family, source: provider });
           }
         }
-        for (const font of fonts2) byFamily.set(font.family, { family: font.family, source: "local" });
+        for (const font of fonts) byFamily.set(font.family, { family: font.family, source: "local" });
         return [...byFamily.values()].sort((a4, b5) => a4.family.localeCompare(b5.family));
       }
       preloadWebFontFamilies() {
@@ -16315,8 +16316,8 @@ var init_fonts = __esm({
         if (!IS_BROWSER || !window.queryLocalFonts) return null;
         if (this.localFontAccessState !== "granted") return null;
         try {
-          const fonts2 = await window.queryLocalFonts();
-          const match = chooseLocalFontMatch(fonts2, family, style);
+          const fonts = await window.queryLocalFonts();
+          const match = chooseLocalFontMatch(fonts, family, style);
           if (!match) return null;
           const blob = await match.blob();
           const buffer = await blob.arrayBuffer();
@@ -32704,13 +32705,13 @@ function fontFallbackScriptForCharacter(char, language) {
   if (CJK_IDEOGRAPH_CHAR_RE.test(char)) return "cjk-sc";
   return null;
 }
-function styleForCharacter(node, index) {
-  const baseFamily = node.fontFamily || DEFAULT_FONT_FAMILY;
+function styleForCharacter(node2, index) {
+  const baseFamily = node2.fontFamily || DEFAULT_FONT_FAMILY;
   let family = baseFamily;
-  let weight = node.fontWeight;
-  let italic = node.italic;
-  let language = node.textLanguage;
-  const run = node.styleRuns.find((item) => index >= item.start && index < item.start + item.length);
+  let weight = node2.fontWeight;
+  let italic = node2.italic;
+  let language = node2.textLanguage;
+  const run = node2.styleRuns.find((item) => index >= item.start && index < item.start + item.length);
   if (run) {
     family = run.style.fontFamily ?? family;
     weight = run.style.fontWeight ?? weight;
@@ -32719,40 +32720,40 @@ function styleForCharacter(node, index) {
   }
   return { family, style: weightToStyle(weight, italic), language };
 }
-function textNeedsFallbackScript(node, script) {
-  if (node.type !== "TEXT" || !node.text) return false;
+function textNeedsFallbackScript(node2, script) {
+  if (node2.type !== "TEXT" || !node2.text) return false;
   const regex3 = scriptCharRegex(script);
   let index = 0;
-  for (const char of node.text) {
+  for (const char of node2.text) {
     if (regex3.test(char)) {
-      const { family, style } = styleForCharacter(node, index);
+      const { family, style } = styleForCharacter(node2, index);
       if (fontGlyphCoverageSync(family, style, char) === "missing") return true;
     }
     index += char.length;
   }
   return false;
 }
-function textFallbackScriptsWithoutCoverage(node) {
-  if (node.type !== "TEXT") return [];
+function textFallbackScriptsWithoutCoverage(node2) {
+  if (node2.type !== "TEXT") return [];
   const scripts = /* @__PURE__ */ new Set();
   let index = 0;
-  for (const char of node.text) {
-    const { language } = styleForCharacter(node, index);
+  for (const char of node2.text) {
+    const { language } = styleForCharacter(node2, index);
     const script = fontFallbackScriptForCharacter(char, language);
     if (script) scripts.add(script);
     index += char.length;
   }
   return [...scripts];
 }
-function textNeededFallbackScripts(node) {
+function textNeededFallbackScripts(node2) {
   const scripts = /* @__PURE__ */ new Set();
-  if (textNeedsFallbackScript(node, "arabic")) scripts.add("arabic");
+  if (textNeedsFallbackScript(node2, "arabic")) scripts.add("arabic");
   let missingIdeograph = false;
   let missingTraditionalIdeograph = false;
   let index = 0;
-  for (const char of node.text) {
+  for (const char of node2.text) {
     if (CJK_CHAR_RE.test(char)) {
-      const { family, style, language } = styleForCharacter(node, index);
+      const { family, style, language } = styleForCharacter(node2, index);
       if (fontGlyphCoverageSync(family, style, char) === "missing") {
         if (CJK_IDEOGRAPH_CHAR_RE.test(char)) {
           const languageScript = cjkFallbackScriptForLanguage(language);
@@ -32792,9 +32793,9 @@ var init_coverage = __esm({
 // packages/core/src/text/resolved-requirements.ts
 function missingGraphFontScripts(requirements, options = {}) {
   const scripts = /* @__PURE__ */ new Set();
-  for (const node of requirements.nodes) {
-    if (node.type !== "TEXT") continue;
-    const neededScripts = options.treatUnknownCoverageAsMissing ? textFallbackScriptsWithoutCoverage(node) : textNeededFallbackScripts(node);
+  for (const node2 of requirements.nodes) {
+    if (node2.type !== "TEXT") continue;
+    const neededScripts = options.treatUnknownCoverageAsMissing ? textFallbackScriptsWithoutCoverage(node2) : textNeededFallbackScripts(node2);
     for (const script of neededScripts) scripts.add(script);
   }
   return Array.from(scripts);
@@ -32812,13 +32813,13 @@ function faceKey(family, style) {
 }
 function rootTextNodes(graph, rootIds) {
   return rootIds.flatMap(
-    (rootId) => graph.flattenTree(rootId).flatMap(({ node }) => node.type === "TEXT" ? [node] : [])
+    (rootId) => graph.flattenTree(rootId).flatMap(({ node: node2 }) => node2.type === "TEXT" ? [node2] : [])
   );
 }
 function collectFaceUses(graph, rootIds) {
   const uses = /* @__PURE__ */ new Map();
-  for (const node of rootTextNodes(graph, rootIds)) {
-    for (const { family, style } of collectNodeFontFaces(node)) {
+  for (const node2 of rootTextNodes(graph, rootIds)) {
+    for (const { family, style } of collectNodeFontFaces(node2)) {
       const key = faceKey(family, style);
       const use = uses.get(key) ?? {
         family,
@@ -32826,8 +32827,8 @@ function collectFaceUses(graph, rootIds) {
         nodeIds: /* @__PURE__ */ new Set(),
         nodeNames: /* @__PURE__ */ new Set()
       };
-      use.nodeIds.add(node.id);
-      use.nodeNames.add(node.name);
+      use.nodeIds.add(node2.id);
+      use.nodeNames.add(node2.name);
       uses.set(key, use);
     }
   }
@@ -43655,21 +43656,21 @@ ${d3}`);
 function includeReferencedStyles(source, ids) {
   const referencedStyleIds = /* @__PURE__ */ new Set();
   for (const id of ids) {
-    const node = source.getNode(id);
-    if (!node) continue;
+    const node2 = source.getNode(id);
+    if (!node2) continue;
     for (const styleId of [
-      node.fillStyleId,
-      node.strokeStyleId,
-      node.textStyleId,
-      node.effectStyleId,
-      node.gridStyleId
+      node2.fillStyleId,
+      node2.strokeStyleId,
+      node2.textStyleId,
+      node2.effectStyleId,
+      node2.gridStyleId
     ]) {
       if (styleId) referencedStyleIds.add(styleId);
     }
   }
-  for (const node of source.getAllNodes()) {
-    if (node.sharedStyleType && node.source.id && referencedStyleIds.has(node.source.id)) {
-      ids.add(node.id);
+  for (const node2 of source.getAllNodes()) {
+    if (node2.sharedStyleType && node2.source.id && referencedStyleIds.has(node2.source.id)) {
+      ids.add(node2.id);
     }
   }
 }
@@ -43695,9 +43696,9 @@ function cloneIntoGraph(source, ids) {
     return aDepth - bDepth;
   });
   for (const id of sortedIds) {
-    const node = source.getNode(id);
-    if (!node) continue;
-    graph.nodes.set(id, structuredClone(node));
+    const node2 = source.getNode(id);
+    if (!node2) continue;
+    graph.nodes.set(id, structuredClone(node2));
   }
   const rootClone = graph.getNode(source.rootId);
   if (rootClone) {
@@ -43706,12 +43707,12 @@ function cloneIntoGraph(source, ids) {
   }
   for (const id of sortedIds) {
     if (id === source.rootId) continue;
-    const node = graph.getNode(id);
-    if (!node) continue;
-    if (!node.parentId || !ids.has(node.parentId)) {
-      node.parentId = source.rootId;
+    const node2 = graph.getNode(id);
+    if (!node2) continue;
+    if (!node2.parentId || !ids.has(node2.parentId)) {
+      node2.parentId = source.rootId;
     }
-    node.childIds = node.childIds.filter((childId) => ids.has(childId));
+    node2.childIds = node2.childIds.filter((childId) => ids.has(childId));
   }
   const { imageHashes, variableIds } = collectReferencedResources(source, graph);
   for (const imageHash of imageHashes) {
@@ -43739,11 +43740,11 @@ function cloneIntoGraph(source, ids) {
 function collectReferencedResources(source, graph) {
   const imageHashes = /* @__PURE__ */ new Set();
   const variableIds = /* @__PURE__ */ new Set();
-  for (const node of graph.nodes.values()) {
-    for (const fill2 of node.fills) {
+  for (const node2 of graph.nodes.values()) {
+    for (const fill2 of node2.fills) {
       if (fill2.type === "IMAGE" && fill2.imageHash) imageHashes.add(fill2.imageHash);
     }
-    for (const variableId of Object.values(node.boundVariables)) {
+    for (const variableId of Object.values(node2.boundVariables)) {
       collectVariableClosure(source, variableId, variableIds);
     }
   }
@@ -43760,9 +43761,9 @@ function collectVariableClosure(source, variableId, out) {
     }
   }
 }
-function depthOf(source, node) {
+function depthOf(source, node2) {
   let depth = 0;
-  let current = node;
+  let current = node2;
   while (current?.parentId) {
     depth += 1;
     current = source.getNode(current.parentId);
@@ -43772,9 +43773,9 @@ function depthOf(source, node) {
 function collectDescendants(source, id, out) {
   if (out.has(id)) return;
   out.add(id);
-  const node = source.getNode(id);
-  if (!node) return;
-  for (const childId of node.childIds) {
+  const node2 = source.getNode(id);
+  if (!node2) return;
+  for (const childId of node2.childIds) {
     collectDescendants(source, childId, out);
   }
 }
@@ -43790,9 +43791,9 @@ function resolveInstanceComponentId2(source, componentId) {
   let currentId = componentId;
   while (!seen.has(currentId)) {
     seen.add(currentId);
-    const node = source.getNode(currentId);
-    if (node?.type !== "INSTANCE" || !node.componentId) return currentId;
-    currentId = node.componentId;
+    const node2 = source.getNode(currentId);
+    if (node2?.type !== "INSTANCE" || !node2.componentId) return currentId;
+    currentId = node2.componentId;
   }
   return componentId;
 }
@@ -43801,9 +43802,9 @@ function collectComponentDependencies(source, ids) {
   while (changed) {
     changed = false;
     for (const id of Array.from(ids)) {
-      const node = source.getNode(id);
-      if (node?.type !== "INSTANCE" || !node.componentId) continue;
-      const componentId = resolveInstanceComponentId2(source, node.componentId);
+      const node2 = source.getNode(id);
+      if (node2?.type !== "INSTANCE" || !node2.componentId) continue;
+      const componentId = resolveInstanceComponentId2(source, node2.componentId);
       if (ids.has(componentId)) continue;
       const before = ids.size;
       collectAncestors(source, componentId, ids);
@@ -43835,8 +43836,8 @@ function collectSelectionIds(source, nodeIds) {
   const ids = /* @__PURE__ */ new Set([source.rootId]);
   const pageIds = /* @__PURE__ */ new Set();
   for (const nodeId of nodeIds) {
-    const node = source.getNode(nodeId);
-    if (!node) continue;
+    const node2 = source.getNode(nodeId);
+    if (!node2) continue;
     for (const ancestorId of ancestorChain(source, nodeId)) {
       ids.add(ancestorId);
       const ancestor = source.getNode(ancestorId);
@@ -43858,8 +43859,8 @@ function pageNodeIds(source, pageId) {
 }
 function rootNodeIds(source) {
   const ids = /* @__PURE__ */ new Set();
-  for (const node of source.nodes.values()) {
-    ids.add(node.id);
+  for (const node2 of source.nodes.values()) {
+    ids.add(node2.id);
   }
   return ids;
 }
@@ -46360,8 +46361,8 @@ function wrapAssembly(lib) {
       if (dirtiedFunc) {
         const nodeWeakRef = new WeakRef(this);
         lib._yogaDirtiedFuncs.set(this._ptr, () => {
-          const node = nodeWeakRef.deref();
-          if (node) dirtiedFunc(node);
+          const node2 = nodeWeakRef.deref();
+          if (node2) dirtiedFunc(node2);
         });
         lib._jswrap_YGNodeSetDirtiedFunc(this._ptr);
       } else {
@@ -46604,17 +46605,17 @@ var init_apply = __esm({
 });
 
 // packages/core/src/layout/text-measurement.ts
-function estimateTextSize(node, maxWidth) {
-  const fontSize = node.fontSize || 14;
-  const family = node.fontFamily || "Inter";
-  const style = weightToStyle(node.fontWeight || 400, node.italic);
-  const text = node.text || "";
-  const explicitLineH = (node.lineHeight ?? 0) > 0 ? node.lineHeight : void 0;
+function estimateTextSize(node2, maxWidth) {
+  const fontSize = node2.fontSize || 14;
+  const family = node2.fontFamily || "Inter";
+  const style = weightToStyle(node2.fontWeight || 400, node2.italic);
+  const text = node2.text || "";
+  const explicitLineH = (node2.lineHeight ?? 0) > 0 ? node2.lineHeight : void 0;
   const measured = measureTextWithOpenType(text, fontSize, family, style, maxWidth, explicitLineH);
   if (measured) return measured;
   const charWidth = fontSize * GLYPH_WIDTH_FACTOR;
   const singleLineWidth = Math.ceil(text.length * charWidth);
-  const lineH = (node.lineHeight ?? 0) > 0 ? node.lineHeight : Math.ceil(fontSize * 1.4);
+  const lineH = (node2.lineHeight ?? 0) > 0 ? node2.lineHeight : Math.ceil(fontSize * 1.4);
   if (maxWidth && maxWidth > 0 && singleLineWidth > maxWidth) {
     const lines = Math.ceil(singleLineWidth / maxWidth);
     return { width: maxWidth, height: Math.ceil(lines * lineH) };
@@ -46639,15 +46640,15 @@ var init_text_measurement = __esm({
 });
 
 // packages/core/src/layout/effective-generated-text.ts
-function axisSizing(node, axis) {
-  const isPrimary = node.layoutMode === "HORIZONTAL" && axis === "width" || node.layoutMode === "VERTICAL" && axis === "height";
-  return isPrimary ? node.primaryAxisSizing : node.counterAxisSizing;
+function axisSizing(node2, axis) {
+  const isPrimary = node2.layoutMode === "HORIZONTAL" && axis === "width" || node2.layoutMode === "VERTICAL" && axis === "height";
+  return isPrimary ? node2.primaryAxisSizing : node2.counterAxisSizing;
 }
-function canResizeIntrinsicAxis(node, axis) {
-  return axisSizing(node, axis) === "HUG" || node.source.format === "fig" && node.derivedLayout?.[axis] === void 0;
+function canResizeIntrinsicAxis(node2, axis) {
+  return axisSizing(node2, axis) === "HUG" || node2.source.format === "fig" && node2.derivedLayout?.[axis] === void 0;
 }
-function terminalTextSource(graph, node) {
-  let current = node;
+function terminalTextSource(graph, node2) {
+  let current = node2;
   for (let depth = 0; current.componentId && depth < MAX_COMPONENT_LINEAGE_DEPTH; depth++) {
     const source = graph.getNode(current.componentId);
     if (!source) break;
@@ -46655,12 +46656,12 @@ function terminalTextSource(graph, node) {
   }
   return current.type === "TEXT" ? current : void 0;
 }
-function parentHugsWidth(graph, node) {
-  const parent = node.parentId ? graph.getNode(node.parentId) : void 0;
+function parentHugsWidth(graph, node2) {
+  const parent = node2.parentId ? graph.getNode(node2.parentId) : void 0;
   return parent !== void 0 && axisSizing(parent, "width") === "HUG";
 }
-function hasFixedWidthTextAncestor(graph, node) {
-  let current = node;
+function hasFixedWidthTextAncestor(graph, node2) {
+  let current = node2;
   for (let depth = 0; current.componentId && depth < MAX_COMPONENT_LINEAGE_DEPTH; depth++) {
     const source = graph.getNode(current.componentId);
     if (!source) break;
@@ -46669,61 +46670,61 @@ function hasFixedWidthTextAncestor(graph, node) {
   }
   return false;
 }
-function canShapeGeneratedText(graph, node) {
-  if (node.type !== "TEXT" || node.source.format === "fig" || !node.componentId || !node.derivedLayout || node.derivedLayout.width !== node.width || node.derivedLayout.height !== node.height) {
+function canShapeGeneratedText(graph, node2) {
+  if (node2.type !== "TEXT" || node2.source.format === "fig" || !node2.componentId || !node2.derivedLayout || node2.derivedLayout.width !== node2.width || node2.derivedLayout.height !== node2.height) {
     return false;
   }
-  const sourceText = terminalTextSource(graph, node);
+  const sourceText = terminalTextSource(graph, node2);
   if (sourceText?.source.format !== "fig") return false;
-  if (node.textAutoResize === "WIDTH_AND_HEIGHT") {
-    return !hasFixedWidthTextAncestor(graph, node);
+  if (node2.textAutoResize === "WIDTH_AND_HEIGHT") {
+    return !hasFixedWidthTextAncestor(graph, node2);
   }
-  return node.textAutoResize === "HEIGHT" && node.layoutAlignSelf === "STRETCH" && parentHugsWidth(graph, node) && sourceText.text === node.text;
+  return node2.textAutoResize === "HEIGHT" && node2.layoutAlignSelf === "STRETCH" && parentHugsWidth(graph, node2) && sourceText.text === node2.text;
 }
 function stretchesCrossAxis(child, parent) {
   return child.layoutAlignSelf === "STRETCH" || child.layoutAlignSelf === "AUTO" && parent.counterAxisAlign === "STRETCH";
 }
-function participatesInIntrinsicSize(node) {
-  return node.visible && node.layoutPositioning !== "ABSOLUTE";
+function participatesInIntrinsicSize(node2) {
+  return node2.visible && node2.layoutPositioning !== "ABSOLUTE";
 }
-function intrinsicSize(graph, node, sizes) {
-  if (node.layoutMode !== "HORIZONTAL" && node.layoutMode !== "VERTICAL") return null;
-  const children = graph.getChildren(node.id).filter(participatesInIntrinsicSize);
+function intrinsicSize(graph, node2, sizes) {
+  if (node2.layoutMode !== "HORIZONTAL" && node2.layoutMode !== "VERTICAL") return null;
+  const children = graph.getChildren(node2.id).filter(participatesInIntrinsicSize);
   if (children.length === 0) return null;
   const childSizes = children.map((child) => sizes.get(child.id) ?? child);
-  const gap = node.primaryAxisAlign === "SPACE_BETWEEN" ? 0 : node.itemSpacing * Math.max(0, children.length - 1);
-  if (node.layoutMode === "HORIZONTAL") {
+  const gap = node2.primaryAxisAlign === "SPACE_BETWEEN" ? 0 : node2.itemSpacing * Math.max(0, children.length - 1);
+  if (node2.layoutMode === "HORIZONTAL") {
     return {
-      width: node.paddingLeft + node.paddingRight + childSizes.reduce((sum, child) => sum + child.width, gap),
-      height: node.paddingTop + node.paddingBottom + Math.max(...childSizes.map((child) => child.height))
+      width: node2.paddingLeft + node2.paddingRight + childSizes.reduce((sum, child) => sum + child.width, gap),
+      height: node2.paddingTop + node2.paddingBottom + Math.max(...childSizes.map((child) => child.height))
     };
   }
   return {
-    width: node.paddingLeft + node.paddingRight + Math.max(...childSizes.map((child) => child.width)),
-    height: node.paddingTop + node.paddingBottom + childSizes.reduce((sum, child) => sum + child.height, gap)
+    width: node2.paddingLeft + node2.paddingRight + Math.max(...childSizes.map((child) => child.width)),
+    height: node2.paddingTop + node2.paddingBottom + childSizes.reduce((sum, child) => sum + child.height, gap)
   };
 }
-function intrinsicSizeWithEffectiveStretch(graph, node, sizes, affected) {
-  const intrinsic = intrinsicSize(graph, node, sizes);
-  if (!intrinsic || node.layoutMode !== "VERTICAL" || axisSizing(node, "width") !== "HUG") {
+function intrinsicSizeWithEffectiveStretch(graph, node2, sizes, affected) {
+  const intrinsic = intrinsicSize(graph, node2, sizes);
+  if (!intrinsic || node2.layoutMode !== "VERTICAL" || axisSizing(node2, "width") !== "HUG") {
     return intrinsic;
   }
-  const children = graph.getChildren(node.id).filter(participatesInIntrinsicSize);
+  const children = graph.getChildren(node2.id).filter(participatesInIntrinsicSize);
   if (!children.some((child) => affected.has(child.id))) return intrinsic;
   const widthCandidates = children.filter(
-    (child) => affected.has(child.id) || !stretchesCrossAxis(child, node)
+    (child) => affected.has(child.id) || !stretchesCrossAxis(child, node2)
   );
   if (widthCandidates.length === 0) return intrinsic;
   return {
     ...intrinsic,
-    width: node.paddingLeft + node.paddingRight + Math.max(...widthCandidates.map((child) => (sizes.get(child.id) ?? child).width))
+    width: node2.paddingLeft + node2.paddingRight + Math.max(...widthCandidates.map((child) => (sizes.get(child.id) ?? child).width))
   };
 }
-function stretchChildrenToEffectiveWidth(graph, node, oldIntrinsicWidth, nextWidth, currentSizes, affected) {
-  const oldContentWidth = oldIntrinsicWidth - node.paddingLeft - node.paddingRight;
-  const nextContentWidth = nextWidth - node.paddingLeft - node.paddingRight;
-  for (const child of graph.getChildren(node.id)) {
-    if (!participatesInIntrinsicSize(child) || !stretchesCrossAxis(child, node) || Math.abs(child.width - oldContentWidth) >= 1e-3) {
+function stretchChildrenToEffectiveWidth(graph, node2, oldIntrinsicWidth, nextWidth, currentSizes, affected) {
+  const oldContentWidth = oldIntrinsicWidth - node2.paddingLeft - node2.paddingRight;
+  const nextContentWidth = nextWidth - node2.paddingLeft - node2.paddingRight;
+  for (const child of graph.getChildren(node2.id)) {
+    if (!participatesInIntrinsicSize(child) || !stretchesCrossAxis(child, node2) || Math.abs(child.width - oldContentWidth) >= 1e-3) {
       continue;
     }
     const updates = { width: nextContentWidth };
@@ -46738,10 +46739,10 @@ function stretchChildrenToEffectiveWidth(graph, node, oldIntrinsicWidth, nextWid
 function collectPostorder(graph, rootId) {
   const result = [];
   const visit = (nodeId) => {
-    const node = graph.getNode(nodeId);
-    if (!node) return;
-    for (const childId of node.childIds) visit(childId);
-    result.push(node);
+    const node2 = graph.getNode(nodeId);
+    if (!node2) return;
+    for (const childId of node2.childIds) visit(childId);
+    result.push(node2);
   };
   visit(rootId);
   return result;
@@ -46749,45 +46750,45 @@ function collectPostorder(graph, rootId) {
 function updateGeneratedTextWidths(graph, nodes, currentSizes, affected) {
   const measure2 = getTextMeasurer();
   if (!measure2) return;
-  for (const node of nodes) {
-    if (!canShapeGeneratedText(graph, node)) continue;
-    const measured = measure2(node);
+  for (const node2 of nodes) {
+    if (!canShapeGeneratedText(graph, node2)) continue;
+    const measured = measure2(node2);
     if (!measured || measured.width <= 0) continue;
-    const widthChange = node.width - measured.width;
-    if (widthChange < MIN_EFFECTIVE_TEXT_WIDTH_CHANGE || node.textAutoResize === "HEIGHT" && widthChange > MAX_STRETCHED_TEXT_WIDTH_CHANGE) {
+    const widthChange = node2.width - measured.width;
+    if (widthChange < MIN_EFFECTIVE_TEXT_WIDTH_CHANGE || node2.textAutoResize === "HEIGHT" && widthChange > MAX_STRETCHED_TEXT_WIDTH_CHANGE) {
       continue;
     }
-    graph.updateNode(node.id, {
+    graph.updateNode(node2.id, {
       width: measured.width,
-      derivedLayout: { ...node.derivedLayout, width: measured.width }
+      derivedLayout: { ...node2.derivedLayout, width: measured.width }
     });
-    currentSizes.set(node.id, { width: measured.width, height: node.height });
-    affected.add(node.id);
+    currentSizes.set(node2.id, { width: measured.width, height: node2.height });
+    affected.add(node2.id);
   }
 }
 function propagateIntrinsicSizes(graph, nodes, originalSizes, currentSizes, affected) {
-  for (const node of nodes) {
-    if (node.type === "TEXT") continue;
-    const children = graph.getChildren(node.id);
+  for (const node2 of nodes) {
+    if (node2.type === "TEXT") continue;
+    const children = graph.getChildren(node2.id);
     if (!children.some((child) => affected.has(child.id))) continue;
-    const oldIntrinsic = intrinsicSize(graph, node, originalSizes);
-    const nextIntrinsic = intrinsicSizeWithEffectiveStretch(graph, node, currentSizes, affected);
-    const oldSize = originalSizes.get(node.id);
+    const oldIntrinsic = intrinsicSize(graph, node2, originalSizes);
+    const nextIntrinsic = intrinsicSizeWithEffectiveStretch(graph, node2, currentSizes, affected);
+    const oldSize = originalSizes.get(node2.id);
     if (!oldIntrinsic || !nextIntrinsic || !oldSize) continue;
     const updates = {};
     let nextWidth = oldSize.width;
     let nextHeight = oldSize.height;
-    if (canResizeIntrinsicAxis(node, "width") && Math.abs(oldSize.width - oldIntrinsic.width) < 1e-3) {
+    if (canResizeIntrinsicAxis(node2, "width") && Math.abs(oldSize.width - oldIntrinsic.width) < 1e-3) {
       nextWidth = nextIntrinsic.width;
       updates.width = nextWidth;
     }
-    if (canResizeIntrinsicAxis(node, "height") && Math.abs(oldSize.height - oldIntrinsic.height) < 1e-3) {
+    if (canResizeIntrinsicAxis(node2, "height") && Math.abs(oldSize.height - oldIntrinsic.height) < 1e-3) {
       nextHeight = nextIntrinsic.height;
       updates.height = nextHeight;
     }
     if (Object.keys(updates).length === 0) continue;
-    if (node.derivedLayout) {
-      const derivedLayout = { ...node.derivedLayout };
+    if (node2.derivedLayout) {
+      const derivedLayout = { ...node2.derivedLayout };
       if (updates.width !== void 0) derivedLayout.width = nextWidth;
       if (updates.height !== void 0) derivedLayout.height = nextHeight;
       updates.derivedLayout = derivedLayout;
@@ -46795,22 +46796,22 @@ function propagateIntrinsicSizes(graph, nodes, originalSizes, currentSizes, affe
     if (updates.width !== void 0) {
       stretchChildrenToEffectiveWidth(
         graph,
-        node,
+        node2,
         oldIntrinsic.width,
         nextWidth,
         currentSizes,
         affected
       );
     }
-    graph.updateNode(node.id, updates);
-    currentSizes.set(node.id, { width: nextWidth, height: nextHeight });
-    affected.add(node.id);
+    graph.updateNode(node2.id, updates);
+    currentSizes.set(node2.id, { width: nextWidth, height: nextHeight });
+    affected.add(node2.id);
   }
 }
 function applyEffectiveGeneratedTextLayout(graph, rootId) {
   const nodes = collectPostorder(graph, rootId);
   const originalSizes = new Map(
-    nodes.map((node) => [node.id, { width: node.width, height: node.height }])
+    nodes.map((node2) => [node2.id, { width: node2.width, height: node2.height }])
   );
   const currentSizes = new Map(originalSizes);
   const affected = /* @__PURE__ */ new Set();
@@ -46841,11 +46842,11 @@ function detectTextDirection(text) {
 function resolveTextDirection(direction, text) {
   return direction === "AUTO" ? detectTextDirection(text) : direction;
 }
-function resolveNodeTextDirection(node) {
-  return resolveTextDirection(node.textDirection, node.text);
+function resolveNodeTextDirection(node2) {
+  return resolveTextDirection(node2.textDirection, node2.text);
 }
-function resolveNodeLayoutDirection(node, inheritedDirection = "LTR") {
-  return !node.layoutDirection || node.layoutDirection === "AUTO" ? inheritedDirection : node.layoutDirection;
+function resolveNodeLayoutDirection(node2, inheritedDirection = "LTR") {
+  return !node2.layoutDirection || node2.layoutDirection === "AUTO" ? inheritedDirection : node2.layoutDirection;
 }
 var RTL_CHAR_RE, LTR_CHAR_RE;
 var init_direction = __esm({
@@ -46867,11 +46868,11 @@ function configureAbsoluteChild(yogaChild, child) {
   yogaChild.setWidth(child.width);
   yogaChild.setHeight(child.height);
 }
-function applyMinMaxConstraints(yogaNode, node) {
-  if (node.minWidth != null) yogaNode.setMinWidth(node.minWidth);
-  if (node.maxWidth != null) yogaNode.setMaxWidth(node.maxWidth);
-  if (node.minHeight != null) yogaNode.setMinHeight(node.minHeight);
-  if (node.maxHeight != null) yogaNode.setMaxHeight(node.maxHeight);
+function applyMinMaxConstraints(yogaNode, node2) {
+  if (node2.minWidth != null) yogaNode.setMinWidth(node2.minWidth);
+  if (node2.maxWidth != null) yogaNode.setMaxWidth(node2.maxWidth);
+  if (node2.minHeight != null) yogaNode.setMinHeight(node2.minHeight);
+  if (node2.maxHeight != null) yogaNode.setMaxHeight(node2.maxHeight);
 }
 function mapGridTrack(track) {
   switch (track.sizing) {
@@ -46883,11 +46884,11 @@ function mapGridTrack(track) {
       return { type: GridTrackType.Auto, value: 0 };
   }
 }
-function freeYogaTree(node) {
-  for (let i2 = node.getChildCount() - 1; i2 >= 0; i2--) {
-    freeYogaTree(node.getChild(i2));
+function freeYogaTree(node2) {
+  for (let i2 = node2.getChildCount() - 1; i2 >= 0; i2--) {
+    freeYogaTree(node2.getChild(i2));
   }
-  if ("free" in node) node.free();
+  if ("free" in node2) node2.free();
 }
 function mapJustify(align) {
   switch (align) {
@@ -46942,25 +46943,25 @@ var init_yoga_helpers = __esm({
 });
 
 // packages/core/src/layout/grid.ts
-function configureAsGrid(yogaNode, node, direction) {
+function configureAsGrid(yogaNode, node2, direction) {
   yogaNode.setDisplay(Display.Grid);
   yogaNode.setDirection(direction === "RTL" ? Direction.RTL : Direction.LTR);
-  yogaNode.setWidth(node.width);
-  if (node.gridTemplateRows.length > 0 || node.height > 0) {
-    yogaNode.setHeight(node.height);
+  yogaNode.setWidth(node2.width);
+  if (node2.gridTemplateRows.length > 0 || node2.height > 0) {
+    yogaNode.setHeight(node2.height);
   }
-  if (node.gridTemplateColumns.length > 0) {
-    yogaNode.setGridTemplateColumns(node.gridTemplateColumns.map(mapGridTrack));
+  if (node2.gridTemplateColumns.length > 0) {
+    yogaNode.setGridTemplateColumns(node2.gridTemplateColumns.map(mapGridTrack));
   }
-  if (node.gridTemplateRows.length > 0) {
-    yogaNode.setGridTemplateRows(node.gridTemplateRows.map(mapGridTrack));
+  if (node2.gridTemplateRows.length > 0) {
+    yogaNode.setGridTemplateRows(node2.gridTemplateRows.map(mapGridTrack));
   }
-  yogaNode.setGap(Gutter.Column, node.gridColumnGap);
-  yogaNode.setGap(Gutter.Row, node.gridRowGap);
-  yogaNode.setPadding(Edge.Top, node.paddingTop);
-  yogaNode.setPadding(Edge.Right, node.paddingRight);
-  yogaNode.setPadding(Edge.Bottom, node.paddingBottom);
-  yogaNode.setPadding(Edge.Left, node.paddingLeft);
+  yogaNode.setGap(Gutter.Column, node2.gridColumnGap);
+  yogaNode.setGap(Gutter.Row, node2.gridRowGap);
+  yogaNode.setPadding(Edge.Top, node2.paddingTop);
+  yogaNode.setPadding(Edge.Right, node2.paddingRight);
+  yogaNode.setPadding(Edge.Bottom, node2.paddingBottom);
+  yogaNode.setPadding(Edge.Left, node2.paddingLeft);
 }
 function createGridChildNode(child) {
   const yogaChild = createYogaNode();
@@ -47042,10 +47043,10 @@ function computeLayoutInternal(graph, frameId) {
   applyYogaLayout(graph, frame, yogaRoot, computeLayoutInternal);
   freeYogaTree(yogaRoot);
 }
-function resolveComputedLayoutDirection(graph, node) {
-  const parent = node.parentId ? graph.getNode(node.parentId) : null;
+function resolveComputedLayoutDirection(graph, node2) {
+  const parent = node2.parentId ? graph.getNode(node2.parentId) : null;
   const inheritedDirection = parent ? resolveComputedLayoutDirection(graph, parent) : "LTR";
-  return resolveNodeLayoutDirection(node, inheritedDirection);
+  return resolveNodeLayoutDirection(node2, inheritedDirection);
 }
 function computeAllLayouts(graph, scopeId) {
   graph.withLayoutMutations(() => {
@@ -47058,18 +47059,18 @@ function computeAllLayouts(graph, scopeId) {
   });
 }
 function computeLayoutsBottomUp(graph, nodeId, visited) {
-  const node = graph.getNode(nodeId);
-  if (!node || visited.has(nodeId)) return;
+  const node2 = graph.getNode(nodeId);
+  if (!node2 || visited.has(nodeId)) return;
   visited.add(nodeId);
-  for (const childId of node.childIds) {
+  for (const childId of node2.childIds) {
     computeLayoutsBottomUp(graph, childId, visited);
   }
-  if (node.layoutMode !== "NONE" && !preservesImportedInstanceLayout(node)) {
+  if (node2.layoutMode !== "NONE" && !preservesImportedInstanceLayout(node2)) {
     computeLayout(graph, nodeId);
   }
 }
-function preservesImportedInstanceLayout(node) {
-  return node.type === "INSTANCE" && node.source.format === "fig";
+function preservesImportedInstanceLayout(node2) {
+  return node2.type === "INSTANCE" && node2.source.format === "fig";
 }
 function buildYogaTree(graph, frame, inheritedDirection) {
   const root = createYogaNode();
@@ -47101,32 +47102,32 @@ function buildYogaTree(graph, frame, inheritedDirection) {
   }
   return root;
 }
-function configureFlexContainer(yogaNode, node, direction) {
+function configureFlexContainer(yogaNode, node2, direction) {
   yogaNode.setDirection(direction === "RTL" ? Direction.RTL : Direction.LTR);
   yogaNode.setFlexDirection(
-    node.layoutMode === "HORIZONTAL" ? FlexDirection.Row : FlexDirection.Column
+    node2.layoutMode === "HORIZONTAL" ? FlexDirection.Row : FlexDirection.Column
   );
-  yogaNode.setFlexWrap(node.layoutWrap === "WRAP" ? Wrap.Wrap : Wrap.NoWrap);
-  yogaNode.setJustifyContent(mapJustify(node.primaryAxisAlign));
-  yogaNode.setAlignItems(mapAlign(node.counterAxisAlign));
-  if (node.clipsContent) yogaNode.setOverflow(Overflow.Hidden);
-  if (node.layoutWrap === "WRAP" && node.counterAxisAlignContent === "SPACE_BETWEEN") {
+  yogaNode.setFlexWrap(node2.layoutWrap === "WRAP" ? Wrap.Wrap : Wrap.NoWrap);
+  yogaNode.setJustifyContent(mapJustify(node2.primaryAxisAlign));
+  yogaNode.setAlignItems(mapAlign(node2.counterAxisAlign));
+  if (node2.clipsContent) yogaNode.setOverflow(Overflow.Hidden);
+  if (node2.layoutWrap === "WRAP" && node2.counterAxisAlignContent === "SPACE_BETWEEN") {
     yogaNode.setAlignContent(Align.SpaceBetween);
   }
-  yogaNode.setPadding(Edge.Top, node.paddingTop);
-  yogaNode.setPadding(Edge.Right, node.paddingRight);
-  yogaNode.setPadding(Edge.Bottom, node.paddingBottom);
-  yogaNode.setPadding(Edge.Left, node.paddingLeft);
-  const primaryGap = node.primaryAxisAlign === "SPACE_BETWEEN" ? 0 : node.itemSpacing;
+  yogaNode.setPadding(Edge.Top, node2.paddingTop);
+  yogaNode.setPadding(Edge.Right, node2.paddingRight);
+  yogaNode.setPadding(Edge.Bottom, node2.paddingBottom);
+  yogaNode.setPadding(Edge.Left, node2.paddingLeft);
+  const primaryGap = node2.primaryAxisAlign === "SPACE_BETWEEN" ? 0 : node2.itemSpacing;
   yogaNode.setGap(
     Gutter.Column,
-    node.layoutMode === "HORIZONTAL" ? primaryGap : node.counterAxisSpacing
+    node2.layoutMode === "HORIZONTAL" ? primaryGap : node2.counterAxisSpacing
   );
   yogaNode.setGap(
     Gutter.Row,
-    node.layoutMode === "HORIZONTAL" ? node.counterAxisSpacing : primaryGap
+    node2.layoutMode === "HORIZONTAL" ? node2.counterAxisSpacing : primaryGap
   );
-  applyMinMaxConstraints(yogaNode, node);
+  applyMinMaxConstraints(yogaNode, node2);
 }
 function configureChildAsGrid(yogaChild, child, parent, graph, inheritedDirection) {
   const direction = resolveNodeLayoutDirection(child, inheritedDirection);
@@ -52247,8 +52248,8 @@ function decodeFigKiwiCanvas(data, onPages) {
   const schema2 = decodeBinarySchema(new ByteBuffer(schemaBytes));
   if (onPages) {
     try {
-      const pages = extractFigPageManifest(schema2, payload.dataRaw);
-      if (pages.length > 0) onPages(pages);
+      const pages2 = extractFigPageManifest(schema2, payload.dataRaw);
+      if (pages2.length > 0) onPages(pages2);
     } catch (error2) {
       console.warn("Failed to scan FIG page manifest; continuing with full decode:", error2);
     }
@@ -52491,13 +52492,13 @@ function ensureSinglePageSelection(graph, pageId, nodeIds) {
   return nodeIds.every((nodeId) => findPageId2(graph, nodeId) === pageId);
 }
 function nodeNeedsSceneBackdrop(graph, nodeId) {
-  const node = graph.getNode(nodeId);
-  if (!node) return false;
-  if (node.blendMode !== "NORMAL" && node.blendMode !== "PASS_THROUGH") return true;
-  if (node.effects.some((effect) => effect.visible && effect.type === "BACKGROUND_BLUR")) {
+  const node2 = graph.getNode(nodeId);
+  if (!node2) return false;
+  if (node2.blendMode !== "NORMAL" && node2.blendMode !== "PASS_THROUGH") return true;
+  if (node2.effects.some((effect) => effect.visible && effect.type === "BACKGROUND_BLUR")) {
     return true;
   }
-  return node.childIds.some((childId) => nodeNeedsSceneBackdrop(graph, childId));
+  return node2.childIds.some((childId) => nodeNeedsSceneBackdrop(graph, childId));
 }
 function computeContentBounds(graph, nodeIds) {
   return computeDescendantVisualBounds(
@@ -52652,33 +52653,33 @@ function prepareSelectionRenderGraph(source, renderGraph, pageId, nodeIds) {
   if (!page) return;
   page.childIds = nodeIds.filter((nodeId) => renderGraph.getNode(nodeId) !== void 0);
   for (const nodeId of page.childIds) {
-    const node = renderGraph.getNode(nodeId);
+    const node2 = renderGraph.getNode(nodeId);
     const sourceNode = source.getNode(nodeId);
-    if (!node || !sourceNode) continue;
+    if (!node2 || !sourceNode) continue;
     if (sourceNode.parentId === pageId) continue;
     const world = getWorldMatrix(sourceNode, source);
-    node.parentId = pageId;
-    applyWorldTransform(node, world);
+    node2.parentId = pageId;
+    applyWorldTransform(node2, world);
   }
   renderGraph.clearAbsPosCache();
 }
-function applyWorldTransform(node, matrix) {
+function applyWorldTransform(node2, matrix) {
   const determinant = matrix[0] * matrix[4] - matrix[1] * matrix[3];
   const flipX = determinant < 0;
   const rotation = Math.atan2(matrix[3], flipX ? matrix[4] : matrix[0]);
   const cos = Math.cos(rotation);
   const sin = Math.sin(rotation);
-  const centerX = node.width / 2;
-  const centerY = node.height / 2;
+  const centerX = node2.width / 2;
+  const centerY = node2.height / 2;
   const m00 = flipX ? -cos : cos;
   const m01 = flipX ? sin : -sin;
   const m10 = sin;
   const m11 = cos;
-  node.x = matrix[2] - centerX + m00 * centerX + m01 * centerY;
-  node.y = matrix[5] - centerY + m10 * centerX + m11 * centerY;
-  node.rotation = rotation * (180 / Math.PI);
-  node.flipX = flipX;
-  node.flipY = false;
+  node2.x = matrix[2] - centerX + m00 * centerX + m01 * centerY;
+  node2.y = matrix[5] - centerY + m10 * centerX + m11 * centerY;
+  node2.rotation = rotation * (180 / Math.PI);
+  node2.flipX = flipX;
+  node2.flipY = false;
 }
 function renderNodesToImage(ck, renderer, graph, pageId, nodeIds, options) {
   if (!ensureSinglePageSelection(graph, pageId, nodeIds)) {
@@ -56043,13 +56044,13 @@ var init_layout2 = __esm({
 });
 
 // packages/core/src/text/outlines.ts
-function baseTextStyle(node) {
+function baseTextStyle(node2) {
   return {
-    fontFamily: node.fontFamily,
-    fontSize: node.fontSize,
-    fontWeight: node.fontWeight,
-    italic: node.italic,
-    letterSpacing: node.letterSpacing
+    fontFamily: node2.fontFamily,
+    fontSize: node2.fontSize,
+    fontWeight: node2.fontWeight,
+    italic: node2.italic,
+    letterSpacing: node2.letterSpacing
   };
 }
 function styleName(style) {
@@ -56058,9 +56059,9 @@ function styleName(style) {
 function styleKey(style) {
   return `${style.fontFamily}|${styleName(style)}|${style.fontSize}|${style.letterSpacing}`;
 }
-function textStyleAt(node, index) {
-  const base = baseTextStyle(node);
-  const run = node.styleRuns.find((item) => index >= item.start && index < item.start + item.length);
+function textStyleAt(node2, index) {
+  const base = baseTextStyle(node2);
+  const run = node2.styleRuns.find((item) => index >= item.start && index < item.start + item.length);
   if (!run) return base;
   return {
     fontFamily: run.style.fontFamily ?? base.fontFamily,
@@ -56084,34 +56085,34 @@ function fallbackFamilies() {
 function fallbackStyle(style, family) {
   return { ...style, fontFamily: family };
 }
-function textStyles(node) {
-  if (node.styleRuns.length === 0) return [baseTextStyle(node)];
+function textStyles(node2) {
+  if (node2.styleRuns.length === 0) return [baseTextStyle(node2)];
   const styles = /* @__PURE__ */ new Map();
-  for (let index = 0; index < node.text.length; index++) {
-    const style = textStyleAt(node, index);
+  for (let index = 0; index < node2.text.length; index++) {
+    const style = textStyleAt(node2, index);
     styles.set(styleKey(style), style);
   }
   return [...styles.values()];
 }
-function getTextOutlineSupport(node) {
-  if (node.type !== "TEXT") return { supported: false, reason: "not-text" };
-  if (!node.text) return { supported: false, reason: "empty-text" };
-  if (COMPLEX_SCRIPT_PATTERN.test(node.text)) return { supported: false, reason: "complex-script" };
-  for (const style of textStyles(node)) {
+function getTextOutlineSupport(node2) {
+  if (node2.type !== "TEXT") return { supported: false, reason: "not-text" };
+  if (!node2.text) return { supported: false, reason: "empty-text" };
+  if (COMPLEX_SCRIPT_PATTERN.test(node2.text)) return { supported: false, reason: "complex-script" };
+  for (const style of textStyles(node2)) {
     if (!fontManager.loadedData(style.fontFamily, styleName(style))) {
       return { supported: false, reason: "missing-font" };
     }
   }
-  for (let index = 0; index < node.text.length; index++) {
-    const char = node.text[index];
+  for (let index = 0; index < node2.text.length; index++) {
+    const char = node2.text[index];
     if (char === "\n") continue;
-    const style = textStyleAt(node, index);
+    const style = textStyleAt(node2, index);
     if (!resolvedGlyphStyle(style, char)) return { supported: false, reason: "missing-glyph" };
   }
   return { supported: true };
 }
-function lineHeight(node) {
-  return node.lineHeight ?? Math.ceil(node.fontSize * 1.2);
+function lineHeight(node2) {
+  return node2.lineHeight ?? Math.ceil(node2.fontSize * 1.2);
 }
 function hardTextLines(text) {
   const lines = [];
@@ -56122,9 +56123,9 @@ function hardTextLines(text) {
   }
   return lines;
 }
-function glyphAdvance(node, absoluteIndex) {
-  const char = node.text[absoluteIndex];
-  const style = resolvedGlyphStyle(textStyleAt(node, absoluteIndex), char);
+function glyphAdvance(node2, absoluteIndex) {
+  const char = node2.text[absoluteIndex];
+  const style = resolvedGlyphStyle(textStyleAt(node2, absoluteIndex), char);
   if (!style) return null;
   const metrics = getGlyphOutlineMetricsSync(
     style.fontFamily,
@@ -56135,20 +56136,20 @@ function glyphAdvance(node, absoluteIndex) {
   const glyph = metrics?.[0];
   return glyph ? glyph.advance + style.letterSpacing : null;
 }
-function wrapStyledLine(node, line) {
-  if (!line.text || node.width <= 0) return [line];
+function wrapStyledLine(node2, line) {
+  if (!line.text || node2.width <= 0) return [line];
   const result = [];
   let lineStart = 0;
   let cursor = 0;
   let lastBreak = -1;
   for (let index = 0; index < line.text.length; index++) {
-    const advance = glyphAdvance(node, line.start + index);
+    const advance = glyphAdvance(node2, line.start + index);
     if (advance == null) return [line];
     cursor += advance;
     if (/\s/.test(line.text[index])) {
       lastBreak = index + 1;
     }
-    if (cursor <= node.width || index === lineStart) continue;
+    if (cursor <= node2.width || index === lineStart) continue;
     const breakIndex = lastBreak > lineStart ? lastBreak : index;
     result.push({ text: line.text.slice(lineStart, breakIndex), start: line.start + lineStart });
     lineStart = breakIndex;
@@ -56159,10 +56160,10 @@ function wrapStyledLine(node, line) {
   result.push({ text: line.text.slice(lineStart), start: line.start + lineStart });
   return result;
 }
-function textLines2(node) {
-  const hardLines = hardTextLines(node.text);
-  if (node.textAutoResize === "WIDTH_AND_HEIGHT") return hardLines;
-  if (node.styleRuns.length > 0) return hardLines.flatMap((line) => wrapStyledLine(node, line));
+function textLines2(node2) {
+  const hardLines = hardTextLines(node2.text);
+  if (node2.textAutoResize === "WIDTH_AND_HEIGHT") return hardLines;
+  if (node2.styleRuns.length > 0) return hardLines.flatMap((line) => wrapStyledLine(node2, line));
   const result = [];
   for (const hardLine of hardLines) {
     if (!hardLine.text) {
@@ -56170,8 +56171,8 @@ function textLines2(node) {
       continue;
     }
     try {
-      const prepared = prepareWithSegments(hardLine.text, `${node.fontSize}px ${node.fontFamily}`);
-      const layout = layoutWithLines(prepared, node.width, lineHeight(node));
+      const prepared = prepareWithSegments(hardLine.text, `${node2.fontSize}px ${node2.fontFamily}`);
+      const layout = layoutWithLines(prepared, node2.width, lineHeight(node2));
       let start2 = hardLine.start;
       for (const line of layout.lines) {
         result.push({ text: line.text, start: start2 });
@@ -56183,38 +56184,38 @@ function textLines2(node) {
   }
   return result;
 }
-function lineOffsetX(node, width) {
-  switch (node.textAlignHorizontal) {
+function lineOffsetX(node2, width) {
+  switch (node2.textAlignHorizontal) {
     case "CENTER":
-      return Math.max(0, (node.width - width) / 2);
+      return Math.max(0, (node2.width - width) / 2);
     case "RIGHT":
-      return Math.max(0, node.width - width);
+      return Math.max(0, node2.width - width);
     default:
       return 0;
   }
 }
-function verticalOffset(node, contentHeight) {
-  switch (node.textAlignVertical) {
+function verticalOffset(node2, contentHeight) {
+  switch (node2.textAlignVertical) {
     case "CENTER":
-      return Math.max(0, (node.height - contentHeight) / 2);
+      return Math.max(0, (node2.height - contentHeight) / 2);
     case "BOTTOM":
-      return Math.max(0, node.height - contentHeight);
+      return Math.max(0, node2.height - contentHeight);
     default:
       return 0;
   }
 }
-function lineGlyphs(node, line, baseline, xOffset) {
+function lineGlyphs(node2, line, baseline, xOffset) {
   const glyphs = [];
   let cursorX = xOffset;
   let index = 0;
   while (index < line.text.length) {
     const absoluteIndex = line.start + index;
-    const style = resolvedGlyphStyle(textStyleAt(node, absoluteIndex), line.text[index]);
+    const style = resolvedGlyphStyle(textStyleAt(node2, absoluteIndex), line.text[index]);
     if (!style) return null;
     const key = styleKey(style);
     let end = index + 1;
     while (end < line.text.length) {
-      const nextStyle = resolvedGlyphStyle(textStyleAt(node, line.start + end), line.text[end]);
+      const nextStyle = resolvedGlyphStyle(textStyleAt(node2, line.start + end), line.text[end]);
       if (!nextStyle || styleKey(nextStyle) !== key) break;
       end++;
     }
@@ -56234,19 +56235,19 @@ function lineGlyphs(node, line, baseline, xOffset) {
   }
   return { glyphs, width: cursorX - xOffset };
 }
-function textNodeToOutlineLayout(node) {
-  if (!getTextOutlineSupport(node).supported) return null;
-  const lines = textLines2(node);
-  const lineH = lineHeight(node);
+function textNodeToOutlineLayout(node2) {
+  if (!getTextOutlineSupport(node2).supported) return null;
+  const lines = textLines2(node2);
+  const lineH = lineHeight(node2);
   const contentHeight = lines.length * lineH;
-  const yOffset = verticalOffset(node, contentHeight);
+  const yOffset = verticalOffset(node2, contentHeight);
   const glyphs = [];
   let maxWidth = 0;
   for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
     const baseline = yOffset + lineIndex * lineH + lineH;
-    const measured = lineGlyphs(node, lines[lineIndex], baseline, 0);
+    const measured = lineGlyphs(node2, lines[lineIndex], baseline, 0);
     if (!measured) return null;
-    const xOffset = lineOffsetX(node, measured.width);
+    const xOffset = lineOffsetX(node2, measured.width);
     maxWidth = Math.max(maxWidth, measured.width);
     const placed = xOffset === 0 ? measured.glyphs : measured.glyphs.map((glyph) => ({ ...glyph, x: glyph.x + xOffset }));
     glyphs.push(...placed);
@@ -56786,28 +56787,28 @@ var init_vector = __esm({
 });
 
 // packages/core/src/canvas/shapes.ts
-function nodeHasRadius(node) {
-  return node.cornerRadius > 0 || node.independentCorners && (node.topLeftRadius > 0 || node.topRightRadius > 0 || node.bottomRightRadius > 0 || node.bottomLeftRadius > 0);
+function nodeHasRadius(node2) {
+  return node2.cornerRadius > 0 || node2.independentCorners && (node2.topLeftRadius > 0 || node2.topRightRadius > 0 || node2.bottomRightRadius > 0 || node2.bottomLeftRadius > 0);
 }
-function nodeHasSmoothCorners(node) {
-  if (!(node.cornerSmoothing > 0)) return false;
-  if (node.independentCorners) {
-    return node.topLeftRadius > 0 || node.topRightRadius > 0 || node.bottomRightRadius > 0 || node.bottomLeftRadius > 0;
+function nodeHasSmoothCorners(node2) {
+  if (!(node2.cornerSmoothing > 0)) return false;
+  if (node2.independentCorners) {
+    return node2.topLeftRadius > 0 || node2.topRightRadius > 0 || node2.bottomRightRadius > 0 || node2.bottomLeftRadius > 0;
   }
-  return node.cornerRadius > 0;
+  return node2.cornerRadius > 0;
 }
-function smoothCornerRadii(node, width, height, spread) {
+function smoothCornerRadii(node2, width, height, spread) {
   const radius = (value) => Math.max(0, value + spread);
-  const radii = node.independentCorners ? {
-    topLeft: radius(node.topLeftRadius),
-    topRight: radius(node.topRightRadius),
-    bottomRight: radius(node.bottomRightRadius),
-    bottomLeft: radius(node.bottomLeftRadius)
+  const radii = node2.independentCorners ? {
+    topLeft: radius(node2.topLeftRadius),
+    topRight: radius(node2.topRightRadius),
+    bottomRight: radius(node2.bottomRightRadius),
+    bottomLeft: radius(node2.bottomLeftRadius)
   } : {
-    topLeft: radius(node.cornerRadius),
-    topRight: radius(node.cornerRadius),
-    bottomRight: radius(node.cornerRadius),
-    bottomLeft: radius(node.cornerRadius)
+    topLeft: radius(node2.cornerRadius),
+    topRight: radius(node2.cornerRadius),
+    bottomRight: radius(node2.cornerRadius),
+    bottomLeft: radius(node2.cornerRadius)
   };
   if (radii.topLeft === radii.topRight && radii.topRight === radii.bottomRight && radii.bottomRight === radii.bottomLeft) {
     const budget = Math.min(width, height) / 2;
@@ -57018,20 +57019,20 @@ function drawTopLeftSmoothCorner(path, corner, x3, y3) {
     y3 - corner.p
   );
 }
-function makeSmoothRRectPath(r4, node, spread = 0, offsetX = 0, offsetY = 0) {
+function makeSmoothRRectPath(r4, node2, spread = 0, offsetX = 0, offsetY = 0) {
   const path = new r4.ck.PathBuilder();
   const left = offsetX - spread;
   const top = offsetY - spread;
-  const right = offsetX + node.width + spread;
-  const bottom = offsetY + node.height + spread;
+  const right = offsetX + node2.width + spread;
+  const bottom = offsetY + node2.height + spread;
   const width = right - left;
   const height = bottom - top;
   if (width <= 0 || height <= 0) {
     path.addRect(r4.ck.LTRBRect(left, top, Math.max(left, right), Math.max(top, bottom)));
     return path.detachAndDelete();
   }
-  const smoothing = Math.max(0, Math.min(node.cornerSmoothing, 1));
-  const corners = smoothCornerRadii(node, width, height, spread);
+  const smoothing = Math.max(0, Math.min(node2.cornerSmoothing, 1));
+  const corners = smoothCornerRadii(node2, width, height, spread);
   const topLeftCorner = smoothCornerPathParams(corners.topLeft, smoothing);
   const topRightCorner = smoothCornerPathParams(corners.topRight, smoothing);
   const bottomRightCorner = smoothCornerPathParams(corners.bottomRight, smoothing);
@@ -57051,14 +57052,14 @@ function makeSmoothRRectPath(r4, node, spread = 0, offsetX = 0, offsetY = 0) {
   path.close();
   return path.detachAndDelete();
 }
-function makeNodeShapePath(r4, node, rect, hasRadius2) {
+function makeNodeShapePath(r4, node2, rect, hasRadius2) {
   const path = new r4.ck.PathBuilder();
-  switch (node.type) {
+  switch (node2.type) {
     case "ELLIPSE":
       path.addOval(rect);
       break;
     case "VECTOR": {
-      const vps = r4.getVectorPaths(node);
+      const vps = r4.getVectorPaths(node2);
       if (vps) {
         for (const vp of vps) path.addPath(vp);
       }
@@ -57066,146 +57067,146 @@ function makeNodeShapePath(r4, node, rect, hasRadius2) {
     }
     case "POLYGON":
     case "STAR": {
-      const polyPath = r4.makePolygonPath(node);
+      const polyPath = r4.makePolygonPath(node2);
       path.addPath(polyPath);
       polyPath.delete();
       break;
     }
     default:
-      if (nodeHasSmoothCorners(node)) {
-        const smoothPath = makeSmoothRRectPath(r4, node);
+      if (nodeHasSmoothCorners(node2)) {
+        const smoothPath = makeSmoothRRectPath(r4, node2);
         path.addPath(smoothPath);
         smoothPath.delete();
       } else if (hasRadius2) {
-        path.addRRect(r4.makeRRect(node));
+        path.addRRect(r4.makeRRect(node2));
       } else {
         path.addRect(rect);
       }
   }
   return path.detachAndDelete();
 }
-function makePolygonPath(r4, node) {
+function makePolygonPath(r4, node2) {
   const path = new r4.ck.PathBuilder();
-  polygonVertices(node).forEach((point, index) => {
+  polygonVertices(node2).forEach((point, index) => {
     if (index === 0) path.moveTo(point.x, point.y);
     else path.lineTo(point.x, point.y);
   });
   path.close();
   return path.detachAndDelete();
 }
-function makeRRect(r4, node) {
-  if (node.independentCorners) {
+function makeRRect(r4, node2) {
+  if (node2.independentCorners) {
     return new Float32Array([
       0,
       0,
-      node.width,
-      node.height,
-      node.topLeftRadius,
-      node.topLeftRadius,
-      node.topRightRadius,
-      node.topRightRadius,
-      node.bottomRightRadius,
-      node.bottomRightRadius,
-      node.bottomLeftRadius,
-      node.bottomLeftRadius
+      node2.width,
+      node2.height,
+      node2.topLeftRadius,
+      node2.topLeftRadius,
+      node2.topRightRadius,
+      node2.topRightRadius,
+      node2.bottomRightRadius,
+      node2.bottomRightRadius,
+      node2.bottomLeftRadius,
+      node2.bottomLeftRadius
     ]);
   }
   return r4.ck.RRectXY(
-    r4.ck.LTRBRect(0, 0, node.width, node.height),
-    node.cornerRadius,
-    node.cornerRadius
+    r4.ck.LTRBRect(0, 0, node2.width, node2.height),
+    node2.cornerRadius,
+    node2.cornerRadius
   );
 }
-function makeRRectWithSpread(r4, node, spread) {
-  if (node.independentCorners) {
+function makeRRectWithSpread(r4, node2, spread) {
+  if (node2.independentCorners) {
     return new Float32Array([
       -spread,
       -spread,
-      node.width + spread,
-      node.height + spread,
-      Math.max(0, node.topLeftRadius + spread),
-      Math.max(0, node.topLeftRadius + spread),
-      Math.max(0, node.topRightRadius + spread),
-      Math.max(0, node.topRightRadius + spread),
-      Math.max(0, node.bottomRightRadius + spread),
-      Math.max(0, node.bottomRightRadius + spread),
-      Math.max(0, node.bottomLeftRadius + spread),
-      Math.max(0, node.bottomLeftRadius + spread)
+      node2.width + spread,
+      node2.height + spread,
+      Math.max(0, node2.topLeftRadius + spread),
+      Math.max(0, node2.topLeftRadius + spread),
+      Math.max(0, node2.topRightRadius + spread),
+      Math.max(0, node2.topRightRadius + spread),
+      Math.max(0, node2.bottomRightRadius + spread),
+      Math.max(0, node2.bottomRightRadius + spread),
+      Math.max(0, node2.bottomLeftRadius + spread),
+      Math.max(0, node2.bottomLeftRadius + spread)
     ]);
   }
   return r4.ck.RRectXY(
-    r4.ck.LTRBRect(-spread, -spread, node.width + spread, node.height + spread),
-    Math.max(0, node.cornerRadius + spread),
-    Math.max(0, node.cornerRadius + spread)
+    r4.ck.LTRBRect(-spread, -spread, node2.width + spread, node2.height + spread),
+    Math.max(0, node2.cornerRadius + spread),
+    Math.max(0, node2.cornerRadius + spread)
   );
 }
-function makeRRectWithOffset(r4, node, ox, oy, spread) {
+function makeRRectWithOffset(r4, node2, ox, oy, spread) {
   const s2 = spread;
-  if (node.independentCorners) {
+  if (node2.independentCorners) {
     return new Float32Array([
       ox + s2,
       oy + s2,
-      node.width + ox - s2,
-      node.height + oy - s2,
-      Math.max(0, node.topLeftRadius - s2),
-      Math.max(0, node.topLeftRadius - s2),
-      Math.max(0, node.topRightRadius - s2),
-      Math.max(0, node.topRightRadius - s2),
-      Math.max(0, node.bottomRightRadius - s2),
-      Math.max(0, node.bottomRightRadius - s2),
-      Math.max(0, node.bottomLeftRadius - s2),
-      Math.max(0, node.bottomLeftRadius - s2)
+      node2.width + ox - s2,
+      node2.height + oy - s2,
+      Math.max(0, node2.topLeftRadius - s2),
+      Math.max(0, node2.topLeftRadius - s2),
+      Math.max(0, node2.topRightRadius - s2),
+      Math.max(0, node2.topRightRadius - s2),
+      Math.max(0, node2.bottomRightRadius - s2),
+      Math.max(0, node2.bottomRightRadius - s2),
+      Math.max(0, node2.bottomLeftRadius - s2),
+      Math.max(0, node2.bottomLeftRadius - s2)
     ]);
   }
   return r4.ck.RRectXY(
-    r4.ck.LTRBRect(ox + s2, oy + s2, node.width + ox - s2, node.height + oy - s2),
-    Math.max(0, node.cornerRadius - s2),
-    Math.max(0, node.cornerRadius - s2)
+    r4.ck.LTRBRect(ox + s2, oy + s2, node2.width + ox - s2, node2.height + oy - s2),
+    Math.max(0, node2.cornerRadius - s2),
+    Math.max(0, node2.cornerRadius - s2)
   );
 }
-function clipNodeShape(r4, canvas, node, rect, hasRadius2) {
-  if (node.type === "ELLIPSE") {
+function clipNodeShape(r4, canvas, node2, rect, hasRadius2) {
+  if (node2.type === "ELLIPSE") {
     const clipPath = new r4.ck.PathBuilder();
     clipPath.addOval(rect);
     const immutableClipPath = clipPath.detachAndDelete();
     canvas.clipPath(immutableClipPath, r4.ck.ClipOp.Intersect, true);
     immutableClipPath.delete();
-  } else if (nodeHasSmoothCorners(node)) {
-    const clipPath = makeSmoothRRectPath(r4, node);
+  } else if (nodeHasSmoothCorners(node2)) {
+    const clipPath = makeSmoothRRectPath(r4, node2);
     canvas.clipPath(clipPath, r4.ck.ClipOp.Intersect, true);
     clipPath.delete();
   } else if (hasRadius2) {
-    canvas.clipRRect(r4.makeRRect(node), r4.ck.ClipOp.Intersect, true);
+    canvas.clipRRect(r4.makeRRect(node2), r4.ck.ClipOp.Intersect, true);
   } else {
     canvas.clipRect(rect, r4.ck.ClipOp.Intersect, true);
   }
 }
-function getVectorPaths(r4, node) {
-  if (!node.vectorNetwork) return null;
-  const cached = r4.vectorPathCache.get(node.id);
+function getVectorPaths(r4, node2) {
+  if (!node2.vectorNetwork) return null;
+  const cached = r4.vectorPathCache.get(node2.id);
   if (cached) return cached;
-  const paths = vectorNetworkToPath(r4.ck, node.vectorNetwork);
-  r4.vectorPathCache.set(node.id, paths);
+  const paths = vectorNetworkToPath(r4.ck, node2.vectorNetwork);
+  r4.vectorPathCache.set(node2.id, paths);
   return paths;
 }
-function getFillGeometry(r4, node) {
-  if (node.fillGeometry.length === 0) return null;
-  const cached = r4.fillGeometryCache.get(node.id);
+function getFillGeometry(r4, node2) {
+  if (node2.fillGeometry.length === 0) return null;
+  const cached = r4.fillGeometryCache.get(node2.id);
   if (cached) return cached;
-  const paths = node.fillGeometry.map(
+  const paths = node2.fillGeometry.map(
     (g4) => geometryBlobToPath(r4.ck, g4.commandsBlob, g4.windingRule)
   );
-  r4.fillGeometryCache.set(node.id, paths);
+  r4.fillGeometryCache.set(node2.id, paths);
   return paths;
 }
-function getStrokeGeometry(r4, node) {
-  if (node.strokeGeometry.length === 0) return null;
-  const cached = r4.strokeGeometryCache.get(node.id);
+function getStrokeGeometry(r4, node2) {
+  if (node2.strokeGeometry.length === 0) return null;
+  const cached = r4.strokeGeometryCache.get(node2.id);
   if (cached) return cached;
-  const paths = node.strokeGeometry.map(
+  const paths = node2.strokeGeometry.map(
     (g4) => geometryBlobToPath(r4.ck, g4.commandsBlob, g4.windingRule)
   );
-  r4.strokeGeometryCache.set(node.id, paths);
+  r4.strokeGeometryCache.set(node2.id, paths);
   return paths;
 }
 var init_shapes = __esm({
@@ -57217,12 +57218,12 @@ var init_shapes = __esm({
 });
 
 // packages/core/src/canvas/fills.ts
-function paintFills(r4, fills, node, graph, draw, options = {}) {
+function paintFills(r4, fills, node2, graph, draw, options = {}) {
   for (let index = 0; index < fills.length; index++) {
     const fill2 = fills[index];
     if (!fill2.visible) continue;
     const fillIndex = options.bindToNodeFills === false ? -1 : index;
-    const applied = options.patternStack ? applyFill(r4, fill2, node, graph, fillIndex, options.patternStack) : r4.applyFill(fill2, node, graph, fillIndex);
+    const applied = options.patternStack ? applyFill(r4, fill2, node2, graph, fillIndex, options.patternStack) : r4.applyFill(fill2, node2, graph, fillIndex);
     if (!applied) continue;
     r4.fillPaint.setAlphaf(fill2.opacity);
     r4.fillPaint.setBlendMode(figmaBlendModeToSkia(r4.ck, fill2.blendMode));
@@ -57231,20 +57232,20 @@ function paintFills(r4, fills, node, graph, draw, options = {}) {
     r4.fillPaint.setBlendMode(r4.ck.BlendMode.SrcOver);
   }
 }
-function drawVectorMultiStyleFills(r4, canvas, node, graph, patternStack) {
-  if (node.type !== "VECTOR" || !node.fillGeometry.some((geometry) => geometry.fills?.length)) {
+function drawVectorMultiStyleFills(r4, canvas, node2, graph, patternStack) {
+  if (node2.type !== "VECTOR" || !node2.fillGeometry.some((geometry) => geometry.fills?.length)) {
     return false;
   }
-  const paths = r4.getFillGeometry(node);
+  const paths = r4.getFillGeometry(node2);
   if (!paths) return false;
-  for (let index = 0; index < node.fillGeometry.length; index++) {
-    const geometry = node.fillGeometry[index];
+  for (let index = 0; index < node2.fillGeometry.length; index++) {
+    const geometry = node2.fillGeometry[index];
     const path = paths[index];
     const usesPathFills = Boolean(geometry.fills?.length);
     paintFills(
       r4,
-      usesPathFills ? geometry.fills ?? [] : node.fills,
-      node,
+      usesPathFills ? geometry.fills ?? [] : node2.fills,
+      node2,
       graph,
       () => canvas.drawPath(path, r4.fillPaint),
       { bindToNodeFills: !usesPathFills, patternStack }
@@ -57252,14 +57253,14 @@ function drawVectorMultiStyleFills(r4, canvas, node, graph, patternStack) {
   }
   return true;
 }
-function drawNodeFill(r4, canvas, node, rect, hasRadius2, fill2) {
-  switch (node.type) {
+function drawNodeFill(r4, canvas, node2, rect, hasRadius2, fill2) {
+  switch (node2.type) {
     case "VECTOR": {
-      const fg = r4.getFillGeometry(node);
+      const fg = r4.getFillGeometry(node2);
       if (fg) {
         for (const p6 of fg) canvas.drawPath(p6, r4.fillPaint);
       } else {
-        const vps = r4.getVectorPaths(node);
+        const vps = r4.getVectorPaths(node2);
         if (vps) {
           for (const vp of vps) canvas.drawPath(vp, r4.fillPaint);
         }
@@ -57267,58 +57268,58 @@ function drawNodeFill(r4, canvas, node, rect, hasRadius2, fill2) {
       break;
     }
     case "ELLIPSE": {
-      const fg = r4.getFillGeometry(node);
+      const fg = r4.getFillGeometry(node2);
       if (fg) {
         for (const p6 of fg) canvas.drawPath(p6, r4.fillPaint);
-      } else if (node.arcData) {
-        r4.drawArc(canvas, node, r4.fillPaint);
+      } else if (node2.arcData) {
+        r4.drawArc(canvas, node2, r4.fillPaint);
       } else {
         canvas.drawOval(rect, r4.fillPaint);
       }
       break;
     }
     case "TEXT":
-      r4.renderText(canvas, node, fill2);
+      r4.renderText(canvas, node2, fill2);
       break;
     case "LINE":
-      canvas.drawLine(0, 0, node.width, node.height, r4.fillPaint);
+      canvas.drawLine(0, 0, node2.width, node2.height, r4.fillPaint);
       break;
     case "POLYGON":
     case "STAR": {
-      const path = r4.makePolygonPath(node);
+      const path = r4.makePolygonPath(node2);
       canvas.drawPath(path, r4.fillPaint);
       path.delete();
       break;
     }
     default:
-      if (nodeHasSmoothCorners(node)) {
-        const path = makeSmoothRRectPath(r4, node);
+      if (nodeHasSmoothCorners(node2)) {
+        const path = makeSmoothRRectPath(r4, node2);
         canvas.drawPath(path, r4.fillPaint);
         path.delete();
       } else if (hasRadius2) {
-        canvas.drawRRect(r4.makeRRect(node), r4.fillPaint);
+        canvas.drawRRect(r4.makeRRect(node2), r4.fillPaint);
       } else {
         canvas.drawRect(rect, r4.fillPaint);
       }
   }
 }
-function applyFill(r4, fill2, node, graph, fillIndex = 0, patternStack = /* @__PURE__ */ new Set()) {
+function applyFill(r4, fill2, node2, graph, fillIndex = 0, patternStack = /* @__PURE__ */ new Set()) {
   r4.fillPaint.setShader(null);
   if (fill2.type === "SOLID") {
-    const c4 = r4.resolveFillColor(fill2, fillIndex, node, graph);
+    const c4 = r4.resolveFillColor(fill2, fillIndex, node2, graph);
     r4.fillPaint.setColor(r4.ck.Color4f(c4.r, c4.g, c4.b, c4.a));
     return true;
   }
   if (fill2.type.startsWith("GRADIENT") && fill2.gradientStops && fill2.gradientTransform) {
-    r4.applyGradientFill(fill2, node, graph);
+    r4.applyGradientFill(fill2, node2, graph);
     return true;
   }
   if (fill2.type === "IMAGE" && fill2.imageHash) {
-    return r4.applyImageFill(fill2, node, graph);
+    return r4.applyImageFill(fill2, node2, graph);
   }
-  if (fill2.type === "PATTERN" && applyPatternFill(r4, fill2, node, graph, patternStack)) return true;
+  if (fill2.type === "PATTERN" && applyPatternFill(r4, fill2, node2, graph, patternStack)) return true;
   if (fill2.type === "PATTERN" || fill2.type === "NOISE" || fill2.type === "CUSTOM") {
-    const c4 = r4.resolveFillColor(fill2, fillIndex, node, graph);
+    const c4 = r4.resolveFillColor(fill2, fillIndex, node2, graph);
     r4.fillPaint.setColor(r4.ck.Color4f(c4.r, c4.g, c4.b, c4.a));
     return true;
   }
@@ -57377,14 +57378,14 @@ function recordPatternSource(r4, source, graph, layout, patternStack) {
 function resolvePatternSource(graph, sourceId) {
   const direct = graph.getNode(sourceId);
   if (direct) return direct;
-  for (const node of graph.getAllNodes()) {
-    if (node.source.id === sourceId) return node;
+  for (const node2 of graph.getAllNodes()) {
+    if (node2.source.id === sourceId) return node2;
   }
   return null;
 }
-function applyPatternFill(r4, fill2, node, graph, patternStack) {
+function applyPatternFill(r4, fill2, node2, graph, patternStack) {
   const sourceId = fill2.sourceNodeId;
-  if (!sourceId || sourceId === node.id || sourceId === node.source.id) return false;
+  if (!sourceId || sourceId === node2.id || sourceId === node2.source.id) return false;
   const source = resolvePatternSource(graph, sourceId);
   if (!source || source.width <= 0 || source.height <= 0) return false;
   if (patternStack.has(source.id)) return false;
@@ -57431,7 +57432,7 @@ function linearGradientEndpoints(width, height, transform2) {
     end: { x: transform2.m02 * width, y: transform2.m12 * height }
   };
 }
-function applyGradientFill(r4, fill2, node, graph) {
+function applyGradientFill(r4, fill2, node2, graph) {
   const stops = fill2.gradientStops;
   const t2 = fill2.gradientTransform;
   if (!stops || !t2) return;
@@ -57445,15 +57446,15 @@ function applyGradientFill(r4, fill2, node, graph) {
         visible: true
       },
       index,
-      node,
+      node2,
       graph
     );
     const c4 = resolved.color;
     return r4.ck.Color4f(c4.r, c4.g, c4.b, c4.a);
   });
   const positions = stops.map((s2) => s2.position);
-  const w3 = node.width;
-  const h4 = node.height;
+  const w3 = node2.width;
+  const h4 = node2.height;
   if (fill2.type === "GRADIENT_LINEAR") {
     const { start: start2, end } = linearGradientEndpoints(w3, h4, t2);
     const startX = start2.x;
@@ -57492,7 +57493,7 @@ function applyGradientFill(r4, fill2, node, graph) {
     r4.fillPaint.setShader(shader);
   }
 }
-function makeImageFillLocalMatrix(r4, fill2, node, imgW, imgH) {
+function makeImageFillLocalMatrix(r4, fill2, node2, imgW, imgH) {
   const scaleMode = fill2.imageScaleMode ?? "FILL";
   if (scaleMode === "TILE" && !fill2.imageTransform) return r4.ck.Matrix.identity();
   if ((scaleMode === "CROP" || scaleMode === "TILE") && fill2.imageTransform) {
@@ -57501,30 +57502,30 @@ function makeImageFillLocalMatrix(r4, fill2, node, imgW, imgH) {
     const inverse = r4.ck.Matrix.invert(transform2);
     if (inverse) {
       return r4.ck.Matrix.multiply(
-        r4.ck.Matrix.scaled(node.width, node.height),
+        r4.ck.Matrix.scaled(node2.width, node2.height),
         inverse,
         r4.ck.Matrix.scaled(1 / imgW, 1 / imgH)
       );
     }
   }
   if (scaleMode === "FIT") {
-    const scale2 = Math.min(node.width / imgW, node.height / imgH);
+    const scale2 = Math.min(node2.width / imgW, node2.height / imgH);
     return r4.ck.Matrix.multiply(
-      r4.ck.Matrix.translated((node.width - imgW * scale2) / 2, (node.height - imgH * scale2) / 2),
+      r4.ck.Matrix.translated((node2.width - imgW * scale2) / 2, (node2.height - imgH * scale2) / 2),
       r4.ck.Matrix.scaled(scale2, scale2)
     );
   }
-  const scale = Math.max(node.width / imgW, node.height / imgH);
-  const sw = node.width / scale;
-  const sh = node.height / scale;
+  const scale = Math.max(node2.width / imgW, node2.height / imgH);
+  const sw = node2.width / scale;
+  const sh = node2.height / scale;
   const sx = (imgW - sw) / 2;
   const sy = (imgH - sh) / 2;
   return r4.ck.Matrix.multiply(
-    r4.ck.Matrix.scaled(node.width / sw, node.height / sh),
+    r4.ck.Matrix.scaled(node2.width / sw, node2.height / sh),
     r4.ck.Matrix.translated(-sx, -sy)
   );
 }
-function applyImageFill(r4, fill2, node, graph) {
+function applyImageFill(r4, fill2, node2, graph) {
   const hash2 = fill2.imageHash;
   if (!hash2) return false;
   let img = r4.imageCache.get(hash2);
@@ -57540,7 +57541,7 @@ function applyImageFill(r4, fill2, node, graph) {
   const imgW = img.width();
   const imgH = img.height();
   const scaleMode = fill2.imageScaleMode ?? "FILL";
-  const localMatrix = makeImageFillLocalMatrix(r4, fill2, node, imgW, imgH);
+  const localMatrix = makeImageFillLocalMatrix(r4, fill2, node2, imgW, imgH);
   if (scaleMode === "TILE") {
     const shader2 = img.makeShaderCubic(
       r4.ck.TileMode.Repeat,
@@ -57563,20 +57564,20 @@ function applyImageFill(r4, fill2, node, graph) {
   r4.fillPaint.setShader(shader);
   return true;
 }
-function makeArcPath(r4, node) {
-  const arc = node.arcData;
+function makeArcPath(r4, node2) {
+  const arc = node2.arcData;
   if (!arc) return null;
-  const cx = node.width / 2;
-  const cy = node.height / 2;
-  const rx = node.width / 2;
-  const ry = node.height / 2;
+  const cx = node2.width / 2;
+  const cy = node2.height / 2;
+  const rx = node2.width / 2;
+  const ry = node2.height / 2;
   const innerRx = rx * arc.innerRadius;
   const innerRy = ry * arc.innerRadius;
   const startDeg = arc.startingAngle * (180 / Math.PI);
   const endDeg = arc.endingAngle * (180 / Math.PI);
   const sweepDeg = endDeg - startDeg;
   const path = new r4.ck.PathBuilder();
-  const oval = r4.ck.LTRBRect(0, 0, node.width, node.height);
+  const oval = r4.ck.LTRBRect(0, 0, node2.width, node2.height);
   if (arc.innerRadius > 0) {
     path.addArc(oval, startDeg, sweepDeg);
     const innerOval = r4.ck.LTRBRect(cx - innerRx, cy - innerRy, cx + innerRx, cy + innerRy);
@@ -57598,8 +57599,8 @@ function makeArcPath(r4, node) {
   }
   return path.detachAndDelete();
 }
-function drawArc(r4, canvas, node, paint) {
-  const path = makeArcPath(r4, node);
+function drawArc(r4, canvas, node2, paint) {
+  const path = makeArcPath(r4, node2);
   if (!path) return;
   canvas.drawPath(path, paint);
   path.delete();
@@ -57644,8 +57645,8 @@ function appendOutlineCommand(path, command, xOffset, yOffset) {
       break;
   }
 }
-function textNodeToOutlinePath(r4, node) {
-  const layout = textNodeToOutlineLayout(node);
+function textNodeToOutlinePath(r4, node2) {
+  const layout = textNodeToOutlineLayout(node2);
   if (!layout) return null;
   const path = new r4.ck.PathBuilder();
   for (const glyph of layout.glyphs) {
@@ -57681,41 +57682,41 @@ function nodePathTransform(r4, child) {
   if (transforms.length === 1) return transforms[0];
   return r4.ck.Matrix.multiply(...transforms);
 }
-function hasVisibleImageFill(node) {
-  return node.fills.some((fill2) => fill2.visible && fill2.type === "IMAGE");
+function hasVisibleImageFill(node2) {
+  return node2.fills.some((fill2) => fill2.visible && fill2.type === "IMAGE");
 }
-function canMakeTextSourcePath(node) {
-  return getTextOutlineSupport(node).supported;
+function canMakeTextSourcePath(node2) {
+  return getTextOutlineSupport(node2).supported;
 }
-function canMakeBooleanSourcePath(node) {
-  if (node.type === "TEXT") return canMakeTextSourcePath(node) && !hasVisibleImageFill(node);
-  return node.type !== "SECTION" && node.type !== "COMPONENT_SET" && !hasVisibleImageFill(node);
+function canMakeBooleanSourcePath(node2) {
+  if (node2.type === "TEXT") return canMakeTextSourcePath(node2) && !hasVisibleImageFill(node2);
+  return node2.type !== "SECTION" && node2.type !== "COMPONENT_SET" && !hasVisibleImageFill(node2);
 }
-function lineStrokePath(r4, node) {
+function lineStrokePath(r4, node2) {
   const path = new r4.ck.PathBuilder();
   path.moveTo(0, 0);
-  path.lineTo(node.width, node.height);
-  const stroke = node.strokes.find((item) => item.visible);
+  path.lineTo(node2.width, node2.height);
+  const stroke = node2.strokes.find((item) => item.visible);
   const source = path.detachAndDelete();
   const outline = source.makeStroked({ width: stroke?.weight ?? 1 });
   source.delete();
   return outline;
 }
-function baseShapePath(r4, node) {
-  if (node.type === "TEXT") return textNodeToOutlinePath(r4, node);
-  if (node.type === "LINE") return lineStrokePath(r4, node);
-  if (node.type === "ELLIPSE" && node.arcData) return makeArcPath(r4, node);
-  const rect = r4.ck.LTRBRect(0, 0, node.width, node.height);
-  return r4.makeNodeShapePath(node, rect, nodeHasRadius(node));
+function baseShapePath(r4, node2) {
+  if (node2.type === "TEXT") return textNodeToOutlinePath(r4, node2);
+  if (node2.type === "LINE") return lineStrokePath(r4, node2);
+  if (node2.type === "ELLIPSE" && node2.arcData) return makeArcPath(r4, node2);
+  const rect = r4.ck.LTRBRect(0, 0, node2.width, node2.height);
+  return r4.makeNodeShapePath(node2, rect, nodeHasRadius(node2));
 }
-function nodeHasVisibleFill(node) {
-  return node.fills.some((fill2) => fill2.visible);
+function nodeHasVisibleFill(node2) {
+  return node2.fills.some((fill2) => fill2.visible);
 }
-function nodeHasVisibleStroke(node) {
-  return node.strokes.some((stroke) => stroke.visible && stroke.weight > 0);
+function nodeHasVisibleStroke(node2) {
+  return node2.strokes.some((stroke) => stroke.visible && stroke.weight > 0);
 }
-function addVisibleStrokeOutlines(target, source, node) {
-  for (const stroke of node.strokes) {
+function addVisibleStrokeOutlines(target, source, node2) {
+  for (const stroke of node2.strokes) {
     if (!stroke.visible || stroke.weight <= 0) continue;
     const outline = source.makeStroked({ width: stroke.weight });
     if (!outline) continue;
@@ -57723,8 +57724,8 @@ function addVisibleStrokeOutlines(target, source, node) {
     outline.delete();
   }
 }
-function canContainFlattenableChildren(node) {
-  return node.type === "GROUP" || node.type === "FRAME" || node.type === "COMPONENT" || node.type === "INSTANCE";
+function canContainFlattenableChildren(node2) {
+  return node2.type === "GROUP" || node2.type === "FRAME" || node2.type === "COMPONENT" || node2.type === "INSTANCE";
 }
 function appendVisibleChildPaths(r4, graph, parent, target, makeChildPath, failOnMissing) {
   let hasPath = false;
@@ -57742,14 +57743,14 @@ function appendVisibleChildPaths(r4, graph, parent, target, makeChildPath, failO
   }
   return hasPath;
 }
-function containerSourcePath(r4, node, graph) {
+function containerSourcePath(r4, node2, graph) {
   const path = new r4.ck.PathBuilder();
   let hasPath = false;
-  if (nodeHasVisibleFill(node) || nodeHasVisibleStroke(node)) {
-    const ownPath = baseShapePath(r4, node);
+  if (nodeHasVisibleFill(node2) || nodeHasVisibleStroke(node2)) {
+    const ownPath = baseShapePath(r4, node2);
     if (ownPath) {
-      if (nodeHasVisibleFill(node)) path.addPath(ownPath);
-      addVisibleStrokeOutlines(path, ownPath, node);
+      if (nodeHasVisibleFill(node2)) path.addPath(ownPath);
+      addVisibleStrokeOutlines(path, ownPath, node2);
       ownPath.delete();
       hasPath = true;
     }
@@ -57757,7 +57758,7 @@ function containerSourcePath(r4, node, graph) {
   const childPaths = appendVisibleChildPaths(
     r4,
     graph,
-    node,
+    node2,
     path,
     (child) => makeBooleanSourcePath(r4, child, graph),
     true
@@ -57773,17 +57774,17 @@ function containerSourcePath(r4, node, graph) {
   }
   return path.detachAndDelete();
 }
-function makeBooleanSourcePath(r4, node, graph) {
-  if (node.type === "BOOLEAN_OPERATION") return makeBooleanOperationPath(r4, node, graph);
-  if (!canMakeBooleanSourcePath(node)) return null;
-  if (canContainFlattenableChildren(node)) return containerSourcePath(r4, node, graph);
-  if (node.type === "LINE") return baseShapePath(r4, node);
-  const path = baseShapePath(r4, node);
+function makeBooleanSourcePath(r4, node2, graph) {
+  if (node2.type === "BOOLEAN_OPERATION") return makeBooleanOperationPath(r4, node2, graph);
+  if (!canMakeBooleanSourcePath(node2)) return null;
+  if (canContainFlattenableChildren(node2)) return containerSourcePath(r4, node2, graph);
+  if (node2.type === "LINE") return baseShapePath(r4, node2);
+  const path = baseShapePath(r4, node2);
   if (!path) return null;
-  if (!nodeHasVisibleStroke(node)) return path;
+  if (!nodeHasVisibleStroke(node2)) return path;
   const combined = new r4.ck.PathBuilder();
   combined.addPath(path);
-  addVisibleStrokeOutlines(combined, path, node);
+  addVisibleStrokeOutlines(combined, path, node2);
   path.delete();
   return combined.detachAndDelete();
 }
@@ -57795,29 +57796,29 @@ function transformedShapePath(r4, child, graph) {
   path.delete();
   return transformed.detachAndDelete();
 }
-function operationForNode(r4, node) {
-  const operation = node.booleanOperation ?? "UNION";
+function operationForNode(r4, node2) {
+  const operation = node2.booleanOperation ?? "UNION";
   return r4.ck.PathOp[BOOLEAN_PATH_OP[operation]];
 }
-function makeImportedFillGeometryPath(r4, node) {
+function makeImportedFillGeometryPath(r4, node2) {
   if (typeof r4.getFillGeometry !== "function") return null;
-  const fillGeometry = r4.getFillGeometry(node);
+  const fillGeometry = r4.getFillGeometry(node2);
   if (!fillGeometry) return null;
   const result = new r4.ck.PathBuilder();
   for (const path of fillGeometry) result.addPath(path);
   return result.detachAndDelete();
 }
-function makeBooleanOperationPath(r4, node, graph) {
+function makeBooleanOperationPath(r4, node2, graph) {
   const childPaths = [];
-  for (const childId of node.childIds) {
+  for (const childId of node2.childIds) {
     const child = graph.getNode(childId);
     if (!child || !child.visible) continue;
     const path = transformedShapePath(r4, child, graph);
     if (path) childPaths.push(path);
   }
-  if (childPaths.length === 0) return makeImportedFillGeometryPath(r4, node);
+  if (childPaths.length === 0) return makeImportedFillGeometryPath(r4, node2);
   let result = childPaths[0];
-  const operation = operationForNode(r4, node);
+  const operation = operationForNode(r4, node2);
   for (let index = 1; index < childPaths.length; index++) {
     const path = childPaths[index];
     const combined = r4.ck.Path.MakeFromOp(result, path, operation);
@@ -57825,19 +57826,19 @@ function makeBooleanOperationPath(r4, node, graph) {
     path.delete();
     if (!combined) {
       for (const remaining of childPaths.slice(index + 1)) remaining.delete();
-      return makeImportedFillGeometryPath(r4, node);
+      return makeImportedFillGeometryPath(r4, node2);
     }
     result = combined;
   }
   return result;
 }
-function renderBooleanOperation(r4, canvas, node, graph) {
-  const path = makeBooleanOperationPath(r4, node, graph);
+function renderBooleanOperation(r4, canvas, node2, graph) {
+  const path = makeBooleanOperationPath(r4, node2, graph);
   if (!path) return;
   try {
-    for (let fillIndex = 0; fillIndex < node.fills.length; fillIndex++) {
-      const fill2 = node.fills[fillIndex];
-      if (!fill2.visible || !r4.applyFill(fill2, node, graph, fillIndex)) continue;
+    for (let fillIndex = 0; fillIndex < node2.fills.length; fillIndex++) {
+      const fill2 = node2.fills[fillIndex];
+      if (!fill2.visible || !r4.applyFill(fill2, node2, graph, fillIndex)) continue;
       r4.fillPaint.setAlphaf(fill2.opacity);
       try {
         canvas.drawPath(path, r4.fillPaint);
@@ -57845,9 +57846,9 @@ function renderBooleanOperation(r4, canvas, node, graph) {
         r4.fillPaint.setShader(null);
       }
     }
-    for (const stroke of node.strokes) {
+    for (const stroke of node2.strokes) {
       if (!stroke.visible) continue;
-      const color = r4.resolveStrokeColor(stroke, 0, node, graph);
+      const color = r4.resolveStrokeColor(stroke, 0, node2, graph);
       r4.strokePaint.setColor(r4.ck.Color4f(color.r, color.g, color.b, color.a));
       r4.strokePaint.setStrokeWidth(stroke.weight);
       r4.strokePaint.setAlphaf(stroke.opacity);
@@ -58816,10 +58817,10 @@ function isInViewport(absX, absY, w3, h4, vp) {
 function collectVisibleLabels(graph, viewport, cachedItems, metadata) {
   const result = [];
   for (const cached of cachedItems) {
-    const node = graph.getNode(cached.nodeId);
-    if (!node || !isInViewport(cached.absX, cached.absY, node.width, node.height, viewport))
+    const node2 = graph.getNode(cached.nodeId);
+    if (!node2 || !isInViewport(cached.absX, cached.absY, node2.width, node2.height, viewport))
       continue;
-    result.push({ node, absX: cached.absX, absY: cached.absY, ...metadata(cached) });
+    result.push({ node: node2, absX: cached.absX, absY: cached.absY, ...metadata(cached) });
   }
   return result;
 }
@@ -58953,15 +58954,15 @@ function labelHitContext(canvasX, canvasY, zoom, font) {
 function hitCachedLabel(graph, items, hit) {
   for (let i2 = items.length - 1; i2 >= 0; i2--) {
     const item = items[i2];
-    const node = graph.getNode(item.nodeId);
-    if (!node || !node.visible) continue;
-    const result = hit(node, item);
+    const node2 = graph.getNode(item.nodeId);
+    if (!node2 || !node2.visible) continue;
+    const result = hit(node2, item);
     if (result) return result;
   }
   return null;
 }
 function hitCachedLabelWithContext(graph, items, context2, hit) {
-  return hitCachedLabel(graph, items, (node, item) => hit(node, item, context2));
+  return hitCachedLabel(graph, items, (node2, item) => hit(node2, item, context2));
 }
 function hitSectionTitle(child, ax, ay, insideSection, canvasX, canvasY, zoom, font) {
   const textW = measureGlyphWidth(font, child.name);
@@ -59029,17 +59030,17 @@ function hitTestComponentLabel(graph, canvasX, canvasY, zoom, pageId, font, labe
 function hitTestFrameTitle(graph, canvasX, canvasY, zoom, selectedIds, font) {
   if (!font || selectedIds.size !== 1) return null;
   const id = [...selectedIds][0];
-  const node = graph.getNode(id);
-  if (node?.type !== "FRAME") return null;
-  const parent = node.parentId ? graph.getNode(node.parentId) : null;
+  const node2 = graph.getNode(id);
+  if (node2?.type !== "FRAME") return null;
+  const parent = node2.parentId ? graph.getNode(node2.parentId) : null;
   const isTopLevel = !parent || parent.type === "CANVAS" || parent.type === "SECTION";
   if (!isTopLevel) return null;
   const abs2 = graph.getAbsolutePosition(id);
-  const labelW = measureGlyphWidth(font, node.name) / zoom;
+  const labelW = measureGlyphWidth(font, node2.name) / zoom;
   const labelH = LABEL_FONT_SIZE / zoom;
-  const hit = rotatePoint2(canvasX - abs2.x, canvasY - abs2.y, node.rotation);
+  const hit = rotatePoint2(canvasX - abs2.x, canvasY - abs2.y, node2.rotation);
   const labelY = -LABEL_OFFSET_Y / zoom - labelH;
-  return hitInRect(hit.x, hit.y, 0, labelY, labelW, labelH) ? node : null;
+  return hitInRect(hit.x, hit.y, 0, labelY, labelW, labelH) ? node2 : null;
 }
 var init_hit_test2 = __esm({
   "packages/core/src/canvas/labels/hit-test.ts"() {
@@ -59126,35 +59127,35 @@ function resolvedVariableColor(color, graph) {
     clipped: false
   };
 }
-function resolveFillColorInfo(fill2, fillIndex, node, graph) {
-  const varId = node.boundVariables[`fills/${fillIndex}/color`];
+function resolveFillColorInfo(fill2, fillIndex, node2, graph) {
+  const varId = node2.boundVariables[`fills/${fillIndex}/color`];
   if (varId) {
-    const resolved = graph.resolveColorVariableForNode(node.id, varId);
+    const resolved = graph.resolveColorVariableForNode(node2.id, varId);
     if (resolved) return resolvedVariableColor(resolved, graph);
   }
-  return resolveNodeFillColor(fill2, fillIndex, node, {
+  return resolveNodeFillColor(fill2, fillIndex, node2, {
     documentColorSpace: graph.documentColorSpace
   });
 }
-function resolveFillColor(fill2, fillIndex, node, graph) {
-  const varId = node.boundVariables[`fills/${fillIndex}/color`];
-  if (!varId && !getFillOkHCL(node, fillIndex)) return normalizeColor(fill2.color);
-  return resolveFillColorInfo(fill2, fillIndex, node, graph).color;
+function resolveFillColor(fill2, fillIndex, node2, graph) {
+  const varId = node2.boundVariables[`fills/${fillIndex}/color`];
+  if (!varId && !getFillOkHCL(node2, fillIndex)) return normalizeColor(fill2.color);
+  return resolveFillColorInfo(fill2, fillIndex, node2, graph).color;
 }
-function resolveStrokeColorInfo(stroke, strokeIndex, node, graph) {
-  const varId = node.boundVariables[`strokes/${strokeIndex}/color`];
+function resolveStrokeColorInfo(stroke, strokeIndex, node2, graph) {
+  const varId = node2.boundVariables[`strokes/${strokeIndex}/color`];
   if (varId) {
-    const resolved = graph.resolveColorVariableForNode(node.id, varId);
+    const resolved = graph.resolveColorVariableForNode(node2.id, varId);
     if (resolved) return resolvedVariableColor(resolved, graph);
   }
-  return resolveNodeStrokeColor(stroke, strokeIndex, node, {
+  return resolveNodeStrokeColor(stroke, strokeIndex, node2, {
     documentColorSpace: graph.documentColorSpace
   });
 }
-function resolveStrokeColor(stroke, strokeIndex, node, graph) {
-  const varId = node.boundVariables[`strokes/${strokeIndex}/color`];
-  if (!varId && !getStrokeOkHCL(node, strokeIndex)) return normalizeColor(stroke.color);
-  return resolveStrokeColorInfo(stroke, strokeIndex, node, graph).color;
+function resolveStrokeColor(stroke, strokeIndex, node2, graph) {
+  const varId = node2.boundVariables[`strokes/${strokeIndex}/color`];
+  if (!varId && !getStrokeOkHCL(node2, strokeIndex)) return normalizeColor(stroke.color);
+  return resolveStrokeColorInfo(stroke, strokeIndex, node2, graph).color;
 }
 var init_colors = __esm({
   "packages/core/src/canvas/renderer/colors.ts"() {
@@ -59169,21 +59170,21 @@ var init_colors = __esm({
 function syncFontGeneration(r4) {
   r4.fontGeneration = fontManager.generation();
 }
-function trackFontDemand(r4, node, key) {
-  const pending = r4.pendingFontNodes.get(node.id) ?? { node, keys: /* @__PURE__ */ new Set() };
-  pending.node = node;
+function trackFontDemand(r4, node2, key) {
+  const pending = r4.pendingFontNodes.get(node2.id) ?? { node: node2, keys: /* @__PURE__ */ new Set() };
+  pending.node = node2;
   pending.keys.add(key);
-  r4.pendingFontNodes.set(node.id, pending);
+  r4.pendingFontNodes.set(node2.id, pending);
 }
-function isTextPictureCurrent(r4, node) {
-  const data = node.textPicture;
+function isTextPictureCurrent(r4, node2) {
+  const data = node2.textPicture;
   if (!data) {
-    r4.textPictureGenerations.delete(node.id);
+    r4.textPictureGenerations.delete(node2.id);
     return false;
   }
-  const cached = r4.textPictureGenerations.get(node.id);
+  const cached = r4.textPictureGenerations.get(node2.id);
   if (!cached || cached.data !== data) {
-    r4.textPictureGenerations.set(node.id, { data, generation: r4.fontGeneration });
+    r4.textPictureGenerations.set(node2.id, { data, generation: r4.fontGeneration });
     return true;
   }
   return cached.generation === r4.fontGeneration;
@@ -59241,7 +59242,7 @@ async function loadFonts(r4, onFallbackFontsLoaded) {
 async function prepareForExport(r4, graph, pageId, nodeIds) {
   const { getTextMeasurer: getTextMeasurer2, setTextMeasurer: setTextMeasurer2, computeAllLayouts: computeAllLayouts2 } = await init_layout().then(() => layout_exports);
   const previousTextMeasurer = getTextMeasurer2();
-  setTextMeasurer2((node, maxWidth) => r4.measureTextNode(node, maxWidth));
+  setTextMeasurer2((node2, maxWidth) => r4.measureTextNode(node2, maxWidth));
   await prepareGraphFonts(graph, nodeIds);
   syncFontGeneration(r4);
   computeAllLayouts2(graph, pageId);
@@ -59529,12 +59530,12 @@ function getCachedMaskBlur(r4, sigma) {
   }
   return filter;
 }
-function applyClippedBlur(r4, canvas, node, rect, hasRadius2, sigma) {
+function applyClippedBlur(r4, canvas, node2, rect, hasRadius2, sigma) {
   r4.effectLayerPaint.setImageFilter(null);
   r4.effectLayerPaint.setColorFilter(null);
   r4.effectLayerPaint.setBlendMode(r4.ck.BlendMode.SrcOver);
   canvas.save();
-  r4.clipNodeShape(canvas, node, rect, hasRadius2);
+  r4.clipNodeShape(canvas, node2, rect, hasRadius2);
   canvas.saveLayer(void 0, rect, r4.getCachedBlur(sigma), void 0, r4.ck.TileMode.Clamp);
   canvas.restore();
   r4.effectLayerPaint.setImageFilter(null);
@@ -59554,24 +59555,24 @@ function drawSectionTitles(r4, canvas, graph) {
   if (!r4.sectionTitleFont || !provider) return;
   const sections = r4.labelCache.getSections(graph, r4.worldViewport);
   if (sections.length === 0) return;
-  for (const { node, absX, absY, nested } of sections) {
-    drawSectionTitle(r4, canvas, provider, node, graph, absX, absY, nested);
+  for (const { node: node2, absX, absY, nested } of sections) {
+    drawSectionTitle(r4, canvas, provider, node2, graph, absX, absY, nested);
   }
 }
-function drawSectionTitle(r4, canvas, provider, node, graph, absX, absY, nested) {
+function drawSectionTitle(r4, canvas, provider, node2, graph, absX, absY, nested) {
   const screenX = absX * r4.zoom + r4.panX;
   const screenY = absY * r4.zoom + r4.panY;
-  const screenW = node.width * r4.zoom;
+  const screenW = node2.width * r4.zoom;
   const maxPillW = Math.max(screenW, 0);
   if (maxPillW <= 0) return;
-  const pillColor = node.fills.length > 0 && node.fills[0].visible ? r4.resolveFillColor(node.fills[0], 0, node, graph) : { r: 0.37, g: 0.37, b: 0.37, a: 1 };
+  const pillColor = node2.fills.length > 0 && node2.fills[0].visible ? r4.resolveFillColor(node2.fills[0], 0, node2, graph) : { r: 0.37, g: 0.37, b: 0.37, a: 1 };
   const foreground = canvasLabelForeground(pillColor, r4.pageColor);
   const textColor = r4.ck.Color4f(foreground.r, foreground.g, foreground.b, foreground.a);
   const maxTextW = Math.max(1, maxPillW - SECTION_TITLE_PADDING_X * 2);
   const textMetrics = r4.labelParagraphCache.measure(
     r4.ck,
     provider,
-    node.name,
+    node2.name,
     SECTION_TITLE_FONT_SIZE,
     maxTextW,
     textColor,
@@ -59583,8 +59584,8 @@ function drawSectionTitle(r4, canvas, provider, node, graph, absX, absY, nested)
   const localPillY = nested ? SECTION_TITLE_GAP : -pillH - SECTION_TITLE_GAP;
   canvas.save();
   canvas.translate(screenX, screenY);
-  if (node.rotation !== 0) {
-    canvas.rotate(node.rotation, 0, 0);
+  if (node2.rotation !== 0) {
+    canvas.rotate(node2.rotation, 0, 0);
   }
   r4.auxFill.setColor(r4.ck.Color4f(pillColor.r, pillColor.g, pillColor.b, pillColor.a));
   const pillRect = r4.ck.LTRBRect(localPillX, localPillY, localPillX + pillW, localPillY + pillH);
@@ -59594,7 +59595,7 @@ function drawSectionTitle(r4, canvas, provider, node, graph, absX, absY, nested)
     r4.ck,
     canvas,
     provider,
-    node.name,
+    node2.name,
     SECTION_TITLE_FONT_SIZE,
     maxTextW,
     textColor,
@@ -59611,7 +59612,7 @@ function drawComponentLabels(r4, canvas, graph) {
   const provider = r4.fontProvider;
   const compColor = r4.compColor();
   const iconS = COMPONENT_LABEL_ICON_SIZE;
-  for (const { node, absX, absY, inside } of components) {
+  for (const { node: node2, absX, absY, inside } of components) {
     const screenX = absX * r4.zoom + r4.panX;
     const screenY = absY * r4.zoom + r4.panY;
     const labelX = screenX;
@@ -59621,7 +59622,7 @@ function drawComponentLabels(r4, canvas, graph) {
     } else {
       labelY = screenY - COMPONENT_LABEL_GAP;
     }
-    const maxTextWidth = node.width * r4.zoom - iconS - COMPONENT_LABEL_ICON_GAP;
+    const maxTextWidth = node2.width * r4.zoom - iconS - COMPONENT_LABEL_ICON_GAP;
     if (maxTextWidth <= 0) continue;
     const iconX = labelX;
     const iconY = labelY - COMPONENT_LABEL_FONT_SIZE * 0.75;
@@ -59629,7 +59630,7 @@ function drawComponentLabels(r4, canvas, graph) {
     const iconCy = iconY + iconS / 2;
     const iconR = iconS / 2;
     r4.auxFill.setColor(compColor);
-    if (node.type === "COMPONENT_SET") {
+    if (node2.type === "COMPONENT_SET") {
       const s2 = iconR * 0.45;
       const gap = iconR * 0.2;
       const path = new r4.ck.PathBuilder();
@@ -59665,7 +59666,7 @@ function drawComponentLabels(r4, canvas, graph) {
       r4.ck,
       canvas,
       provider,
-      node.name,
+      node2.name,
       COMPONENT_LABEL_FONT_SIZE,
       maxTextWidth,
       compColor,
@@ -59732,9 +59733,9 @@ function drawNodeEditOverlay(r4, canvas, graph, editState) {
   drawEditVertices(r4, canvas, vertices, selectedVertexIndices, toScreen);
 }
 function drawLiveShape(r4, canvas, graph, nodeId, vertices, segments, regions) {
-  const node = graph.getNode(nodeId);
-  if (!node) return;
-  const world = getWorldMatrix(node, graph);
+  const node2 = graph.getNode(nodeId);
+  if (!node2) return;
+  const world = getWorldMatrix(node2, graph);
   const inverse = matrix_default.invert(world);
   if (!inverse) return;
   const localNetwork = transformVectorNetwork(inverse, { vertices, segments, regions });
@@ -59743,24 +59744,24 @@ function drawLiveShape(r4, canvas, graph, nodeId, vertices, segments, regions) {
     r4.fillGeometryCache.delete(nodeId);
     r4.strokeGeometryCache.delete(nodeId);
   };
-  const origNetwork = node.vectorNetwork;
-  const origFillGeometry = node.fillGeometry;
-  const origStrokeGeometry = node.strokeGeometry;
+  const origNetwork = node2.vectorNetwork;
+  const origFillGeometry = node2.fillGeometry;
+  const origStrokeGeometry = node2.strokeGeometry;
   canvas.save();
   try {
-    node.vectorNetwork = localNetwork;
-    node.fillGeometry = regenerateFillGeometry(localNetwork, origFillGeometry);
-    node.strokeGeometry = [];
+    node2.vectorNetwork = localNetwork;
+    node2.fillGeometry = regenerateFillGeometry(localNetwork, origFillGeometry);
+    node2.strokeGeometry = [];
     invalidatePathCaches();
     canvas.translate(r4.panX, r4.panY);
     canvas.scale(r4.zoom, r4.zoom);
     canvas.concat(world);
-    r4.renderShapeUncached(canvas, node, graph);
+    r4.renderShapeUncached(canvas, node2, graph);
   } finally {
     canvas.restore();
-    node.vectorNetwork = origNetwork;
-    node.fillGeometry = origFillGeometry;
-    node.strokeGeometry = origStrokeGeometry;
+    node2.vectorNetwork = origNetwork;
+    node2.fillGeometry = origFillGeometry;
+    node2.strokeGeometry = origStrokeGeometry;
     invalidatePathCaches();
   }
 }
@@ -59836,9 +59837,9 @@ function getNodeEditPaints(r4) {
 }
 function drawTechStroke(r4, canvas, graph, nodeId, vertices, segments, regions) {
   const { techStrokePaint } = getNodeEditPaints(r4);
-  const node = graph.getNode(nodeId);
-  if (!node) return;
-  const world = getWorldMatrix(node, graph);
+  const node2 = graph.getNode(nodeId);
+  if (!node2) return;
+  const world = getWorldMatrix(node2, graph);
   const inverse = matrix_default.invert(world);
   if (!inverse) return;
   const localNetwork = transformVectorNetwork(inverse, { vertices, segments, regions });
@@ -60543,8 +60544,8 @@ var init_selection = __esm({
 });
 
 // packages/core/src/text/path/index.ts
-function getTextPathData(node) {
-  return node.textPathData;
+function getTextPathData(node2) {
+  return node2.textPathData;
 }
 var init_path = __esm({
   "packages/core/src/text/path/index.ts"() {
@@ -60557,9 +60558,9 @@ var init_path = __esm({
 });
 
 // packages/core/src/canvas/overlays/selection.ts
-function getNodeTransformChain(graph, node) {
+function getNodeTransformChain(graph, node2) {
   const chain = [];
-  let current = node;
+  let current = node2;
   for (; ; ) {
     chain.unshift(current);
     if (!current.parentId) break;
@@ -60571,12 +60572,12 @@ function getNodeTransformChain(graph, node) {
 }
 function drawHoverHighlight(r4, canvas, graph, hoveredNodeId) {
   if (!hoveredNodeId) return;
-  const node = graph.getNode(hoveredNodeId);
-  if (!node) return;
+  const node2 = graph.getNode(hoveredNodeId);
+  if (!node2) return;
   r4.auxStroke.setStrokeWidth(1 / r4.zoom);
-  r4.auxStroke.setColor(r4.isComponentType(node.type) ? r4.compColor() : r4.selColor());
+  r4.auxStroke.setColor(r4.isComponentType(node2.type) ? r4.compColor() : r4.selColor());
   r4.auxStroke.setPathEffect(null);
-  const chain = getNodeTransformChain(graph, node);
+  const chain = getNodeTransformChain(graph, node2);
   canvas.save();
   canvas.translate(r4.panX, r4.panY);
   canvas.scale(r4.zoom, r4.zoom);
@@ -60586,14 +60587,14 @@ function drawHoverHighlight(r4, canvas, graph, hoveredNodeId) {
       canvas.rotate(item.rotation, item.width / 2, item.height / 2);
     }
   }
-  r4.strokeNodeShape(canvas, node, r4.auxStroke);
+  r4.strokeNodeShape(canvas, node2, r4.auxStroke);
   canvas.restore();
 }
 function drawEnteredContainer(r4, canvas, graph, enteredContainerId) {
   if (!enteredContainerId) return;
-  const node = graph.getNode(enteredContainerId);
-  if (!node) return;
-  const abs2 = graph.getAbsolutePosition(node.id);
+  const node2 = graph.getNode(enteredContainerId);
+  if (!node2) return;
+  const abs2 = graph.getAbsolutePosition(node2.id);
   const sx = abs2.x * r4.zoom + r4.panX;
   const sy = abs2.y * r4.zoom + r4.panY;
   r4.auxStroke.setStrokeWidth(1);
@@ -60601,30 +60602,30 @@ function drawEnteredContainer(r4, canvas, graph, enteredContainerId) {
   r4.auxStroke.setPathEffect(r4.ck.PathEffect.MakeDash([4, 4], 0));
   canvas.save();
   canvas.translate(sx, sy);
-  if (node.rotation !== 0) {
-    const cx = node.width / 2 * r4.zoom;
-    const cy = node.height / 2 * r4.zoom;
-    canvas.rotate(node.rotation, cx, cy);
+  if (node2.rotation !== 0) {
+    const cx = node2.width / 2 * r4.zoom;
+    const cy = node2.height / 2 * r4.zoom;
+    canvas.rotate(node2.rotation, cx, cy);
   }
-  canvas.drawRect(r4.ck.LTRBRect(0, 0, node.width * r4.zoom, node.height * r4.zoom), r4.auxStroke);
+  canvas.drawRect(r4.ck.LTRBRect(0, 0, node2.width * r4.zoom, node2.height * r4.zoom), r4.auxStroke);
   canvas.restore();
   r4.auxStroke.setPathEffect(null);
 }
 function drawSingleSelection(r4, canvas, graph, id, selectedIds, overlays) {
-  const node = graph.getNode(id);
-  if (!node) return;
-  const isPathText = node.textPathData !== null && node.textPathBox !== null;
+  const node2 = graph.getNode(id);
+  if (!node2) return;
+  const isPathText = node2.textPathData !== null && node2.textPathBox !== null;
   const editing = overlays.editingTextId === id;
   if (editing && !isPathText) return;
-  const useComponentColor = r4.isComponentType(node.type);
+  const useComponentColor = r4.isComponentType(node2.type);
   r4.selectionPaint.setColor(useComponentColor ? r4.compColor() : r4.selColor());
   r4.selectionPaint.setStrokeWidth(1 / r4.zoom);
-  const rotation = overlays.rotationPreview?.nodeId === id ? overlays.rotationPreview.angle : node.rotation;
+  const rotation = overlays.rotationPreview?.nodeId === id ? overlays.rotationPreview.angle : node2.rotation;
   if (isPathText) {
-    drawTextPathSelection(r4, canvas, node, rotation, graph);
+    drawTextPathSelection(r4, canvas, node2, rotation, graph);
     if (!editing) r4.drawSelectionLabels(canvas, graph, selectedIds, overlays);
   } else {
-    r4.drawNodeSelection(canvas, node, rotation, graph);
+    r4.drawNodeSelection(canvas, node2, rotation, graph);
     r4.drawSelectionLabels(canvas, graph, selectedIds, overlays);
   }
   r4.selectionPaint.setColor(r4.selColor());
@@ -60640,13 +60641,13 @@ function drawSelection(r4, canvas, graph, selectedIds, overlays) {
   }
   for (const id of selectedIds) {
     if (nodeEditId === id) continue;
-    const node = graph.getNode(id);
-    if (!node) continue;
-    const useComponentColor = r4.isComponentType(node.type);
+    const node2 = graph.getNode(id);
+    if (!node2) continue;
+    const useComponentColor = r4.isComponentType(node2.type);
     r4.selectionPaint.setColor(useComponentColor ? r4.compColor() : r4.selColor());
     r4.selectionPaint.setStrokeWidth(1);
-    const rotation = overlays.rotationPreview?.nodeId === id ? overlays.rotationPreview.angle : node.rotation;
-    r4.drawNodeOutline(canvas, node, rotation, graph);
+    const rotation = overlays.rotationPreview?.nodeId === id ? overlays.rotationPreview.angle : node2.rotation;
+    r4.drawNodeOutline(canvas, node2, rotation, graph);
   }
   r4.selectionPaint.setColor(r4.selColor());
   const nodes = [...selectedIds].filter((id) => id !== nodeEditId).map((id) => graph.getNode(id)).filter((n2) => n2 !== void 0);
@@ -60654,25 +60655,25 @@ function drawSelection(r4, canvas, graph, selectedIds, overlays) {
   r4.drawGroupBounds(canvas, nodes, graph);
   r4.drawSelectionLabels(canvas, graph, selectedIds, overlays);
 }
-function withNodeBounds(r4, canvas, node, rotation, graph, draw) {
-  const worldMatrix = getWorldMatrix({ ...node, rotation }, graph);
+function withNodeBounds(r4, canvas, node2, rotation, graph, draw) {
+  const worldMatrix = getWorldMatrix({ ...node2, rotation }, graph);
   canvas.save();
   canvas.translate(r4.panX, r4.panY);
   canvas.scale(r4.zoom, r4.zoom);
   canvas.concat(worldMatrix);
-  draw(0, 0, node.width, node.height);
+  draw(0, 0, node2.width, node2.height);
   canvas.restore();
 }
-function drawTextPathSelection(r4, canvas, node, rotation, graph) {
-  const data = getTextPathData(node);
-  const box = (data && node.textPathBox && fitTextPathBoxToGlyphs(data, node.textPathBox, node.derivedTextGlyphs)) ?? node.textPathBox;
+function drawTextPathSelection(r4, canvas, node2, rotation, graph) {
+  const data = getTextPathData(node2);
+  const box = (data && node2.textPathBox && fitTextPathBoxToGlyphs(data, node2.textPathBox, node2.derivedTextGlyphs)) ?? node2.textPathBox;
   const sampled = data && box ? sampleTextPath(data, box) : null;
   if (!data || !box || !sampled) {
-    r4.drawNodeSelection(canvas, node, rotation, graph);
+    r4.drawNodeSelection(canvas, node2, rotation, graph);
     return;
   }
-  withNodeBounds(r4, canvas, node, rotation, graph, () => {
-    const bandPoly = pathTextSelectionBand(data, box, node.derivedTextGlyphs, sampled);
+  withNodeBounds(r4, canvas, node2, rotation, graph, () => {
+    const bandPoly = pathTextSelectionBand(data, box, node2.derivedTextGlyphs, sampled);
     if (bandPoly && bandPoly.length >= 6) {
       const band = new r4.ck.PathBuilder();
       band.moveTo(bandPoly[0], bandPoly[1]);
@@ -60732,23 +60733,23 @@ function drawBoundsHandles(r4, canvas, minX, minY, maxX, maxY) {
   r4.drawHandle(canvas, minX, midY);
   r4.drawHandle(canvas, maxX, midY);
 }
-function drawSelectionRect(r4, canvas, node, rotation, graph, afterDraw) {
-  withNodeBounds(r4, canvas, node, rotation, graph, (x1, y1, x22, y22) => {
+function drawSelectionRect(r4, canvas, node2, rotation, graph, afterDraw) {
+  withNodeBounds(r4, canvas, node2, rotation, graph, (x1, y1, x22, y22) => {
     canvas.drawRect(r4.ck.LTRBRect(x1, y1, x22, y22), r4.selectionPaint);
     afterDraw?.(x1, y1, x22, y22);
   });
 }
-function drawNodeSelection(r4, canvas, node, rotation, graph) {
-  drawSelectionRect(r4, canvas, node, rotation, graph, (x1, y1, x22, y22) => {
+function drawNodeSelection(r4, canvas, node2, rotation, graph) {
+  drawSelectionRect(r4, canvas, node2, rotation, graph, (x1, y1, x22, y22) => {
     drawBoundsHandles(r4, canvas, x1, y1, x22, y22);
   });
 }
 function drawParentFrameOutlines(r4, canvas, graph, selectedIds) {
   const drawn = /* @__PURE__ */ new Set();
   for (const id of selectedIds) {
-    const node = graph.getNode(id);
-    if (!node?.parentId) continue;
-    const parent = graph.getNode(node.parentId);
+    const node2 = graph.getNode(id);
+    if (!node2?.parentId) continue;
+    const parent = graph.getNode(node2.parentId);
     if (!parent || parent.type === "CANVAS") continue;
     if (drawn.has(parent.id) || selectedIds.has(parent.id)) continue;
     const grandparent = parent.parentId ? graph.getNode(parent.parentId) : null;
@@ -60778,8 +60779,8 @@ function drawParentFrameOutlines(r4, canvas, graph, selectedIds) {
     immutablePath.delete();
   }
 }
-function drawNodeOutline(r4, canvas, node, rotation, graph) {
-  drawSelectionRect(r4, canvas, node, rotation, graph);
+function drawNodeOutline(r4, canvas, node2, rotation, graph) {
+  drawSelectionRect(r4, canvas, node2, rotation, graph);
 }
 function drawGroupBounds(r4, canvas, nodes, graph) {
   let minX = Infinity;
@@ -60865,8 +60866,8 @@ var init_selection2 = __esm({
 });
 
 // packages/core/src/canvas/overlays/auto-layout-hover.ts
-function visibleLayoutChildren(node, graph) {
-  return node.childIds.map((id) => graph.getNode(id)).filter(
+function visibleLayoutChildren(node2, graph) {
+  return node2.childIds.map((id) => graph.getNode(id)).filter(
     (child) => !!child && child.visible && child.layoutPositioning !== "ABSOLUTE"
   );
 }
@@ -60949,11 +60950,11 @@ function drawValuePill(r4, canvas, text, x3, y3) {
     r4.labelFont
   );
 }
-function gapRects(node, graph) {
-  const children = visibleLayoutChildren(node, graph);
-  if (children.length < 2 || node.itemSpacing <= 0) return [];
-  const abs2 = graph.getAbsolutePosition(node.id);
-  const isRow = node.layoutMode === "HORIZONTAL";
+function gapRects(node2, graph) {
+  const children = visibleLayoutChildren(node2, graph);
+  if (children.length < 2 || node2.itemSpacing <= 0) return [];
+  const abs2 = graph.getAbsolutePosition(node2.id);
+  const isRow = node2.layoutMode === "HORIZONTAL";
   const rects = [];
   for (let i2 = 0; i2 < children.length - 1; i2++) {
     const prev = children[i2];
@@ -60964,68 +60965,68 @@ function gapRects(node, graph) {
     rects.push(
       isRow ? [
         abs2.x + gapStart,
-        abs2.y + node.paddingTop,
+        abs2.y + node2.paddingTop,
         gapEnd - gapStart,
-        node.height - node.paddingTop - node.paddingBottom
+        node2.height - node2.paddingTop - node2.paddingBottom
       ] : [
-        abs2.x + node.paddingLeft,
+        abs2.x + node2.paddingLeft,
         abs2.y + gapStart,
-        node.width - node.paddingLeft - node.paddingRight,
+        node2.width - node2.paddingLeft - node2.paddingRight,
         gapEnd - gapStart
       ]
     );
   }
   return rects;
 }
-function paddingRect(node, graph, side) {
+function paddingRect(node2, graph, side) {
   if (!side) return null;
-  const abs2 = graph.getAbsolutePosition(node.id);
-  if (side === "top") return [abs2.x, abs2.y, node.width, node.paddingTop];
+  const abs2 = graph.getAbsolutePosition(node2.id);
+  if (side === "top") return [abs2.x, abs2.y, node2.width, node2.paddingTop];
   if (side === "bottom") {
-    return [abs2.x, abs2.y + node.height - node.paddingBottom, node.width, node.paddingBottom];
+    return [abs2.x, abs2.y + node2.height - node2.paddingBottom, node2.width, node2.paddingBottom];
   }
-  if (side === "left") return [abs2.x, abs2.y, node.paddingLeft, node.height];
-  return [abs2.x + node.width - node.paddingRight, abs2.y, node.paddingRight, node.height];
+  if (side === "left") return [abs2.x, abs2.y, node2.paddingLeft, node2.height];
+  return [abs2.x + node2.width - node2.paddingRight, abs2.y, node2.paddingRight, node2.height];
 }
-function drawBaselineTicks(r4, canvas, graph, node) {
-  const abs2 = graph.getAbsolutePosition(node.id);
-  const xCenter = (abs2.x + node.width / 2) * r4.zoom + r4.panX;
-  const yCenter = (abs2.y + node.height / 2) * r4.zoom + r4.panY;
+function drawBaselineTicks(r4, canvas, graph, node2) {
+  const abs2 = graph.getAbsolutePosition(node2.id);
+  const xCenter = (abs2.x + node2.width / 2) * r4.zoom + r4.panX;
+  const yCenter = (abs2.y + node2.height / 2) * r4.zoom + r4.panY;
   setStroke(r4, AUTO_LAYOUT_HOVER_BLUE);
-  if (node.paddingTop > 0) {
-    drawHorizontalTick(r4, canvas, xCenter, (abs2.y + node.paddingTop / 2) * r4.zoom + r4.panY);
+  if (node2.paddingTop > 0) {
+    drawHorizontalTick(r4, canvas, xCenter, (abs2.y + node2.paddingTop / 2) * r4.zoom + r4.panY);
   }
-  if (node.paddingBottom > 0) {
+  if (node2.paddingBottom > 0) {
     drawHorizontalTick(
       r4,
       canvas,
       xCenter,
-      (abs2.y + node.height - node.paddingBottom / 2) * r4.zoom + r4.panY
+      (abs2.y + node2.height - node2.paddingBottom / 2) * r4.zoom + r4.panY
     );
   }
-  if (node.paddingLeft > 0) {
-    drawVerticalTick(r4, canvas, (abs2.x + node.paddingLeft / 2) * r4.zoom + r4.panX, yCenter);
+  if (node2.paddingLeft > 0) {
+    drawVerticalTick(r4, canvas, (abs2.x + node2.paddingLeft / 2) * r4.zoom + r4.panX, yCenter);
   }
-  if (node.paddingRight > 0) {
+  if (node2.paddingRight > 0) {
     drawVerticalTick(
       r4,
       canvas,
-      (abs2.x + node.width - node.paddingRight / 2) * r4.zoom + r4.panX,
+      (abs2.x + node2.width - node2.paddingRight / 2) * r4.zoom + r4.panX,
       yCenter
     );
   }
   setStroke(r4, AUTO_LAYOUT_HOVER_MAGENTA);
-  for (const rect of gapRects(node, graph)) {
+  for (const rect of gapRects(node2, graph)) {
     const [x3, y3, width, height] = rect;
-    if (node.layoutMode === "HORIZONTAL") {
+    if (node2.layoutMode === "HORIZONTAL") {
       drawVerticalTick(r4, canvas, (x3 + width / 2) * r4.zoom + r4.panX, yCenter);
     } else {
       drawHorizontalTick(r4, canvas, xCenter, (y3 + height / 2) * r4.zoom + r4.panY);
     }
   }
 }
-function drawSpacingHover(r4, canvas, graph, node, showValue) {
-  const rects = gapRects(node, graph);
+function drawSpacingHover(r4, canvas, graph, node2, showValue) {
+  const rects = gapRects(node2, graph);
   for (const rect of rects) {
     drawStripedRect(r4, canvas, rect, AUTO_LAYOUT_HOVER_MAGENTA, AUTO_LAYOUT_HOVER_MAGENTA_FILL);
   }
@@ -61034,13 +61035,13 @@ function drawSpacingHover(r4, canvas, graph, node, showValue) {
   drawValuePill(
     r4,
     canvas,
-    String(Math.round(node.itemSpacing)),
+    String(Math.round(node2.itemSpacing)),
     (x3 + width / 2) * r4.zoom + r4.panX + AUTO_LAYOUT_HOVER_VALUE_OFFSET,
     (y3 + height / 2) * r4.zoom + r4.panY - AUTO_LAYOUT_HOVER_VALUE_OFFSET
   );
 }
-function drawPaddingHover(r4, canvas, graph, node, hover, showValue) {
-  const rect = paddingRect(node, graph, hover.side);
+function drawPaddingHover(r4, canvas, graph, node2, hover, showValue) {
+  const rect = paddingRect(node2, graph, hover.side);
   if (!rect) return;
   drawStripedRect(r4, canvas, rect, AUTO_LAYOUT_HOVER_BLUE, AUTO_LAYOUT_HOVER_BLUE_FILL);
   if (!showValue) return;
@@ -61054,13 +61055,13 @@ function drawPaddingHover(r4, canvas, graph, node, hover, showValue) {
     (y3 + height / 2) * r4.zoom + r4.panY - AUTO_LAYOUT_HOVER_VALUE_OFFSET
   );
 }
-function drawChildrenHover(r4, canvas, graph, node) {
+function drawChildrenHover(r4, canvas, graph, node2) {
   r4.auxStroke.setStrokeWidth(1);
   r4.auxStroke.setColor(r4.selColor());
   r4.auxStroke.setPathEffect(
     r4.ck.PathEffect.MakeDash([AUTO_LAYOUT_HOVER_CHILD_DASH, AUTO_LAYOUT_HOVER_CHILD_DASH], 0)
   );
-  for (const child of visibleLayoutChildren(node, graph)) {
+  for (const child of visibleLayoutChildren(node2, graph)) {
     const abs2 = graph.getAbsolutePosition(child.id);
     canvas.drawRect(
       r4.ck.LTRBRect(
@@ -61076,16 +61077,16 @@ function drawChildrenHover(r4, canvas, graph, node) {
 }
 function drawAutoLayoutHover(r4, canvas, graph, hover) {
   if (!hover) return;
-  const node = graph.getNode(hover.nodeId);
-  if (!node || node.layoutMode !== "HORIZONTAL" && node.layoutMode !== "VERTICAL") return;
-  if (hover.kind === "children") drawChildrenHover(r4, canvas, graph, node);
+  const node2 = graph.getNode(hover.nodeId);
+  if (!node2 || node2.layoutMode !== "HORIZONTAL" && node2.layoutMode !== "VERTICAL") return;
+  if (hover.kind === "children") drawChildrenHover(r4, canvas, graph, node2);
   if (hover.kind === "spacing" || hover.kind === "spacing-value") {
-    drawSpacingHover(r4, canvas, graph, node, hover.kind === "spacing-value");
+    drawSpacingHover(r4, canvas, graph, node2, hover.kind === "spacing-value");
   }
   if (hover.kind === "padding" || hover.kind === "padding-value") {
-    drawPaddingHover(r4, canvas, graph, node, hover, hover.kind === "padding-value");
+    drawPaddingHover(r4, canvas, graph, node2, hover, hover.kind === "padding-value");
   }
-  drawBaselineTicks(r4, canvas, graph, node);
+  drawBaselineTicks(r4, canvas, graph, node2);
 }
 var init_auto_layout_hover = __esm({
   "packages/core/src/canvas/overlays/auto-layout-hover.ts"() {
@@ -61104,19 +61105,19 @@ function ensureFlashPaint(r4) {
   return r4._flashPaint;
 }
 function drawNodeHighlightRect(r4, canvas, graph, nodeId, color, opacity, extraPad = 0) {
-  const node = graph.getNode(nodeId);
-  if (!node) return false;
+  const node2 = graph.getNode(nodeId);
+  if (!node2) return false;
   const abs2 = graph.getAbsolutePosition(nodeId);
-  const cx = (abs2.x + node.width / 2) * r4.zoom + r4.panX;
-  const cy = (abs2.y + node.height / 2) * r4.zoom + r4.panY;
-  const hw = node.width / 2 * r4.zoom;
-  const hh = node.height / 2 * r4.zoom;
+  const cx = (abs2.x + node2.width / 2) * r4.zoom + r4.panX;
+  const cy = (abs2.y + node2.height / 2) * r4.zoom + r4.panY;
+  const hw = node2.width / 2 * r4.zoom;
+  const hh = node2.height / 2 * r4.zoom;
   const pad = FLASH_PADDING + extraPad;
   const paint = ensureFlashPaint(r4);
   paint.setColor(r4.ck.Color4f(color.r, color.g, color.b, opacity));
   paint.setStrokeWidth(FLASH_STROKE_WIDTH);
   canvas.save();
-  if (node.rotation !== 0) canvas.rotate(node.rotation, cx, cy);
+  if (node2.rotation !== 0) canvas.rotate(node2.rotation, cx, cy);
   const rect = r4.ck.RRectXY(
     r4.ck.LTRBRect(cx - hw - pad, cy - hh - pad, cx + hw + pad, cy + hh + pad),
     FLASH_RADIUS,
@@ -61321,11 +61322,11 @@ function computeMeasurementSegments(from, to) {
 function selectedBounds(graph, selectedIds) {
   const nodes = [];
   for (const id of selectedIds) {
-    const node = graph.getNode(id);
-    if (node) nodes.push(node);
+    const node2 = graph.getNode(id);
+    if (node2) nodes.push(node2);
   }
   if (nodes.length === 0) return null;
-  return computeBounds(nodes.map((node) => getAxisAlignedWorldBounds(node, graph)));
+  return computeBounds(nodes.map((node2) => getAxisAlignedWorldBounds(node2, graph)));
 }
 function textWidth(r4, text) {
   const font = r4.sizeFont;
@@ -61430,15 +61431,15 @@ var init_measurement2 = __esm({
 });
 
 // packages/core/src/canvas/overlays/text-edit.ts
-function drawTextEditOverlay(r4, canvas, node, editor) {
-  if (node.textPathData !== null) {
-    drawPathTextCaret(r4, canvas, node, editor);
+function drawTextEditOverlay(r4, canvas, node2, editor) {
+  if (node2.textPathData !== null) {
+    drawPathTextCaret(r4, canvas, node2, editor);
     return;
   }
   r4.auxStroke.setStrokeWidth(1 / r4.zoom);
   r4.auxStroke.setColor(r4.selColor());
   r4.auxStroke.setPathEffect(null);
-  canvas.drawRect(r4.ck.LTRBRect(0, 0, node.width, node.height), r4.auxStroke);
+  canvas.drawRect(r4.ck.LTRBRect(0, 0, node2.width, node2.height), r4.auxStroke);
   const selRects = editor.getSelectionRects();
   if (selRects.length > 0) {
     r4.auxFill.setColor(
@@ -61467,9 +61468,9 @@ function drawTextEditOverlay(r4, canvas, node, editor) {
     }
   }
 }
-function drawPathTextCaret(r4, canvas, node, editor) {
+function drawPathTextCaret(r4, canvas, node2, editor) {
   if (!editor.caretVisible || editor.hasSelection()) return;
-  const glyphs = node.derivedTextGlyphs;
+  const glyphs = node2.derivedTextGlyphs;
   const idx = editor.caretIndex;
   if (!glyphs?.length || idx == null) return;
   const g4 = glyphs[Math.min(Math.max(idx, 0), glyphs.length - 1)];
@@ -61491,8 +61492,8 @@ var init_text_edit = __esm({
 });
 
 // packages/core/src/canvas/labels/selection.ts
-function getOverlayRotation(node, overlays) {
-  return overlays?.rotationPreview?.nodeId === node.id ? overlays.rotationPreview.angle : node.rotation;
+function getOverlayRotation(node2, overlays) {
+  return overlays?.rotationPreview?.nodeId === node2.id ? overlays.rotationPreview.angle : node2.rotation;
 }
 function accumulateSelectionBounds(graph, selectedIds, overlays) {
   let minX = Infinity;
@@ -61501,13 +61502,13 @@ function accumulateSelectionBounds(graph, selectedIds, overlays) {
   let maxY = -Infinity;
   const nodes = [];
   for (const id of selectedIds) {
-    const node = graph.getNode(id);
-    if (!node) continue;
-    nodes.push(node);
-    const abs2 = getAbsolutePosition(node, graph);
-    const rotation = getOverlayRotation(node, overlays);
+    const node2 = graph.getNode(id);
+    if (!node2) continue;
+    nodes.push(node2);
+    const abs2 = getAbsolutePosition(node2, graph);
+    const rotation = getOverlayRotation(node2, overlays);
     if (rotation !== 0) {
-      const corners = rotatedCorners(abs2.x, abs2.y, node.width, node.height, rotation);
+      const corners = rotatedCorners(abs2.x, abs2.y, node2.width, node2.height, rotation);
       for (const corner of corners) {
         minX = Math.min(minX, corner.x);
         minY = Math.min(minY, corner.y);
@@ -61518,21 +61519,21 @@ function accumulateSelectionBounds(graph, selectedIds, overlays) {
     }
     minX = Math.min(minX, abs2.x);
     minY = Math.min(minY, abs2.y);
-    maxX = Math.max(maxX, abs2.x + node.width);
-    maxY = Math.max(maxY, abs2.y + node.height);
+    maxX = Math.max(maxX, abs2.x + node2.width);
+    maxY = Math.max(maxY, abs2.y + node2.height);
   }
   return { nodes, minX, minY, maxX, maxY };
 }
-function drawSingleFrameTitle(r4, canvas, graph, node, overlays) {
-  const parentNode = node.parentId ? graph.getNode(node.parentId) : null;
+function drawSingleFrameTitle(r4, canvas, graph, node2, overlays) {
+  const parentNode = node2.parentId ? graph.getNode(node2.parentId) : null;
   const isTopLevel = !parentNode || parentNode.type === "CANVAS" || parentNode.type === "SECTION";
   const provider = r4.fontProvider;
-  if (node.type !== "FRAME" || !isTopLevel || !provider) return;
-  const overlayRotation = getOverlayRotation(node, overlays);
-  const world = getWorldMatrix({ ...node, rotation: overlayRotation }, graph);
+  if (node2.type !== "FRAME" || !isTopLevel || !provider) return;
+  const overlayRotation = getOverlayRotation(node2, overlays);
+  const world = getWorldMatrix({ ...node2, rotation: overlayRotation }, graph);
   const origin = r4.ck.Matrix.mapPoints(world, [0, 0]);
   r4.auxFill.setColor(r4.selColor());
-  const maxTextWidth = node.width * r4.zoom;
+  const maxTextWidth = node2.width * r4.zoom;
   if (maxTextWidth <= 0) return;
   canvas.save();
   canvas.translate(origin[0] * r4.zoom + r4.panX, origin[1] * r4.zoom + r4.panY);
@@ -61541,7 +61542,7 @@ function drawSingleFrameTitle(r4, canvas, graph, node, overlays) {
     r4.ck,
     canvas,
     provider,
-    node.name,
+    node2.name,
     LABEL_FONT_SIZE,
     maxTextWidth,
     r4.selColor(),
@@ -61578,15 +61579,15 @@ function drawSizePill(r4, canvas, sizeFont, text, x3, y3, color) {
     sizeFont
   );
 }
-function drawSingleSelectionSize(r4, canvas, graph, node, overlays, sizeFont) {
-  const sizeText = `${Math.round(node.width)} \xD7 ${Math.round(node.height)}`;
-  const pillColor = r4.isComponentType(node.type) ? r4.compColor() : r4.selColor();
-  const overlayRotation = getOverlayRotation(node, overlays);
-  const abs2 = getAbsolutePosition(node, graph);
-  const cx = abs2.x + node.width / 2;
-  const cy = abs2.y + node.height / 2;
+function drawSingleSelectionSize(r4, canvas, graph, node2, overlays, sizeFont) {
+  const sizeText = `${Math.round(node2.width)} \xD7 ${Math.round(node2.height)}`;
+  const pillColor = r4.isComponentType(node2.type) ? r4.compColor() : r4.selColor();
+  const overlayRotation = getOverlayRotation(node2, overlays);
+  const abs2 = getAbsolutePosition(node2, graph);
+  const cx = abs2.x + node2.width / 2;
+  const cy = abs2.y + node2.height / 2;
   const rad = overlayRotation * Math.PI / 180;
-  const hh = node.height / 2;
+  const hh = node2.height / 2;
   const bottomCenterX = cx + Math.sin(rad) * hh;
   const bottomCenterY = cy + Math.cos(rad) * hh;
   const sx = bottomCenterX * r4.zoom + r4.panX;
@@ -61769,18 +61770,18 @@ function drawRemoteCursors(r4, canvas, graph, cursors) {
       r4.auxStroke.setStrokeWidth(1.5);
       r4.auxStroke.setPathEffect(null);
       for (const nodeId of cursor.selection) {
-        const node = graph.getNode(nodeId);
-        if (!node) continue;
-        const m2 = getWorldMatrix(node, graph);
+        const node2 = graph.getNode(nodeId);
+        if (!node2) continue;
+        const m2 = getWorldMatrix(node2, graph);
         const c4 = matrix_default.mapPoints(m2, [
           0,
           0,
-          node.width,
+          node2.width,
           0,
-          node.width,
-          node.height,
+          node2.width,
+          node2.height,
           0,
-          node.height
+          node2.height
         ]);
         const box = new r4.ck.PathBuilder();
         box.moveTo(c4[0] * r4.zoom + r4.panX, c4[1] * r4.zoom + r4.panY);
@@ -62152,11 +62153,11 @@ var init_rulers = __esm({
 });
 
 // packages/core/src/canvas/layout-grids.ts
-function rawLayoutGrids(node) {
-  const modeledGrids = node.layoutGrids ?? [];
+function rawLayoutGrids(node2) {
+  const modeledGrids = node2.layoutGrids ?? [];
   if (modeledGrids.length > 0) return modeledGrids;
-  const source = node.source;
-  const grids = source ? readEffectiveFigmaRawField(node, "layoutGrids") : void 0;
+  const source = node2.source;
+  const grids = source ? readEffectiveFigmaRawField(node2, "layoutGrids") : void 0;
   if (!Array.isArray(grids)) return [];
   return grids.filter((grid) => grid !== null && typeof grid === "object");
 }
@@ -62190,32 +62191,32 @@ function gridGeometry(grid) {
     color: grid.color ?? { ...SELECTION_COLOR, a: 0.1 }
   };
 }
-function drawColumnGrid(r4, canvas, node, grid) {
-  for (const section of layoutGuideSections(node, grid)) {
-    canvas.drawRect(r4.ck.LTRBRect(section.start, 0, section.end, node.height), r4.auxFill);
+function drawColumnGrid(r4, canvas, node2, grid) {
+  for (const section of layoutGuideSections(node2, grid)) {
+    canvas.drawRect(r4.ck.LTRBRect(section.start, 0, section.end, node2.height), r4.auxFill);
   }
 }
-function drawRowGrid(r4, canvas, node, grid) {
-  for (const section of layoutGuideSections(node, grid)) {
-    canvas.drawRect(r4.ck.LTRBRect(0, section.start, node.width, section.end), r4.auxFill);
+function drawRowGrid(r4, canvas, node2, grid) {
+  for (const section of layoutGuideSections(node2, grid)) {
+    canvas.drawRect(r4.ck.LTRBRect(0, section.start, node2.width, section.end), r4.auxFill);
   }
 }
-function drawSquareGrid(r4, canvas, node, grid) {
-  for (let x3 = grid.offset; x3 < node.width; x3 += grid.sectionSize) {
-    canvas.drawRect(r4.ck.LTRBRect(x3, 0, x3 + 1, node.height), r4.auxFill);
+function drawSquareGrid(r4, canvas, node2, grid) {
+  for (let x3 = grid.offset; x3 < node2.width; x3 += grid.sectionSize) {
+    canvas.drawRect(r4.ck.LTRBRect(x3, 0, x3 + 1, node2.height), r4.auxFill);
   }
-  for (let y3 = grid.offset; y3 < node.height; y3 += grid.sectionSize) {
-    canvas.drawRect(r4.ck.LTRBRect(0, y3, node.width, y3 + 1), r4.auxFill);
+  for (let y3 = grid.offset; y3 < node2.height; y3 += grid.sectionSize) {
+    canvas.drawRect(r4.ck.LTRBRect(0, y3, node2.width, y3 + 1), r4.auxFill);
   }
 }
-function drawLayoutGrids(r4, canvas, node) {
-  for (const rawGrid of rawLayoutGrids(node)) {
+function drawLayoutGrids(r4, canvas, node2) {
+  for (const rawGrid of rawLayoutGrids(node2)) {
     const grid = gridGeometry(rawGrid);
     if (!grid) continue;
     r4.auxFill.setColor(r4.ck.Color4f(grid.color.r, grid.color.g, grid.color.b, grid.color.a));
-    if (grid.pattern === "GRID") drawSquareGrid(r4, canvas, node, grid);
-    else if (grid.pattern === "ROWS") drawRowGrid(r4, canvas, node, grid);
-    else drawColumnGrid(r4, canvas, node, grid);
+    if (grid.pattern === "GRID") drawSquareGrid(r4, canvas, node2, grid);
+    else if (grid.pattern === "ROWS") drawRowGrid(r4, canvas, node2, grid);
+    else drawColumnGrid(r4, canvas, node2, grid);
   }
 }
 var init_layout_grids = __esm({
@@ -62344,20 +62345,20 @@ function strokeInset(stroke) {
   if (stroke.align === "OUTSIDE") return -stroke.weight / 2;
   return 0;
 }
-function drawDashedRRectWithSolidCorners(r4, canvas, node, stroke, color, cornerRadius, dashPhase = 0) {
+function drawDashedRRectWithSolidCorners(r4, canvas, node2, stroke, color, cornerRadius, dashPhase = 0) {
   const dash = normalizeDashPattern(stroke.dashPattern);
   const inset = strokeInset(stroke);
   const left = inset;
   const top = inset;
-  const right = node.width - inset;
-  const bottom = node.height - inset;
+  const right = node2.width - inset;
+  const bottom = node2.height - inset;
   const radius = Math.max(0, cornerRadius - inset);
   r4.strokePaint.setColor(r4.ck.Color4f(color.r, color.g, color.b, color.a));
   r4.strokePaint.setStrokeWidth(stroke.weight);
   r4.strokePaint.setAlphaf(stroke.opacity);
   r4.strokePaint.setStrokeCap(r4.ck.StrokeCap.Butt);
-  r4.strokePaint.setStrokeJoin(getStrokeJoinEntity(r4, stroke.join ?? node.strokeJoin));
-  r4.strokePaint.setStrokeMiter(node.strokeMiterLimit);
+  r4.strokePaint.setStrokeJoin(getStrokeJoinEntity(r4, stroke.join ?? node2.strokeJoin));
+  r4.strokePaint.setStrokeMiter(node2.strokeMiterLimit);
   r4.strokePaint.setPathEffect(null);
   canvas.drawArc(
     r4.ck.LTRBRect(left, top, left + radius * 2, top + radius * 2),
@@ -62427,36 +62428,36 @@ function drawArrowHeads(r4, canvas, endpoints, weight, color, opacity) {
     }
   }
 }
-function configureStrokePaint(r4, node, stroke, color) {
+function configureStrokePaint(r4, node2, stroke, color) {
   r4.strokePaint.setColor(r4.ck.Color4f(color.r, color.g, color.b, color.a));
   r4.strokePaint.setStrokeWidth(stroke.weight);
   r4.strokePaint.setAlphaf(stroke.opacity);
-  r4.strokePaint.setStrokeCap(getStrokeCapEntity(r4, stroke.cap ?? node.strokeCap));
-  r4.strokePaint.setStrokeJoin(getStrokeJoinEntity(r4, stroke.join ?? node.strokeJoin));
-  r4.strokePaint.setStrokeMiter(node.strokeMiterLimit);
+  r4.strokePaint.setStrokeCap(getStrokeCapEntity(r4, stroke.cap ?? node2.strokeCap));
+  r4.strokePaint.setStrokeJoin(getStrokeJoinEntity(r4, stroke.join ?? node2.strokeJoin));
+  r4.strokePaint.setStrokeMiter(node2.strokeMiterLimit);
 }
-function drawStyledRRectStroke(r4, canvas, rrect, node, stroke, color, dashPhase = 0) {
+function drawStyledRRectStroke(r4, canvas, rrect, node2, stroke, color, dashPhase = 0) {
   const dash = normalizeDashPattern(stroke.dashPattern);
-  configureStrokePaint(r4, node, stroke, color);
+  configureStrokePaint(r4, node2, stroke, color);
   r4.strokePaint.setPathEffect(dash.length > 0 ? r4.ck.PathEffect.MakeDash(dash, dashPhase) : null);
-  r4.drawRRectStrokeWithAlign(canvas, rrect, node, stroke);
+  r4.drawRRectStrokeWithAlign(canvas, rrect, node2, stroke);
   r4.strokePaint.setPathEffect(null);
 }
-function drawNodeStroke(r4, canvas, node, rect, hasRadius2) {
-  switch (node.type) {
+function drawNodeStroke(r4, canvas, node2, rect, hasRadius2) {
+  switch (node2.type) {
     case "VECTOR": {
-      const vps = r4.getVectorPaths(node);
+      const vps = r4.getVectorPaths(node2);
       if (vps) {
         for (const vp of vps) canvas.drawPath(vp, r4.strokePaint);
       }
       break;
     }
     case "ELLIPSE": {
-      const fg = r4.getFillGeometry(node);
+      const fg = r4.getFillGeometry(node2);
       if (fg) {
         for (const p6 of fg) canvas.drawPath(p6, r4.strokePaint);
-      } else if (node.arcData) {
-        r4.drawArc(canvas, node, r4.strokePaint);
+      } else if (node2.arcData) {
+        r4.drawArc(canvas, node2, r4.strokePaint);
       } else {
         canvas.drawOval(rect, r4.strokePaint);
       }
@@ -62464,38 +62465,38 @@ function drawNodeStroke(r4, canvas, node, rect, hasRadius2) {
     }
     case "POLYGON":
     case "STAR": {
-      const path = r4.makePolygonPath(node);
+      const path = r4.makePolygonPath(node2);
       canvas.drawPath(path, r4.strokePaint);
       path.delete();
       break;
     }
     default:
-      if (nodeHasSmoothCorners(node)) {
-        const path = makeSmoothRRectPath(r4, node);
+      if (nodeHasSmoothCorners(node2)) {
+        const path = makeSmoothRRectPath(r4, node2);
         canvas.drawPath(path, r4.strokePaint);
         path.delete();
       } else if (hasRadius2) {
-        canvas.drawRRect(r4.makeRRect(node), r4.strokePaint);
+        canvas.drawRRect(r4.makeRRect(node2), r4.strokePaint);
       } else {
         canvas.drawRect(rect, r4.strokePaint);
       }
   }
 }
-function drawStrokeWithAlign(r4, canvas, node, rect, hasRadius2, align) {
+function drawStrokeWithAlign(r4, canvas, node2, rect, hasRadius2, align) {
   if (align === "INSIDE") {
     canvas.save();
-    r4.clipNodeShape(canvas, node, rect, hasRadius2);
+    r4.clipNodeShape(canvas, node2, rect, hasRadius2);
     const origWidth = r4.strokePaint.getStrokeWidth();
     r4.strokePaint.setStrokeWidth(origWidth * 2);
-    r4.drawNodeStroke(canvas, node, rect, hasRadius2);
+    r4.drawNodeStroke(canvas, node2, rect, hasRadius2);
     r4.strokePaint.setStrokeWidth(origWidth);
     canvas.restore();
   } else if (align === "OUTSIDE") {
     canvas.save();
-    const bigRect = r4.ck.LTRBRect(-node.width, -node.height, node.width * 2, node.height * 2);
+    const bigRect = r4.ck.LTRBRect(-node2.width, -node2.height, node2.width * 2, node2.height * 2);
     const outerPath = new r4.ck.PathBuilder();
     outerPath.addRect(bigRect);
-    const innerPath = r4.makeNodeShapePath(node, rect, hasRadius2);
+    const innerPath = r4.makeNodeShapePath(node2, rect, hasRadius2);
     const immutableOuterPath = outerPath.detachAndDelete();
     const clipPath = r4.ck.Path.MakeFromOp(immutableOuterPath, innerPath, r4.ck.PathOp.Difference);
     immutableOuterPath.delete();
@@ -62508,20 +62509,20 @@ function drawStrokeWithAlign(r4, canvas, node, rect, hasRadius2, align) {
     clipPath.delete();
     const origWidth = r4.strokePaint.getStrokeWidth();
     r4.strokePaint.setStrokeWidth(origWidth * 2);
-    r4.drawNodeStroke(canvas, node, rect, hasRadius2);
+    r4.drawNodeStroke(canvas, node2, rect, hasRadius2);
     r4.strokePaint.setStrokeWidth(origWidth);
     canvas.restore();
   } else {
-    r4.drawNodeStroke(canvas, node, rect, hasRadius2);
+    r4.drawNodeStroke(canvas, node2, rect, hasRadius2);
   }
 }
-function drawRRectStrokeWithAlign(r4, canvas, rrect, node, stroke) {
-  if (nodeHasSmoothCorners(node)) {
+function drawRRectStrokeWithAlign(r4, canvas, rrect, node2, stroke) {
+  if (nodeHasSmoothCorners(node2)) {
     drawStrokeWithAlign(
       r4,
       canvas,
-      node,
-      r4.ck.LTRBRect(0, 0, node.width, node.height),
+      node2,
+      r4.ck.LTRBRect(0, 0, node2.width, node2.height),
       true,
       stroke.align
     );
@@ -62537,7 +62538,7 @@ function drawRRectStrokeWithAlign(r4, canvas, rrect, node, stroke) {
   } else if (stroke.align === "OUTSIDE") {
     canvas.save();
     const outerPath = new r4.ck.PathBuilder();
-    outerPath.addRect(r4.ck.LTRBRect(-node.width, -node.height, node.width * 2, node.height * 2));
+    outerPath.addRect(r4.ck.LTRBRect(-node2.width, -node2.height, node2.width * 2, node2.height * 2));
     const innerPath = new r4.ck.PathBuilder();
     innerPath.addRRect(rrect);
     const immutableOuterPath = outerPath.detachAndDelete();
@@ -62563,12 +62564,12 @@ function drawRRectStrokeWithAlign(r4, canvas, rrect, node, stroke) {
     canvas.drawRRect(rrect, r4.strokePaint);
   }
 }
-function drawIndividualSideStrokes(r4, canvas, node, align) {
-  const w3 = node.width;
-  const h4 = node.height;
+function drawIndividualSideStrokes(r4, canvas, node2, align) {
+  const w3 = node2.width;
+  const h4 = node2.height;
   const inside = align === "INSIDE";
   const outside = align === "OUTSIDE";
-  const tw = node.borderTopWeight;
+  const tw = node2.borderTopWeight;
   if (tw > 0) {
     let y3 = 0;
     if (inside) y3 = tw / 2;
@@ -62576,7 +62577,7 @@ function drawIndividualSideStrokes(r4, canvas, node, align) {
     r4.strokePaint.setStrokeWidth(tw);
     canvas.drawLine(0, y3, w3, y3, r4.strokePaint);
   }
-  const rw = node.borderRightWeight;
+  const rw = node2.borderRightWeight;
   if (rw > 0) {
     let x3 = w3;
     if (inside) x3 = w3 - rw / 2;
@@ -62584,7 +62585,7 @@ function drawIndividualSideStrokes(r4, canvas, node, align) {
     r4.strokePaint.setStrokeWidth(rw);
     canvas.drawLine(x3, 0, x3, h4, r4.strokePaint);
   }
-  const bw = node.borderBottomWeight;
+  const bw = node2.borderBottomWeight;
   if (bw > 0) {
     let y3 = h4;
     if (inside) y3 = h4 - bw / 2;
@@ -62592,7 +62593,7 @@ function drawIndividualSideStrokes(r4, canvas, node, align) {
     r4.strokePaint.setStrokeWidth(bw);
     canvas.drawLine(0, y3, w3, y3, r4.strokePaint);
   }
-  const lw = node.borderLeftWeight;
+  const lw = node2.borderLeftWeight;
   if (lw > 0) {
     let x3 = 0;
     if (inside) x3 = lw / 2;
@@ -62601,50 +62602,50 @@ function drawIndividualSideStrokes(r4, canvas, node, align) {
     canvas.drawLine(x3, 0, x3, h4, r4.strokePaint);
   }
 }
-function strokeNodeShape(r4, canvas, node, paint) {
-  const rect = r4.ck.LTRBRect(0, 0, node.width, node.height);
-  switch (node.type) {
+function strokeNodeShape(r4, canvas, node2, paint) {
+  const rect = r4.ck.LTRBRect(0, 0, node2.width, node2.height);
+  switch (node2.type) {
     case "ELLIPSE":
       canvas.drawOval(rect, paint);
       return;
     case "VECTOR": {
-      const vps = r4.getVectorPaths(node);
+      const vps = r4.getVectorPaths(node2);
       if (vps) {
         for (const vp of vps) canvas.drawPath(vp, paint);
       }
       return;
     }
     case "LINE":
-      canvas.drawLine(0, 0, node.width, node.height, paint);
+      canvas.drawLine(0, 0, node2.width, node2.height, paint);
       return;
     case "POLYGON":
     case "STAR": {
-      const path = r4.makePolygonPath(node);
+      const path = r4.makePolygonPath(node2);
       canvas.drawPath(path, paint);
       path.delete();
       return;
     }
   }
-  const hasRadius2 = node.cornerRadius > 0 || node.independentCorners && (node.topLeftRadius > 0 || node.topRightRadius > 0 || node.bottomRightRadius > 0 || node.bottomLeftRadius > 0);
+  const hasRadius2 = node2.cornerRadius > 0 || node2.independentCorners && (node2.topLeftRadius > 0 || node2.topRightRadius > 0 || node2.bottomRightRadius > 0 || node2.bottomLeftRadius > 0);
   if (hasRadius2) {
-    if (node.independentCorners) {
+    if (node2.independentCorners) {
       const rrect = new Float32Array([
         0,
         0,
-        node.width,
-        node.height,
-        node.topLeftRadius,
-        node.topLeftRadius,
-        node.topRightRadius,
-        node.topRightRadius,
-        node.bottomRightRadius,
-        node.bottomRightRadius,
-        node.bottomLeftRadius,
-        node.bottomLeftRadius
+        node2.width,
+        node2.height,
+        node2.topLeftRadius,
+        node2.topLeftRadius,
+        node2.topRightRadius,
+        node2.topRightRadius,
+        node2.bottomRightRadius,
+        node2.bottomRightRadius,
+        node2.bottomLeftRadius,
+        node2.bottomLeftRadius
       ]);
       canvas.drawRRect(rrect, paint);
     } else {
-      canvas.drawRRect(r4.ck.RRectXY(rect, node.cornerRadius, node.cornerRadius), paint);
+      canvas.drawRRect(r4.ck.RRectXY(rect, node2.cornerRadius, node2.cornerRadius), paint);
     }
   } else {
     canvas.drawRect(rect, paint);
@@ -62662,43 +62663,43 @@ var init_strokes = __esm({
 function snapDerivedGlyphBaseline(y3) {
   return Math.round(y3);
 }
-function shouldUseHardDerivedGlyphCoverage(node) {
-  return node.fontSize === 20 && node.fontWeight === 400;
+function shouldUseHardDerivedGlyphCoverage(node2) {
+  return node2.fontSize === 20 && node2.fontWeight === 400;
 }
-function derivedUnderlineRect(node, baselineY) {
+function derivedUnderlineRect(node2, baselineY) {
   return {
     x1: 0,
     y1: baselineY + 2.75,
-    x2: Math.max(0, node.width - 0.75),
+    x2: Math.max(0, node2.width - 0.75),
     y2: baselineY + 3.75
   };
 }
-function styleRunX(node, index) {
-  const glyph = node.derivedTextGlyphs?.[index];
+function styleRunX(node2, index) {
+  const glyph = node2.derivedTextGlyphs?.[index];
   if (glyph) return glyph.x;
-  if (index >= node.text.length) return node.width;
-  if (node.text.length === 0) return 0;
-  return node.width * index / node.text.length;
+  if (index >= node2.text.length) return node2.width;
+  if (node2.text.length === 0) return 0;
+  return node2.width * index / node2.text.length;
 }
-function styleRunDecorationRange(node, run) {
+function styleRunDecorationRange(node2, run) {
   const hasDecorationOverride = run.style.textDecoration !== void 0 || run.style.textDecorationStyle !== void 0 || run.style.textDecorationThickness !== void 0 || run.style.textDecorationFills !== void 0 || run.style.textUnderlineOffset !== void 0;
   if (!hasDecorationOverride) return null;
   return {
-    x1: styleRunX(node, run.start),
-    x2: styleRunX(node, run.start + run.length)
+    x1: styleRunX(node2, run.start),
+    x2: styleRunX(node2, run.start + run.length)
   };
 }
-function styleRunDecorationSpan(node, run) {
-  const decoration = run.style.textDecoration ?? node.textDecoration;
+function styleRunDecorationSpan(node2, run) {
+  const decoration = run.style.textDecoration ?? node2.textDecoration;
   const hasDecorationOverride = run.style.textDecoration !== void 0 || run.style.textDecorationStyle !== void 0 || run.style.textDecorationThickness !== void 0 || run.style.textDecorationFills !== void 0 || run.style.textUnderlineOffset !== void 0;
   if (decoration !== "UNDERLINE" || !hasDecorationOverride) return null;
   return {
-    x1: styleRunX(node, run.start),
-    x2: styleRunX(node, run.start + run.length),
-    style: run.style.textDecorationStyle ?? node.textDecorationStyle,
-    thickness: run.style.textDecorationThickness ?? node.textDecorationThickness ?? 1,
-    offset: run.style.textUnderlineOffset ?? node.textUnderlineOffset ?? 0,
-    fills: run.style.textDecorationFills ?? node.textDecorationFills
+    x1: styleRunX(node2, run.start),
+    x2: styleRunX(node2, run.start + run.length),
+    style: run.style.textDecorationStyle ?? node2.textDecorationStyle,
+    thickness: run.style.textDecorationThickness ?? node2.textDecorationThickness ?? 1,
+    offset: run.style.textUnderlineOffset ?? node2.textUnderlineOffset ?? 0,
+    fills: run.style.textDecorationFills ?? node2.textDecorationFills
   };
 }
 function isDecorationRange(span) {
@@ -62707,16 +62708,16 @@ function isDecorationRange(span) {
 function isDecorationSpan(span) {
   return span !== null;
 }
-function baseDecorationSpan(node) {
-  if (node.textDecoration !== "UNDERLINE") return null;
-  const rect = derivedUnderlineRect(node, 0);
+function baseDecorationSpan(node2) {
+  if (node2.textDecoration !== "UNDERLINE") return null;
+  const rect = derivedUnderlineRect(node2, 0);
   return {
     x1: rect.x1,
     x2: rect.x2,
-    style: node.textDecorationStyle,
-    thickness: node.textDecorationThickness ?? rect.y2 - rect.y1,
-    offset: node.textUnderlineOffset ?? 0,
-    fills: node.textDecorationFills
+    style: node2.textDecorationStyle,
+    thickness: node2.textDecorationThickness ?? rect.y2 - rect.y1,
+    offset: node2.textUnderlineOffset ?? 0,
+    fills: node2.textDecorationFills
   };
 }
 function splitBaseDecorationSpan(base, overrides) {
@@ -62729,10 +62730,10 @@ function splitBaseDecorationSpan(base, overrides) {
   if (cursor < base.x2) spans.push({ ...base, x1: cursor, x2: base.x2 });
   return spans;
 }
-function derivedDecorationSpans(node) {
-  const overrideRanges = node.styleRuns.map((run) => styleRunDecorationRange(node, run)).filter(isDecorationRange);
-  const overrides = node.styleRuns.map((run) => styleRunDecorationSpan(node, run)).filter(isDecorationSpan);
-  const base = baseDecorationSpan(node);
+function derivedDecorationSpans(node2) {
+  const overrideRanges = node2.styleRuns.map((run) => styleRunDecorationRange(node2, run)).filter(isDecorationRange);
+  const overrides = node2.styleRuns.map((run) => styleRunDecorationSpan(node2, run)).filter(isDecorationSpan);
+  const base = baseDecorationSpan(node2);
   return base ? [...splitBaseDecorationSpan(base, overrideRanges), ...overrides] : overrides;
 }
 function firstVisibleFillColor(fills) {
@@ -62774,18 +62775,18 @@ function drawWavyDecoration(r4, canvas, paint, span, y3) {
   canvas.drawPath(immutablePath, paint);
   immutablePath.delete();
 }
-function derivedDecorationY(node, span, baselineY) {
+function derivedDecorationY(node2, span, baselineY) {
   const hasRichDecoration = span.style !== "SOLID" || span.fills.length > 0;
-  if (!hasRichDecoration) return derivedUnderlineRect(node, baselineY).y1 + span.offset;
-  return baselineY + node.fontSize / 2 - span.thickness / 4 + span.offset;
+  if (!hasRichDecoration) return derivedUnderlineRect(node2, baselineY).y1 + span.offset;
+  return baselineY + node2.fontSize / 2 - span.thickness / 4 + span.offset;
 }
-function drawDerivedDecorations(r4, canvas, node, baselineY) {
-  const spans = derivedDecorationSpans(node);
+function drawDerivedDecorations(r4, canvas, node2, baselineY) {
+  const spans = derivedDecorationSpans(node2);
   if (spans.length === 0) return;
   const paint = new r4.ck.Paint();
   try {
     for (const span of spans) {
-      const y3 = derivedDecorationY(node, span, baselineY);
+      const y3 = derivedDecorationY(node2, span, baselineY);
       configureDecorationPaint(r4, span, paint);
       if (span.style === "DOTTED") drawDottedDecoration(r4, canvas, paint, span, y3);
       else if (span.style === "WAVY") drawWavyDecoration(r4, canvas, paint, span, y3);
@@ -62795,11 +62796,11 @@ function drawDerivedDecorations(r4, canvas, node, baselineY) {
     paint.delete();
   }
 }
-function hasRotatedDerivedGlyphs(node) {
-  return node.derivedTextGlyphs?.some((glyph) => (glyph.rotation ?? 0) !== 0) === true;
+function hasRotatedDerivedGlyphs(node2) {
+  return node2.derivedTextGlyphs?.some((glyph) => (glyph.rotation ?? 0) !== 0) === true;
 }
-function isReflowedPathText(node) {
-  return node.type === "TEXT" && (node.derivedTextGlyphs?.length ?? 0) > 0 && node.textPathBox !== null && node.strokeGeometry.length === 0 && node.textPathData !== null;
+function isReflowedPathText(node2) {
+  return node2.type === "TEXT" && (node2.derivedTextGlyphs?.length ?? 0) > 0 && node2.textPathBox !== null && node2.strokeGeometry.length === 0 && node2.textPathData !== null;
 }
 function getGlyphSilhouette(r4, glyph, stroke) {
   const blob = glyph.commandsBlob;
@@ -62839,10 +62840,10 @@ function applyGlyphEmTransform(canvas, glyph, glyphY) {
   if (rotation !== 0) canvas.rotate(-rotation * 180 / Math.PI, 0, 0);
   canvas.scale(glyph.fontSize, -glyph.fontSize);
 }
-function drawReflowedPathTextSilhouettes(r4, canvas, node, stroke, color) {
-  const glyphs = node.derivedTextGlyphs;
+function drawReflowedPathTextSilhouettes(r4, canvas, node2, stroke, color) {
+  const glyphs = node2.derivedTextGlyphs;
   if (!glyphs?.length || stroke.weight <= 0) return;
-  const snapBaselines = !hasRotatedDerivedGlyphs(node);
+  const snapBaselines = !hasRotatedDerivedGlyphs(node2);
   const paint = new r4.ck.Paint();
   paint.setAntiAlias(true);
   paint.setStyle(r4.ck.PaintStyle.Fill);
@@ -62866,24 +62867,24 @@ function drawReflowedPathTextSilhouettes(r4, canvas, node, stroke, color) {
     paint.delete();
   }
 }
-function drawDerivedText(r4, canvas, node) {
-  if (!node.derivedTextGlyphs?.length) return false;
-  const snapBaselines = !hasRotatedDerivedGlyphs(node);
+function drawDerivedText(r4, canvas, node2) {
+  if (!node2.derivedTextGlyphs?.length) return false;
+  const snapBaselines = !hasRotatedDerivedGlyphs(node2);
   let underlineBaselineY = 0;
-  for (const glyph of node.derivedTextGlyphs) {
+  for (const glyph of node2.derivedTextGlyphs) {
     const glyphY = snapBaselines ? snapDerivedGlyphBaseline(glyph.y) : glyph.y;
     underlineBaselineY = Math.max(underlineBaselineY, glyphY);
     const path = geometryBlobToPath(r4.ck, glyph.commandsBlob, "NONZERO");
     canvas.save();
     applyGlyphEmTransform(canvas, glyph, glyphY);
-    const shouldUseHardCoverage = shouldUseHardDerivedGlyphCoverage(node);
+    const shouldUseHardCoverage = shouldUseHardDerivedGlyphCoverage(node2);
     if (shouldUseHardCoverage) r4.fillPaint.setAntiAlias(false);
     canvas.drawPath(path, r4.fillPaint);
     if (shouldUseHardCoverage) r4.fillPaint.setAntiAlias(true);
     canvas.restore();
     path.delete();
   }
-  if (snapBaselines) drawDerivedDecorations(r4, canvas, node, underlineBaselineY);
+  if (snapBaselines) drawDerivedDecorations(r4, canvas, node2, underlineBaselineY);
   return true;
 }
 var init_derived2 = __esm({
@@ -62895,26 +62896,26 @@ var init_derived2 = __esm({
 });
 
 // packages/core/src/canvas/scene.ts
-function drawVisibleFills(r4, node, graph, draw) {
-  paintFills(r4, node.fills, node, graph, draw);
+function drawVisibleFills(r4, node2, graph, draw) {
+  paintFills(r4, node2.fills, node2, graph, draw);
 }
-function hasNodeTransform(node) {
-  return node.rotation !== 0 || node.flipX || node.flipY;
+function hasNodeTransform(node2) {
+  return node2.rotation !== 0 || node2.flipX || node2.flipY;
 }
-function hasOverflowPathTextPaint(node) {
-  return node.textPathData != null && ((node.derivedTextGlyphs?.length ?? 0) > 0 || Array.isArray(node.strokeGeometry) && node.strokeGeometry.length > 0);
+function hasOverflowPathTextPaint(node2) {
+  return node2.textPathData != null && ((node2.derivedTextGlyphs?.length ?? 0) > 0 || Array.isArray(node2.strokeGeometry) && node2.strokeGeometry.length > 0);
 }
-function isCulled(r4, graph, node, absX, absY, hasTransformedAncestor2) {
-  const canCull = node.childIds.length === 0 || (node.type === "FRAME" || node.type === "COMPONENT" || node.type === "INSTANCE") && node.clipsContent;
-  if (!canCull || hasOverflowPathTextPaint(node)) return false;
+function isCulled(r4, graph, node2, absX, absY, hasTransformedAncestor2) {
+  const canCull = node2.childIds.length === 0 || (node2.type === "FRAME" || node2.type === "COMPONENT" || node2.type === "INSTANCE") && node2.clipsContent;
+  if (!canCull || hasOverflowPathTextPaint(node2)) return false;
   const vp = r4.worldViewport;
   if (hasTransformedAncestor2) {
-    const bounds = getAbsolutePositionFull(node, graph);
+    const bounds = getAbsolutePositionFull(node2, graph);
     return bounds.boundX > vp.x + vp.w || bounds.boundY > vp.y + vp.h || bounds.boundX + bounds.width < vp.x || bounds.boundY + bounds.height < vp.y;
   }
-  const bw = node.width;
-  const bh = node.height;
-  if (node.rotation !== 0) {
+  const bw = node2.width;
+  const bh = node2.height;
+  if (node2.rotation !== 0) {
     const diag = Math.hypot(bw, bh);
     const cx = absX + bw / 2;
     const cy = absY + bh / 2;
@@ -62922,41 +62923,41 @@ function isCulled(r4, graph, node, absX, absY, hasTransformedAncestor2) {
   }
   return absX > vp.x + vp.w || absY > vp.y + vp.h || absX + bw < vp.x || absY + bh < vp.y;
 }
-function applyNodeTransforms(_r2, canvas, node, nodeId, overlays) {
-  const rotation = overlays.rotationPreview?.nodeId === nodeId ? overlays.rotationPreview.angle : node.rotation;
-  if (node.flipX || node.flipY) {
-    canvas.translate(node.flipX ? node.width : 0, node.flipY ? node.height : 0);
-    canvas.scale(node.flipX ? -1 : 1, node.flipY ? -1 : 1);
+function applyNodeTransforms(_r2, canvas, node2, nodeId, overlays) {
+  const rotation = overlays.rotationPreview?.nodeId === nodeId ? overlays.rotationPreview.angle : node2.rotation;
+  if (node2.flipX || node2.flipY) {
+    canvas.translate(node2.flipX ? node2.width : 0, node2.flipY ? node2.height : 0);
+    canvas.scale(node2.flipX ? -1 : 1, node2.flipY ? -1 : 1);
   }
   if (rotation !== 0) {
-    if (node.type === "LINE") canvas.rotate(rotation, 0, 0);
-    else canvas.rotate(rotation, node.width / 2, node.height / 2);
+    if (node2.type === "LINE") canvas.rotate(rotation, 0, 0);
+    else canvas.rotate(rotation, node2.width / 2, node2.height / 2);
   }
 }
-function renderNodeContent(r4, canvas, graph, node, nodeId, overlays) {
-  if (node.type === "SECTION") {
-    r4.renderSection(canvas, node, graph);
-  } else if (node.type === "COMPONENT_SET") {
-    r4.renderComponentSet(canvas, node, graph);
-  } else if (node.type === "BOOLEAN_OPERATION") {
-    renderBooleanOperation(r4, canvas, node, graph);
+function renderNodeContent(r4, canvas, graph, node2, nodeId, overlays) {
+  if (node2.type === "SECTION") {
+    r4.renderSection(canvas, node2, graph);
+  } else if (node2.type === "COMPONENT_SET") {
+    r4.renderComponentSet(canvas, node2, graph);
+  } else if (node2.type === "BOOLEAN_OPERATION") {
+    renderBooleanOperation(r4, canvas, node2, graph);
   } else {
-    r4.renderShape(canvas, node, graph);
+    r4.renderShape(canvas, node2, graph);
   }
   if (overlays.editingTextId === nodeId && overlays.textEditor?.state?.paragraph) {
-    r4.drawTextEditOverlay(canvas, node, overlays.textEditor);
+    r4.drawTextEditOverlay(canvas, node2, overlays.textEditor);
   }
   if (overlays.dropTargetId === nodeId) {
     r4.auxStroke.setStrokeWidth(DROP_HIGHLIGHT_STROKE / r4.zoom);
     r4.auxStroke.setColor(r4.selColor(DROP_HIGHLIGHT_ALPHA));
-    canvas.drawRect(r4.ck.LTRBRect(0, 0, node.width, node.height), r4.auxStroke);
+    canvas.drawRect(r4.ck.LTRBRect(0, 0, node2.width, node2.height), r4.auxStroke);
   }
 }
-function renderMaskNodeContent(r4, canvas, graph, node, nodeId, overlays) {
+function renderMaskNodeContent(r4, canvas, graph, node2, nodeId, overlays) {
   canvas.save();
-  canvas.translate(node.x, node.y);
-  applyNodeTransforms(r4, canvas, node, nodeId, overlays);
-  renderNodeContent(r4, canvas, graph, node, nodeId, {});
+  canvas.translate(node2.x, node2.y);
+  applyNodeTransforms(r4, canvas, node2, nodeId, overlays);
+  renderNodeContent(r4, canvas, graph, node2, nodeId, {});
   canvas.restore();
 }
 function renderChildIds(r4, canvas, graph, childIds, overlays, absX, absY, hasTransformedAncestor2) {
@@ -62980,41 +62981,41 @@ function renderChildIds(r4, canvas, graph, childIds, overlays, absX, absY, hasTr
     }
   );
 }
-function renderChildren(r4, canvas, graph, node, overlays, absX, absY, hasTransformedAncestor2) {
-  if (node.type === "BOOLEAN_OPERATION") return;
-  const isClippableContainer = node.type === "FRAME" || node.type === "COMPONENT" || node.type === "INSTANCE";
-  if (isClippableContainer && node.clipsContent && node.childIds.length > 0) {
+function renderChildren(r4, canvas, graph, node2, overlays, absX, absY, hasTransformedAncestor2) {
+  if (node2.type === "BOOLEAN_OPERATION") return;
+  const isClippableContainer = node2.type === "FRAME" || node2.type === "COMPONENT" || node2.type === "INSTANCE";
+  if (isClippableContainer && node2.clipsContent && node2.childIds.length > 0) {
     canvas.save();
-    if (nodeHasSmoothCorners(node)) {
-      const clipPath = makeSmoothRRectPath(r4, node);
+    if (nodeHasSmoothCorners(node2)) {
+      const clipPath = makeSmoothRRectPath(r4, node2);
       canvas.clipPath(clipPath, r4.ck.ClipOp.Intersect, true);
       clipPath.delete();
-    } else if (nodeHasRadius(node)) {
-      canvas.clipRRect(r4.makeRRect(node), r4.ck.ClipOp.Intersect, true);
+    } else if (nodeHasRadius(node2)) {
+      canvas.clipRRect(r4.makeRRect(node2), r4.ck.ClipOp.Intersect, true);
     } else {
-      canvas.clipRect(r4.ck.LTRBRect(0, 0, node.width, node.height), r4.ck.ClipOp.Intersect, true);
+      canvas.clipRect(r4.ck.LTRBRect(0, 0, node2.width, node2.height), r4.ck.ClipOp.Intersect, true);
     }
-    renderChildIds(r4, canvas, graph, node.childIds, overlays, absX, absY, hasTransformedAncestor2);
+    renderChildIds(r4, canvas, graph, node2.childIds, overlays, absX, absY, hasTransformedAncestor2);
     canvas.restore();
   } else {
-    renderChildIds(r4, canvas, graph, node.childIds, overlays, absX, absY, hasTransformedAncestor2);
+    renderChildIds(r4, canvas, graph, node2.childIds, overlays, absX, absY, hasTransformedAncestor2);
   }
 }
 function renderNodeSelf(r4, canvas, graph, nodeId, overlays = {}) {
-  const node = graph.getNode(nodeId);
-  if (!node || node.internalOnly || !node.visible || node.isMask || fontManager.isNodeBlocked(nodeId)) {
+  const node2 = graph.getNode(nodeId);
+  if (!node2 || node2.internalOnly || !node2.visible || node2.isMask || fontManager.isNodeBlocked(nodeId)) {
     return;
   }
   canvas.save();
-  canvas.translate(node.x, node.y);
-  applyNodeTransforms(r4, canvas, node, nodeId, overlays);
-  renderNodeContent(r4, canvas, graph, node, nodeId, overlays);
-  drawLayoutGrids(r4, canvas, node);
+  canvas.translate(node2.x, node2.y);
+  applyNodeTransforms(r4, canvas, node2, nodeId, overlays);
+  renderNodeContent(r4, canvas, graph, node2, nodeId, overlays);
+  drawLayoutGrids(r4, canvas, node2);
   canvas.restore();
 }
-function viewportLayerBounds(r4, graph, node, padding) {
+function viewportLayerBounds(r4, graph, node2, padding) {
   if (!r4.boundEffectLayersToViewport) return null;
-  const inverse = matrix_default.invert(getWorldMatrix(node, graph));
+  const inverse = matrix_default.invert(getWorldMatrix(node2, graph));
   if (!inverse) return null;
   const viewport = r4.worldViewport;
   const points = matrix_default.mapPoints(inverse, [
@@ -63036,39 +63037,39 @@ function viewportLayerBounds(r4, graph, node, padding) {
     Math.max(...ys) + padding
   );
 }
-function nodeIsolationLayerBounds(r4, graph, node, nodeId, absX, absY) {
-  const viewportBounds = viewportLayerBounds(r4, graph, node, 0);
+function nodeIsolationLayerBounds(r4, graph, node2, nodeId, absX, absY) {
+  const viewportBounds = viewportLayerBounds(r4, graph, node2, 0);
   if (viewportBounds) return viewportBounds;
   const bounds = computeDescendantVisualBounds(
     [nodeId],
     (id) => graph.getNode(id) ?? void 0,
     (id) => graph.getAbsolutePosition(id)
   );
-  return bounds ? r4.ck.LTRBRect(bounds.minX - absX, bounds.minY - absY, bounds.maxX - absX, bounds.maxY - absY) : r4.ck.LTRBRect(0, 0, node.width, node.height);
+  return bounds ? r4.ck.LTRBRect(bounds.minX - absX, bounds.minY - absY, bounds.maxX - absX, bounds.maxY - absY) : r4.ck.LTRBRect(0, 0, node2.width, node2.height);
 }
 function renderNode(r4, canvas, graph, nodeId, overlays, parentAbsX = 0, parentAbsY = 0, hasTransformedAncestor2 = false) {
-  const node = graph.getNode(nodeId);
-  if (!node || node.internalOnly || !node.visible || node.isMask || fontManager.isNodeBlocked(nodeId)) {
+  const node2 = graph.getNode(nodeId);
+  if (!node2 || node2.internalOnly || !node2.visible || node2.isMask || fontManager.isNodeBlocked(nodeId)) {
     return;
   }
   if (overlays.nodeEditState?.nodeId === nodeId) return;
   r4._nodeCount++;
-  const absX = parentAbsX + node.x;
-  const absY = parentAbsY + node.y;
-  if (isCulled(r4, graph, node, absX, absY, hasTransformedAncestor2)) {
+  const absX = parentAbsX + node2.x;
+  const absY = parentAbsY + node2.y;
+  if (isCulled(r4, graph, node2, absX, absY, hasTransformedAncestor2)) {
     r4._culledCount++;
     return;
   }
   canvas.save();
-  canvas.translate(node.x, node.y);
-  const needsNodeLayer = node.opacity < 1 || needsIsolatedBlendLayer(node.blendMode);
+  canvas.translate(node2.x, node2.y);
+  const needsNodeLayer = node2.opacity < 1 || needsIsolatedBlendLayer(node2.blendMode);
   if (needsNodeLayer) {
-    const layerBounds = nodeIsolationLayerBounds(r4, graph, node, nodeId, absX, absY);
-    r4.opacityPaint.setAlphaf(node.opacity);
-    r4.opacityPaint.setBlendMode(figmaBlendModeToSkia(r4.ck, node.blendMode));
+    const layerBounds = nodeIsolationLayerBounds(r4, graph, node2, nodeId, absX, absY);
+    r4.opacityPaint.setAlphaf(node2.opacity);
+    r4.opacityPaint.setBlendMode(figmaBlendModeToSkia(r4.ck, node2.blendMode));
     canvas.saveLayer(r4.opacityPaint, layerBounds);
   }
-  const layerBlur = node.effects.find(
+  const layerBlur = node2.effects.find(
     (e6) => e6.visible && (e6.type === "LAYER_BLUR" || e6.type === "FOREGROUND_BLUR")
   );
   if (layerBlur) {
@@ -63079,26 +63080,26 @@ function renderNode(r4, canvas, graph, nodeId, overlays, parentAbsX = 0, parentA
     const blurPadding = layerBlur.radius * 2;
     canvas.saveLayer(
       r4.effectLayerPaint,
-      viewportLayerBounds(r4, graph, node, blurPadding) ?? r4.ck.LTRBRect(
+      viewportLayerBounds(r4, graph, node2, blurPadding) ?? r4.ck.LTRBRect(
         -blurPadding,
         -blurPadding,
-        node.width + blurPadding,
-        node.height + blurPadding
+        node2.width + blurPadding,
+        node2.height + blurPadding
       )
     );
   }
-  applyNodeTransforms(r4, canvas, node, nodeId, overlays);
-  renderNodeContent(r4, canvas, graph, node, nodeId, overlays);
-  drawLayoutGrids(r4, canvas, node);
+  applyNodeTransforms(r4, canvas, node2, nodeId, overlays);
+  renderNodeContent(r4, canvas, graph, node2, nodeId, overlays);
+  drawLayoutGrids(r4, canvas, node2);
   renderChildren(
     r4,
     canvas,
     graph,
-    node,
+    node2,
     overlays,
     absX,
     absY,
-    hasTransformedAncestor2 || hasNodeTransform(node)
+    hasTransformedAncestor2 || hasNodeTransform(node2)
   );
   if (layerBlur) {
     canvas.restore();
@@ -63113,37 +63114,37 @@ function renderNode(r4, canvas, graph, nodeId, overlays, parentAbsX = 0, parentA
   }
   canvas.restore();
 }
-function makeNodeRRect(r4, node, radius) {
-  const rect = r4.ck.LTRBRect(0, 0, node.width, node.height);
+function makeNodeRRect(r4, node2, radius) {
+  const rect = r4.ck.LTRBRect(0, 0, node2.width, node2.height);
   return r4.ck.RRectXY(rect, radius, radius);
 }
-function forVisibleStrokes(r4, node, graph, draw) {
-  for (let index = 0; index < node.strokes.length; index++) {
-    const stroke = node.strokes[index];
+function forVisibleStrokes(r4, node2, graph, draw) {
+  for (let index = 0; index < node2.strokes.length; index++) {
+    const stroke = node2.strokes[index];
     if (!stroke.visible) continue;
-    draw(stroke, r4.resolveStrokeColor(stroke, index, node, graph));
+    draw(stroke, r4.resolveStrokeColor(stroke, index, node2, graph));
   }
 }
-function renderSection(r4, canvas, node, graph) {
-  const rrect = makeNodeRRect(r4, node, SECTION_CORNER_RADIUS);
-  drawVisibleFills(r4, node, graph, () => canvas.drawRRect(rrect, r4.fillPaint));
-  forVisibleStrokes(r4, node, graph, (stroke, color) => {
-    configureStrokePaint(r4, node, stroke, color);
-    if (node.independentStrokeWeights) r4.drawIndividualSideStrokes(canvas, node, stroke.align);
-    else r4.drawRRectStrokeWithAlign(canvas, rrect, node, stroke);
+function renderSection(r4, canvas, node2, graph) {
+  const rrect = makeNodeRRect(r4, node2, SECTION_CORNER_RADIUS);
+  drawVisibleFills(r4, node2, graph, () => canvas.drawRRect(rrect, r4.fillPaint));
+  forVisibleStrokes(r4, node2, graph, (stroke, color) => {
+    configureStrokePaint(r4, node2, stroke, color);
+    if (node2.independentStrokeWeights) r4.drawIndividualSideStrokes(canvas, node2, stroke.align);
+    else r4.drawRRectStrokeWithAlign(canvas, rrect, node2, stroke);
   });
 }
-function renderComponentSet(r4, canvas, node, graph) {
-  const rrect = makeNodeRRect(r4, node, 5);
-  drawVisibleFills(r4, node, graph, () => canvas.drawRRect(rrect, r4.fillPaint));
-  const visibleStrokes = node.strokes.filter((stroke) => stroke.visible);
+function renderComponentSet(r4, canvas, node2, graph) {
+  const rrect = makeNodeRRect(r4, node2, 5);
+  drawVisibleFills(r4, node2, graph, () => canvas.drawRRect(rrect, r4.fillPaint));
+  const visibleStrokes = node2.strokes.filter((stroke) => stroke.visible);
   if (visibleStrokes.length > 0) {
-    forVisibleStrokes(r4, node, graph, (stroke, color) => {
+    forVisibleStrokes(r4, node2, graph, (stroke, color) => {
       const dashPhase = stroke.dashPattern?.[1] ?? 0;
       if (stroke.dashPattern && stroke.dashPattern.length > 0) {
-        drawDashedRRectWithSolidCorners(r4, canvas, node, stroke, color, 5, dashPhase);
+        drawDashedRRectWithSolidCorners(r4, canvas, node2, stroke, color, 5, dashPhase);
       } else {
-        drawStyledRRectStroke(r4, canvas, rrect, node, stroke, color, dashPhase);
+        drawStyledRRectStroke(r4, canvas, rrect, node2, stroke, color, dashPhase);
       }
     });
     return;
@@ -63156,23 +63157,23 @@ function renderComponentSet(r4, canvas, node, graph) {
   canvas.drawRRect(rrect, r4.auxStroke);
   r4.auxStroke.setPathEffect(null);
 }
-function canRasterCacheEffects(node) {
-  const visibleEffects = node.effects.filter((effect) => effect.visible);
+function canRasterCacheEffects(node2) {
+  const visibleEffects = node2.effects.filter((effect) => effect.visible);
   return visibleEffects.length > 0 && visibleEffects.every(
     (effect) => effect.type === "DROP_SHADOW" || effect.type === "INNER_SHADOW"
   );
 }
-function renderShape(r4, canvas, node, graph) {
-  const hasEffects = node.effects.some((effect) => effect.visible);
+function renderShape(r4, canvas, node2, graph) {
+  const hasEffects = node2.effects.some((effect) => effect.visible);
   if (!hasEffects) {
-    r4.renderShapeUncached(canvas, node, graph);
+    r4.renderShapeUncached(canvas, node2, graph);
     return;
   }
-  const canRasterCache = r4.renderingSceneBacking && canRasterCacheEffects(node);
+  const canRasterCache = r4.renderingSceneBacking && canRasterCacheEffects(node2);
   const targetScale = effectRasterScale(r4.zoom * r4.dpr);
-  const cachedRaster = canRasterCache ? touchEffectRaster(r4.effectRasterCache, node.id) : null;
+  const cachedRaster = canRasterCache ? touchEffectRaster(r4.effectRasterCache, node2.id) : null;
   if (cachedRaster && (cachedRaster.fontGeneration !== r4.fontGeneration || !effectRasterScaleMatches(cachedRaster.scale, targetScale))) {
-    deleteEffectRaster(r4.effectRasterCache, node.id);
+    deleteEffectRaster(r4.effectRasterCache, node2.id);
   } else if (cachedRaster) {
     canvas.drawImageRectOptions(
       cachedRaster.image,
@@ -63190,11 +63191,11 @@ function renderShape(r4, canvas, node, graph) {
     return;
   }
   const margin = Math.max(
-    r4.effectOverflow(node),
-    arrowCapOverflow(node.strokes, node.strokeCap, node.vectorNetwork)
+    r4.effectOverflow(node2),
+    arrowCapOverflow(node2.strokes, node2.strokeCap, node2.vectorNetwork)
   );
-  const width = node.width + margin * 2;
-  const height = node.height + margin * 2;
+  const width = node2.width + margin * 2;
+  const height = node2.height + margin * 2;
   const scale = targetScale;
   if (canRasterCache && canCacheEffectRaster(width, height, scale)) {
     const surface = r4.surface.makeSurface({
@@ -63209,10 +63210,10 @@ function renderShape(r4, canvas, node, graph) {
       rasterCanvas.clear(r4.ck.TRANSPARENT);
       rasterCanvas.scale(scale, scale);
       rasterCanvas.translate(margin, margin);
-      r4.renderShapeUncached(rasterCanvas, node, graph);
+      r4.renderShapeUncached(rasterCanvas, node2, graph);
       surface.flush();
       const image = surface.makeImageSnapshot();
-      installEffectRaster(r4.effectRasterCache, node.id, {
+      installEffectRaster(r4.effectRasterCache, node2.id, {
         image,
         left: -margin,
         top: -margin,
@@ -63221,12 +63222,12 @@ function renderShape(r4, canvas, node, graph) {
         scale,
         pixels: image.width() * image.height(),
         fontGeneration: r4.fontGeneration,
-        dependencyIds: node.childIds.slice(0, 1)
+        dependencyIds: node2.childIds.slice(0, 1)
       });
       canvas.drawImageRectOptions(
         image,
         r4.ck.LTRBRect(0, 0, image.width(), image.height()),
-        r4.ck.LTRBRect(-margin, -margin, node.width + margin, node.height + margin),
+        r4.ck.LTRBRect(-margin, -margin, node2.width + margin, node2.height + margin),
         r4.ck.FilterMode.Linear,
         r4.ck.MipmapMode.None,
         null
@@ -63236,36 +63237,36 @@ function renderShape(r4, canvas, node, graph) {
       surface.delete();
     }
   }
-  const cached = r4.nodePictureCache.get(node.id);
-  const cachedGeneration = r4.nodePictureCacheGenerations.get(node.id);
+  const cached = r4.nodePictureCache.get(node2.id);
+  const cachedGeneration = r4.nodePictureCacheGenerations.get(node2.id);
   if (cached && cachedGeneration === r4.fontGeneration) {
     canvas.drawPicture(cached);
     return;
   }
   if (cached) cached.delete();
-  r4.nodePictureCache.delete(node.id);
-  r4.nodePictureCacheGenerations.delete(node.id);
-  r4.nodePictureCacheDependencies.delete(node.id);
-  const bounds = r4.ck.LTRBRect(-margin, -margin, node.width + margin, node.height + margin);
+  r4.nodePictureCache.delete(node2.id);
+  r4.nodePictureCacheGenerations.delete(node2.id);
+  r4.nodePictureCacheDependencies.delete(node2.id);
+  const bounds = r4.ck.LTRBRect(-margin, -margin, node2.width + margin, node2.height + margin);
   const recorder = new r4.ck.PictureRecorder();
   try {
     const recCanvas = recorder.beginRecording(bounds);
-    r4.renderShapeUncached(recCanvas, node, graph);
+    r4.renderShapeUncached(recCanvas, node2, graph);
     const picture = recorder.finishRecordingAsPicture();
-    r4.nodePictureCache.set(node.id, picture);
-    r4.nodePictureCacheGenerations.set(node.id, r4.fontGeneration);
-    const shadowChild = getShadowShapeChild(node, graph);
-    r4.nodePictureCacheDependencies.set(node.id, shadowChild ? [shadowChild.id] : []);
+    r4.nodePictureCache.set(node2.id, picture);
+    r4.nodePictureCacheGenerations.set(node2.id, r4.fontGeneration);
+    const shadowChild = getShadowShapeChild(node2, graph);
+    r4.nodePictureCacheDependencies.set(node2.id, shadowChild ? [shadowChild.id] : []);
     canvas.drawPicture(picture);
   } finally {
     recorder.delete();
   }
 }
-function getShadowShapeChild(node, graph) {
-  if (node.fills.some((f5) => f5.visible)) return null;
-  if (node.strokes.some((stroke) => stroke.visible)) return null;
-  if (node.childIds.length === 0) return null;
-  const child = graph.getNode(node.childIds[0]);
+function getShadowShapeChild(node2, graph) {
+  if (node2.fills.some((f5) => f5.visible)) return null;
+  if (node2.strokes.some((stroke) => stroke.visible)) return null;
+  if (node2.childIds.length === 0) return null;
+  const child = graph.getNode(node2.childIds[0]);
   if (!child?.visible) return null;
   return child;
 }
@@ -63275,14 +63276,14 @@ function drawVectorStrokeGeometry(r4, canvas, sg, sc, opacity) {
   r4.fillPaint.setShader(null);
   for (const p6 of sg) canvas.drawPath(p6, r4.fillPaint);
 }
-function vectorStrokePaths(r4, node) {
-  if (!node.vectorNetwork) return null;
-  const cached = r4.vectorStrokePathCache.get(node.id);
+function vectorStrokePaths(r4, node2) {
+  if (!node2.vectorNetwork) return null;
+  const cached = r4.vectorStrokePathCache.get(node2.id);
   if (cached) return cached;
   const paths = [];
-  for (const segment of node.vectorNetwork.segments) {
-    const start2 = node.vectorNetwork.vertices[segment.start];
-    const end = node.vectorNetwork.vertices[segment.end];
+  for (const segment of node2.vectorNetwork.segments) {
+    const start2 = node2.vectorNetwork.vertices[segment.start];
+    const end = node2.vectorNetwork.vertices[segment.end];
     const path = new r4.ck.PathBuilder();
     path.moveTo(start2.x, start2.y);
     const isStraight = Math.abs(segment.tangentStart.x) < 1e-3 && Math.abs(segment.tangentStart.y) < 1e-3 && Math.abs(segment.tangentEnd.x) < 1e-3 && Math.abs(segment.tangentEnd.y) < 1e-3;
@@ -63301,7 +63302,7 @@ function vectorStrokePaths(r4, node) {
     paths.push(path.detachAndDelete());
   }
   if (paths.length === 0) return null;
-  r4.vectorStrokePathCache.set(node.id, paths);
+  r4.vectorStrokePathCache.set(node2.id, paths);
   return paths;
 }
 function drawVectorPathStrokes(r4, canvas, vectorPaths, stroke, sc, miterLimit, outlineCacheKey) {
@@ -63341,40 +63342,40 @@ function drawVectorPathStrokes(r4, canvas, vectorPaths, stroke, sc, miterLimit, 
   }
   for (const outline of outlines) canvas.drawPath(outline, r4.fillPaint);
 }
-function drawRegularStroke(r4, canvas, node, rect, hasRadius2, stroke, sc) {
-  configureStrokePaint(r4, node, stroke, sc);
+function drawRegularStroke(r4, canvas, node2, rect, hasRadius2, stroke, sc) {
+  configureStrokePaint(r4, node2, stroke, sc);
   if (stroke.dashPattern && stroke.dashPattern.length > 0) {
     r4.strokePaint.setPathEffect(r4.ck.PathEffect.MakeDash(stroke.dashPattern, 0));
   } else {
     r4.strokePaint.setPathEffect(null);
   }
-  if (node.independentStrokeWeights && r4.isRectangularType(node.type)) {
-    r4.drawIndividualSideStrokes(canvas, node, stroke.align);
+  if (node2.independentStrokeWeights && r4.isRectangularType(node2.type)) {
+    r4.drawIndividualSideStrokes(canvas, node2, stroke.align);
   } else {
-    r4.drawStrokeWithAlign(canvas, node, rect, hasRadius2, stroke.align);
+    r4.drawStrokeWithAlign(canvas, node2, rect, hasRadius2, stroke.align);
   }
 }
-function drawNodeStroke2(r4, canvas, node, rect, hasRadius2, stroke, sc, sg, vectorPaths, vectorStroke) {
-  const shouldStrokeVectorCenterline = vectorStroke && stroke.align === "CENTER" && node.cornerRadius === 0 && node.type === "VECTOR" && !node.fills.some((fill2) => fill2.visible);
+function drawNodeStroke2(r4, canvas, node2, rect, hasRadius2, stroke, sc, sg, vectorPaths, vectorStroke) {
+  const shouldStrokeVectorCenterline = vectorStroke && stroke.align === "CENTER" && node2.cornerRadius === 0 && node2.type === "VECTOR" && !node2.fills.some((fill2) => fill2.visible);
   if (shouldStrokeVectorCenterline) {
-    const outlineKey = `${node.id}|${stroke.weight}|${stroke.cap ?? node.strokeCap}|${stroke.join ?? node.strokeJoin}|${node.strokeMiterLimit}`;
-    drawVectorPathStrokes(r4, canvas, vectorStroke, stroke, sc, node.strokeMiterLimit, outlineKey);
+    const outlineKey = `${node2.id}|${stroke.weight}|${stroke.cap ?? node2.strokeCap}|${stroke.join ?? node2.strokeJoin}|${node2.strokeMiterLimit}`;
+    drawVectorPathStrokes(r4, canvas, vectorStroke, stroke, sc, node2.strokeMiterLimit, outlineKey);
     return;
   }
   if (!sg) {
     if (vectorPaths) {
-      drawVectorPathStrokes(r4, canvas, vectorPaths, stroke, sc, node.strokeMiterLimit);
-    } else drawRegularStroke(r4, canvas, node, rect, hasRadius2, stroke, sc);
+      drawVectorPathStrokes(r4, canvas, vectorPaths, stroke, sc, node2.strokeMiterLimit);
+    } else drawRegularStroke(r4, canvas, node2, rect, hasRadius2, stroke, sc);
     return;
   }
   if (stroke.align !== "INSIDE") {
-    if (node.type === "VECTOR" || node.type === "TEXT") {
+    if (node2.type === "VECTOR" || node2.type === "TEXT") {
       drawVectorStrokeGeometry(r4, canvas, sg, sc, stroke.opacity);
-    } else drawRegularStroke(r4, canvas, node, rect, hasRadius2, stroke, sc);
+    } else drawRegularStroke(r4, canvas, node2, rect, hasRadius2, stroke, sc);
     return;
   }
-  const clipPaths = node.type === "VECTOR" ? r4.getFillGeometry(node) : null;
-  if (node.type === "VECTOR" && !clipPaths) {
+  const clipPaths = node2.type === "VECTOR" ? r4.getFillGeometry(node2) : null;
+  if (node2.type === "VECTOR" && !clipPaths) {
     drawVectorStrokeGeometry(r4, canvas, sg, sc, stroke.opacity);
     return;
   }
@@ -63382,67 +63383,67 @@ function drawNodeStroke2(r4, canvas, node, rect, hasRadius2, stroke, sc, sg, vec
   if (clipPaths) {
     for (const path of clipPaths) canvas.clipPath(path, r4.ck.ClipOp.Intersect, true);
   } else {
-    r4.clipNodeShape(canvas, node, rect, hasRadius2);
+    r4.clipNodeShape(canvas, node2, rect, hasRadius2);
   }
   drawVectorStrokeGeometry(r4, canvas, sg, sc, stroke.opacity);
   canvas.restore();
 }
-function isPathTextWithStrokeGeometry(node) {
-  return node.type === "TEXT" && node.textPathData !== null && (node.derivedTextGlyphs?.length ?? 0) > 0 && node.strokeGeometry.length > 0;
+function isPathTextWithStrokeGeometry(node2) {
+  return node2.type === "TEXT" && node2.textPathData !== null && (node2.derivedTextGlyphs?.length ?? 0) > 0 && node2.strokeGeometry.length > 0;
 }
-function drawNodeArrowHeads(r4, canvas, node, stroke, color) {
-  const cap = stroke.cap ?? node.strokeCap;
+function drawNodeArrowHeads(r4, canvas, node2, stroke, color) {
+  const cap = stroke.cap ?? node2.strokeCap;
   let endpoints = [];
-  if (node.type === "LINE") {
-    endpoints = lineArrowEndpoints(node.width, node.height, cap);
-  } else if (node.type === "VECTOR" && node.vectorNetwork) {
-    endpoints = collectArrowEndpoints(node.vectorNetwork, cap);
+  if (node2.type === "LINE") {
+    endpoints = lineArrowEndpoints(node2.width, node2.height, cap);
+  } else if (node2.type === "VECTOR" && node2.vectorNetwork) {
+    endpoints = collectArrowEndpoints(node2.vectorNetwork, cap);
   }
   if (endpoints.length > 0) {
     drawArrowHeads(r4, canvas, endpoints, stroke.weight, color, stroke.opacity);
   }
 }
-function paintNodeStrokes(r4, canvas, node, graph, rect, hasRadius2, sg, vectorPaths, vectorStroke) {
-  forVisibleStrokes(r4, node, graph, (stroke, color) => {
-    if (stroke.dashPattern && stroke.dashPattern.length > 0 && node.type === "VECTOR" && node.vectorNetwork) {
-      const centerline = vectorNetworkToCenterlinePath(r4.ck, node.vectorNetwork);
-      drawVectorPathStrokes(r4, canvas, [centerline], stroke, color, node.strokeMiterLimit);
+function paintNodeStrokes(r4, canvas, node2, graph, rect, hasRadius2, sg, vectorPaths, vectorStroke) {
+  forVisibleStrokes(r4, node2, graph, (stroke, color) => {
+    if (stroke.dashPattern && stroke.dashPattern.length > 0 && node2.type === "VECTOR" && node2.vectorNetwork) {
+      const centerline = vectorNetworkToCenterlinePath(r4.ck, node2.vectorNetwork);
+      drawVectorPathStrokes(r4, canvas, [centerline], stroke, color, node2.strokeMiterLimit);
       centerline.delete();
-      drawNodeArrowHeads(r4, canvas, node, stroke, color);
+      drawNodeArrowHeads(r4, canvas, node2, stroke, color);
       return;
     }
-    drawNodeStroke2(r4, canvas, node, rect, hasRadius2, stroke, color, sg, vectorPaths, vectorStroke);
-    drawNodeArrowHeads(r4, canvas, node, stroke, color);
+    drawNodeStroke2(r4, canvas, node2, rect, hasRadius2, stroke, color, sg, vectorPaths, vectorStroke);
+    drawNodeArrowHeads(r4, canvas, node2, stroke, color);
   });
 }
-function renderShapeUncached(r4, canvas, node, graph) {
-  const rect = r4.ck.LTRBRect(0, 0, node.width, node.height);
-  const hasRadius2 = nodeHasRadius(node);
-  const shadowChild = getShadowShapeChild(node, graph);
-  r4.renderEffects(canvas, node, rect, hasRadius2, "behind", shadowChild);
-  const sg = node.strokeGeometry.length > 0 ? r4.getStrokeGeometry(node) : null;
-  const vectorPaths = node.type === "VECTOR" ? r4.getVectorPaths(node) : null;
-  const vectorStroke = node.type === "VECTOR" ? vectorStrokePaths(r4, node) : null;
-  const pathTextStrokeFirst = isPathTextWithStrokeGeometry(node);
-  const reflowedPathText = isReflowedPathText(node);
+function renderShapeUncached(r4, canvas, node2, graph) {
+  const rect = r4.ck.LTRBRect(0, 0, node2.width, node2.height);
+  const hasRadius2 = nodeHasRadius(node2);
+  const shadowChild = getShadowShapeChild(node2, graph);
+  r4.renderEffects(canvas, node2, rect, hasRadius2, "behind", shadowChild);
+  const sg = node2.strokeGeometry.length > 0 ? r4.getStrokeGeometry(node2) : null;
+  const vectorPaths = node2.type === "VECTOR" ? r4.getVectorPaths(node2) : null;
+  const vectorStroke = node2.type === "VECTOR" ? vectorStrokePaths(r4, node2) : null;
+  const pathTextStrokeFirst = isPathTextWithStrokeGeometry(node2);
+  const reflowedPathText = isReflowedPathText(node2);
   if (pathTextStrokeFirst) {
-    paintNodeStrokes(r4, canvas, node, graph, rect, hasRadius2, sg, vectorPaths, vectorStroke);
+    paintNodeStrokes(r4, canvas, node2, graph, rect, hasRadius2, sg, vectorPaths, vectorStroke);
   }
   if (reflowedPathText) {
     forVisibleStrokes(
       r4,
-      node,
+      node2,
       graph,
-      (stroke, color) => drawReflowedPathTextSilhouettes(r4, canvas, node, stroke, color)
+      (stroke, color) => drawReflowedPathTextSilhouettes(r4, canvas, node2, stroke, color)
     );
   }
-  if (!drawVectorMultiStyleFills(r4, canvas, node, graph)) {
-    drawVisibleFills(r4, node, graph, (fill2) => r4.drawNodeFill(canvas, node, rect, hasRadius2, fill2));
+  if (!drawVectorMultiStyleFills(r4, canvas, node2, graph)) {
+    drawVisibleFills(r4, node2, graph, (fill2) => r4.drawNodeFill(canvas, node2, rect, hasRadius2, fill2));
   }
   if (!pathTextStrokeFirst && !reflowedPathText) {
-    paintNodeStrokes(r4, canvas, node, graph, rect, hasRadius2, sg, vectorPaths, vectorStroke);
+    paintNodeStrokes(r4, canvas, node2, graph, rect, hasRadius2, sg, vectorPaths, vectorStroke);
   }
-  r4.renderEffects(canvas, node, rect, hasRadius2, "front", shadowChild);
+  r4.renderEffects(canvas, node2, rect, hasRadius2, "front", shadowChild);
 }
 function isGradientFill(fill2) {
   return fill2?.type.startsWith("GRADIENT") === true;
@@ -63450,14 +63451,14 @@ function isGradientFill(fill2) {
 function shouldRenderTextAsOutline(fill2) {
   return fill2 !== void 0 && fill2.type !== "SOLID";
 }
-function textVerticalOffset(node, contentHeight) {
-  const available = Math.max(0, node.height - contentHeight);
-  if (node.textAlignVertical === "CENTER") return available / 2;
-  if (node.textAlignVertical === "BOTTOM") return available;
+function textVerticalOffset(node2, contentHeight) {
+  const available = Math.max(0, node2.height - contentHeight);
+  if (node2.textAlignVertical === "CENTER") return available / 2;
+  if (node2.textAlignVertical === "BOTTOM") return available;
   return 0;
 }
-function drawOutlinedText(r4, canvas, node, paragraphY) {
-  const outlineNode = node.textCase === "ORIGINAL" ? node : { ...node, text: transformTextCase(node.text, node.textCase), styleRuns: [] };
+function drawOutlinedText(r4, canvas, node2, paragraphY) {
+  const outlineNode = node2.textCase === "ORIGINAL" ? node2 : { ...node2, text: transformTextCase(node2.text, node2.textCase), styleRuns: [] };
   const path = textNodeToOutlinePath(r4, outlineNode);
   if (!path) return false;
   canvas.save();
@@ -63467,22 +63468,22 @@ function drawOutlinedText(r4, canvas, node, paragraphY) {
   path.delete();
   return true;
 }
-function drawGradientText(r4, canvas, node) {
+function drawGradientText(r4, canvas, node2) {
   if (!r4.fontsLoaded || !r4.fontProvider) return false;
-  const paragraph = r4.buildParagraph(node, r4.ck.Color4f(0, 0, 0, 1), {
+  const paragraph = r4.buildParagraph(node2, r4.ck.Color4f(0, 0, 0, 1), {
     halfLeading: true
   });
   try {
-    const paragraphY = textVerticalOffset(node, paragraph.getHeight());
+    const paragraphY = textVerticalOffset(node2, paragraph.getHeight());
     r4.effectLayerPaint.setImageFilter(null);
     r4.effectLayerPaint.setColorFilter(null);
     r4.effectLayerPaint.setBlendMode(r4.ck.BlendMode.SrcOver);
-    const bounds = r4.ck.LTRBRect(0, paragraphY, node.width, paragraphY + node.height);
+    const bounds = r4.ck.LTRBRect(0, paragraphY, node2.width, paragraphY + node2.height);
     canvas.saveLayer(r4.effectLayerPaint, bounds);
     canvas.drawParagraph(paragraph, 0, paragraphY);
     r4.effectLayerPaint.setBlendMode(r4.ck.BlendMode.SrcIn);
     canvas.saveLayer(r4.effectLayerPaint, bounds);
-    canvas.drawRect(r4.ck.LTRBRect(0, 0, node.width, node.height), r4.fillPaint);
+    canvas.drawRect(r4.ck.LTRBRect(0, 0, node2.width, node2.height), r4.fillPaint);
     canvas.restore();
     canvas.restore();
     return true;
@@ -63493,31 +63494,31 @@ function drawGradientText(r4, canvas, node) {
     r4.effectLayerPaint.setBlendMode(r4.ck.BlendMode.SrcOver);
   }
 }
-function shouldClipTextToLayoutBox(node) {
-  return !hasOverflowPathTextPaint(node) && (node.textAutoResize === "NONE" || node.textAutoResize === "TRUNCATE");
+function shouldClipTextToLayoutBox(node2) {
+  return !hasOverflowPathTextPaint(node2) && (node2.textAutoResize === "NONE" || node2.textAutoResize === "TRUNCATE");
 }
-function drawSubstitutedPathText(r4, canvas, node, fontReadiness) {
-  return fontReadiness === "substituted" && node.textPathData !== null && drawDerivedText(r4, canvas, node);
+function drawSubstitutedPathText(r4, canvas, node2, fontReadiness) {
+  return fontReadiness === "substituted" && node2.textPathData !== null && drawDerivedText(r4, canvas, node2);
 }
-function renderText(r4, canvas, node, fill2) {
-  const text = node.text;
+function renderText(r4, canvas, node2, fill2) {
+  const text = node2.text;
   if (!text) return;
   canvas.save();
-  if (shouldClipTextToLayoutBox(node)) {
-    canvas.clipRect(r4.ck.LTRBRect(0, 0, node.width, node.height), r4.ck.ClipOp.Intersect, false);
+  if (shouldClipTextToLayoutBox(node2)) {
+    canvas.clipRect(r4.ck.LTRBRect(0, 0, node2.width, node2.height), r4.ck.ClipOp.Intersect, false);
   }
-  const fontReadiness = r4.nodeFontReadiness(node);
+  const fontReadiness = r4.nodeFontReadiness(node2);
   if (fontReadiness === "pending") {
     canvas.restore();
     return;
   }
-  if (drawSubstitutedPathText(r4, canvas, node, fontReadiness)) {
+  if (drawSubstitutedPathText(r4, canvas, node2, fontReadiness)) {
     canvas.restore();
     return;
   }
   if (fontReadiness === "exhausted") {
-    if (node.textPicture && r4.isTextPictureCurrent(node)) {
-      const pic = r4.ck.MakePicture(node.textPicture);
+    if (node2.textPicture && r4.isTextPictureCurrent(node2)) {
+      const pic = r4.ck.MakePicture(node2.textPicture);
       if (pic) {
         canvas.drawPicture(pic);
         pic.delete();
@@ -63525,7 +63526,7 @@ function renderText(r4, canvas, node, fill2) {
         return;
       }
     }
-    if (drawDerivedText(r4, canvas, node)) {
+    if (drawDerivedText(r4, canvas, node2)) {
       canvas.restore();
       return;
     }
@@ -63534,34 +63535,34 @@ function renderText(r4, canvas, node, fill2) {
   }
   if (shouldRenderTextAsOutline(fill2)) {
     let paragraphY = 0;
-    if (node.textAlignVertical !== "TOP") {
-      const paragraph = r4.buildParagraph(node, r4.ck.Color4f(0, 0, 0, 1), {
+    if (node2.textAlignVertical !== "TOP") {
+      const paragraph = r4.buildParagraph(node2, r4.ck.Color4f(0, 0, 0, 1), {
         halfLeading: true
       });
-      paragraphY = textVerticalOffset(node, paragraph.getHeight());
+      paragraphY = textVerticalOffset(node2, paragraph.getHeight());
       paragraph.delete();
     }
-    if (drawOutlinedText(r4, canvas, node, paragraphY)) {
+    if (drawOutlinedText(r4, canvas, node2, paragraphY)) {
       canvas.restore();
       return;
     }
   }
-  if (isGradientFill(fill2) && drawGradientText(r4, canvas, node)) {
+  if (isGradientFill(fill2) && drawGradientText(r4, canvas, node2)) {
     canvas.restore();
     return;
   }
   if (r4.fontsLoaded && r4.fontProvider) {
-    const paragraph = r4.buildParagraph(node, r4.fillPaint.getColor(), {
+    const paragraph = r4.buildParagraph(node2, r4.fillPaint.getColor(), {
       halfLeading: true
     });
-    const paragraphY = textVerticalOffset(node, paragraph.getHeight());
+    const paragraphY = textVerticalOffset(node2, paragraph.getHeight());
     canvas.drawParagraph(paragraph, 0, paragraphY);
     paragraph.delete();
   } else if (r4.textFont) {
-    const fontSize = node.fontSize || r4.DEFAULT_FONT_SIZE;
-    const paragraphY = textVerticalOffset(node, fontSize);
+    const fontSize = node2.fontSize || r4.DEFAULT_FONT_SIZE;
+    const paragraphY = textVerticalOffset(node2, fontSize);
     canvas.drawText(
-      transformTextCase(text, node.textCase),
+      transformTextCase(text, node2.textCase),
       0,
       paragraphY + fontSize,
       r4.fillPaint,
@@ -63600,9 +63601,9 @@ function resetEffectLayerPaint(r4) {
   r4.effectLayerPaint.setColorFilter(null);
   r4.effectLayerPaint.setBlendMode(r4.ck.BlendMode.SrcOver);
 }
-function rawNoiseEffects(node) {
-  const source = node.source;
-  const effects = source ? readEffectiveFigmaRawField(node, "effects") : void 0;
+function rawNoiseEffects(node2) {
+  const source = node2.source;
+  const effects = source ? readEffectiveFigmaRawField(node2, "effects") : void 0;
   if (!Array.isArray(effects)) return [];
   return effects.filter(
     (effect) => effect !== null && typeof effect === "object" && "type" in effect && effect.type === "NOISE" && ("visible" in effect ? effect.visible !== false : true)
@@ -63612,10 +63613,10 @@ function seededNoise(seed) {
   const x3 = Math.sin(seed * 12.9898) * 43758.5453;
   return x3 - Math.floor(x3);
 }
-function renderNoiseEffect(r4, canvas, node, rect, hasRadius2, effect) {
+function renderNoiseEffect(r4, canvas, node2, rect, hasRadius2, effect) {
   const density = Math.max(0, Math.min(1, effect.density ?? 0.3));
   const requestedStep = Math.max(2, Math.round((effect.noiseSize?.x ?? 0.5) * 8));
-  const boundedStep = Math.ceil(Math.sqrt(node.width * node.height / MAX_RAW_NOISE_CELLS));
+  const boundedStep = Math.ceil(Math.sqrt(node2.width * node2.height / MAX_RAW_NOISE_CELLS));
   const step = Math.max(requestedStep, boundedStep);
   const color = effect.color ?? BLACK;
   const opacity = effect.opacity ?? color.a;
@@ -63623,15 +63624,15 @@ function renderNoiseEffect(r4, canvas, node, rect, hasRadius2, effect) {
   try {
     paint.setAntiAlias(false);
     canvas.save();
-    r4.clipNodeShape(canvas, node, rect, hasRadius2);
-    for (let y3 = 0; y3 < node.height; y3 += step) {
-      for (let x3 = 0; x3 < node.width; x3 += step) {
+    r4.clipNodeShape(canvas, node2, rect, hasRadius2);
+    for (let y3 = 0; y3 < node2.height; y3 += step) {
+      for (let x3 = 0; x3 < node2.width; x3 += step) {
         const value = seededNoise((x3 + 1) * 73856093 + (y3 + 1) * 19349663);
         if (value > density) continue;
         const alpha = Math.max(0, Math.min(1, opacity * (0.35 + value * 0.65)));
         paint.setColor(r4.ck.Color4f(color.r, color.g, color.b, alpha));
         canvas.drawRect(
-          r4.ck.LTRBRect(x3, y3, Math.min(node.width, x3 + 1), Math.min(node.height, y3 + 1)),
+          r4.ck.LTRBRect(x3, y3, Math.min(node2.width, x3 + 1), Math.min(node2.height, y3 + 1)),
           paint
         );
       }
@@ -63669,17 +63670,17 @@ function localEffectOffset(effect, child) {
   if (child.flipY) y3 = -y3;
   return { x: x3, y: y3 };
 }
-function isPathShape(node) {
-  return node.type === "POLYGON" || node.type === "STAR" || node.type === "VECTOR";
+function isPathShape(node2) {
+  return node2.type === "POLYGON" || node2.type === "STAR" || node2.type === "VECTOR";
 }
-function effectLayerBounds(r4, node, effect, extraPadding = 0) {
+function effectLayerBounds(r4, node2, effect, extraPadding = 0) {
   const offset = effect.offset;
   const padding = Math.max(effect.radius * 2, Math.abs(effect.spread)) + extraPadding;
   return r4.ck.LTRBRect(
     Math.min(0, offset.x) - padding,
     Math.min(0, offset.y) - padding,
-    Math.max(node.width, node.width + offset.x) + padding,
-    Math.max(node.height, node.height + offset.y) + padding
+    Math.max(node2.width, node2.width + offset.x) + padding,
+    Math.max(node2.height, node2.height + offset.y) + padding
   );
 }
 function pathWithSpread(r4, path, spread) {
@@ -63694,8 +63695,8 @@ function pathWithSpread(r4, path, spread) {
   ring.delete();
   return result;
 }
-function drawPathShape(r4, canvas, node, hasRadius2, spread = 0) {
-  const path = makeNodeShapePath(r4, node, r4.ltrb(0, 0, node.width, node.height), hasRadius2);
+function drawPathShape(r4, canvas, node2, hasRadius2, spread = 0) {
+  const path = makeNodeShapePath(r4, node2, r4.ltrb(0, 0, node2.width, node2.height), hasRadius2);
   const spreadPath = pathWithSpread(r4, path, spread);
   path.delete();
   if (!spreadPath) return;
@@ -63718,7 +63719,7 @@ function drawShadowGeometryPath(r4, canvas, path, spread) {
     spreadPath.delete();
   }
 }
-function drawShadowCutout(r4, canvas, node, effect, shapeNode, shapeHasRadius, geometryShadow) {
+function drawShadowCutout(r4, canvas, node2, effect, shapeNode, shapeHasRadius, geometryShadow) {
   r4.auxFill.setMaskFilter(null);
   r4.auxFill.setColor(r4.ck.BLACK);
   r4.auxFill.setBlendMode(r4.ck.BlendMode.DstOut);
@@ -63726,7 +63727,7 @@ function drawShadowCutout(r4, canvas, node, effect, shapeNode, shapeHasRadius, g
   try {
     canvas.translate(-effect.offset.x, -effect.offset.y);
     if (geometryShadow) {
-      const fillGeometry = r4.getFillGeometry(node);
+      const fillGeometry = r4.getFillGeometry(node2);
       if (fillGeometry) for (const path of fillGeometry) canvas.drawPath(path, r4.auxFill);
     } else if (shapeNode.type === "ELLIPSE") {
       canvas.drawOval(r4.ltrb(0, 0, shapeNode.width, shapeNode.height), r4.auxFill);
@@ -63746,17 +63747,17 @@ function drawShadowCutout(r4, canvas, node, effect, shapeNode, shapeHasRadius, g
     r4.auxFill.setBlendMode(r4.ck.BlendMode.SrcOver);
   }
 }
-function drawShapeDropShadow(r4, canvas, node, effect, hasRadius2, shadowShapeChild) {
+function drawShapeDropShadow(r4, canvas, node2, effect, hasRadius2, shadowShapeChild) {
   const sp = effect.spread;
-  const shapeNode = shadowShapeChild ?? node;
+  const shapeNode = shadowShapeChild ?? node2;
   const shapeHasRadius = shadowShapeChild ? nodeHasRadius(shadowShapeChild) : hasRadius2;
-  const hasVisibleFill = node.fills.some((fill2) => fill2.visible);
+  const hasVisibleFill = node2.fills.some((fill2) => fill2.visible);
   let geometryShadow = null;
   if (!shadowShapeChild) {
     if (hasVisibleFill) {
-      geometryShadow = r4.getFillGeometry(node);
-    } else if (node.childIds.length === 0 && node.strokeGeometry.length > 0) {
-      geometryShadow = r4.getStrokeGeometry(node);
+      geometryShadow = r4.getFillGeometry(node2);
+    } else if (node2.childIds.length === 0 && node2.strokeGeometry.length > 0) {
+      geometryShadow = r4.getStrokeGeometry(node2);
     }
   }
   r4.auxFill.setColor(r4.color4f(effect.color.r, effect.color.g, effect.color.b, effect.color.a));
@@ -63790,7 +63791,7 @@ function drawShapeDropShadow(r4, canvas, node, effect, hasRadius2, shadowShapeCh
       canvas.drawRect(r4.ltrb(-sp, -sp, shapeNode.width + sp, shapeNode.height + sp), r4.auxFill);
     }
     if (shouldHideShadowBehindUnfilledNode) {
-      drawShadowCutout(r4, canvas, node, effect, shapeNode, shapeHasRadius, geometryShadow);
+      drawShadowCutout(r4, canvas, node2, effect, shapeNode, shapeHasRadius, geometryShadow);
     }
   } finally {
     if (savedLayer) canvas.restore();
@@ -63800,11 +63801,11 @@ function drawShapeDropShadow(r4, canvas, node, effect, hasRadius2, shadowShapeCh
     resetEffectLayerPaint(r4);
   }
 }
-function renderDropShadow(r4, canvas, node, effect, hasRadius2, shadowShapeChild) {
+function renderDropShadow(r4, canvas, node2, effect, hasRadius2, shadowShapeChild) {
   resetEffectLayerPaint(r4);
-  const shapeNode = shadowShapeChild ?? node;
+  const shapeNode = shadowShapeChild ?? node2;
   if (shapeNode.type !== "TEXT") {
-    drawShapeDropShadow(r4, canvas, node, effect, hasRadius2, shadowShapeChild);
+    drawShapeDropShadow(r4, canvas, node2, effect, hasRadius2, shadowShapeChild);
     resetEffectLayerPaint(r4);
     return;
   }
@@ -63885,9 +63886,9 @@ function drawTextInnerShadow(r4, canvas, _node, effect, shadowShapeChild) {
     resetEffectLayerPaint(r4);
   }
 }
-function drawShapeInnerShadow(r4, canvas, node, rect, effect, hasRadius2, shadowShapeChild) {
+function drawShapeInnerShadow(r4, canvas, node2, rect, effect, hasRadius2, shadowShapeChild) {
   const sp = effect.spread;
-  const shapeNode = shadowShapeChild ?? node;
+  const shapeNode = shadowShapeChild ?? node2;
   r4.auxFill.setColor(r4.ck.Color4f(effect.color.r, effect.color.g, effect.color.b, effect.color.a));
   r4.auxFill.setImageFilter(r4.getCachedDecalBlur(effect.radius / 2));
   r4.auxFill.setBlendMode(figmaBlendModeToSkia(r4.ck, effect.blendMode));
@@ -63983,26 +63984,26 @@ function drawShapeInnerShadow(r4, canvas, node, rect, effect, hasRadius2, shadow
     r4.auxFill.setBlendMode(r4.ck.BlendMode.SrcOver);
   }
 }
-function renderEffects(r4, canvas, node, rect, hasRadius2, pass, shadowShapeChild) {
+function renderEffects(r4, canvas, node2, rect, hasRadius2, pass, shadowShapeChild) {
   if (pass === "front") {
-    for (const effect of rawNoiseEffects(node)) {
-      renderNoiseEffect(r4, canvas, node, rect, hasRadius2, effect);
+    for (const effect of rawNoiseEffects(node2)) {
+      renderNoiseEffect(r4, canvas, node2, rect, hasRadius2, effect);
     }
   }
-  for (const effect of node.effects) {
+  for (const effect of node2.effects) {
     if (!effect.visible) continue;
     if (pass === "behind" && effect.type === "DROP_SHADOW") {
-      renderDropShadow(r4, canvas, node, effect, hasRadius2, shadowShapeChild);
+      renderDropShadow(r4, canvas, node2, effect, hasRadius2, shadowShapeChild);
     }
     if (pass === "behind" && effect.type === "BACKGROUND_BLUR") {
-      r4.applyClippedBlur(canvas, node, rect, hasRadius2, effect.radius / 2);
+      r4.applyClippedBlur(canvas, node2, rect, hasRadius2, effect.radius / 2);
     }
     if (pass === "front" && effect.type === "INNER_SHADOW") {
-      const shapeNode = shadowShapeChild ?? node;
+      const shapeNode = shadowShapeChild ?? node2;
       if (shapeNode.type === "TEXT") {
-        drawTextInnerShadow(r4, canvas, node, effect, shadowShapeChild);
+        drawTextInnerShadow(r4, canvas, node2, effect, shadowShapeChild);
       } else {
-        drawShapeInnerShadow(r4, canvas, node, rect, effect, hasRadius2, shadowShapeChild);
+        drawShapeInnerShadow(r4, canvas, node2, rect, effect, hasRadius2, shadowShapeChild);
       }
     }
   }
@@ -64052,8 +64053,8 @@ var init_methods = __esm({
       drawSelection(canvas, graph, selectedIds, overlays) {
         drawSelection(this, canvas, graph, selectedIds, overlays);
       },
-      drawNodeSelection(canvas, node, rotation, graph) {
-        drawNodeSelection(this, canvas, node, rotation, graph);
+      drawNodeSelection(canvas, node2, rotation, graph) {
+        drawNodeSelection(this, canvas, node2, rotation, graph);
       },
       drawSelectionLabels(canvas, graph, selectedIds, overlays) {
         drawSelectionLabels(this, canvas, graph, selectedIds, overlays);
@@ -64061,8 +64062,8 @@ var init_methods = __esm({
       drawParentFrameOutlines(canvas, graph, selectedIds) {
         drawParentFrameOutlines(this, canvas, graph, selectedIds);
       },
-      drawNodeOutline(canvas, node, rotation, graph) {
-        drawNodeOutline(this, canvas, node, rotation, graph);
+      drawNodeOutline(canvas, node2, rotation, graph) {
+        drawNodeOutline(this, canvas, node2, rotation, graph);
       },
       drawGroupBounds(canvas, nodes, graph) {
         drawGroupBounds(this, canvas, nodes, graph);
@@ -64089,8 +64090,8 @@ var init_methods = __esm({
       drawAutoLayoutHover(canvas, graph, hover) {
         drawAutoLayoutHover(this, canvas, graph, hover);
       },
-      drawTextEditOverlay(canvas, node, editor) {
-        drawTextEditOverlay(this, canvas, node, editor);
+      drawTextEditOverlay(canvas, node2, editor) {
+        drawTextEditOverlay(this, canvas, node2, editor);
       },
       drawNodeEditOverlay(canvas, graph, editState) {
         drawNodeEditOverlay(
@@ -64130,80 +64131,80 @@ var init_methods = __esm({
           hasTransformedAncestor2
         );
       },
-      renderSection(canvas, node, graph) {
-        renderSection(this, canvas, node, graph);
+      renderSection(canvas, node2, graph) {
+        renderSection(this, canvas, node2, graph);
       },
-      renderComponentSet(canvas, node, graph) {
-        renderComponentSet(this, canvas, node, graph);
+      renderComponentSet(canvas, node2, graph) {
+        renderComponentSet(this, canvas, node2, graph);
       },
-      renderShape(canvas, node, graph) {
-        renderShape(this, canvas, node, graph);
+      renderShape(canvas, node2, graph) {
+        renderShape(this, canvas, node2, graph);
       },
-      renderShapeUncached(canvas, node, graph) {
-        renderShapeUncached(this, canvas, node, graph);
+      renderShapeUncached(canvas, node2, graph) {
+        renderShapeUncached(this, canvas, node2, graph);
       },
-      renderEffects(canvas, node, rect, hasRadius2, pass, shadowShapeChild) {
-        renderEffects(this, canvas, node, rect, hasRadius2, pass, shadowShapeChild);
+      renderEffects(canvas, node2, rect, hasRadius2, pass, shadowShapeChild) {
+        renderEffects(this, canvas, node2, rect, hasRadius2, pass, shadowShapeChild);
       },
-      renderText(canvas, node, fill2) {
-        renderText(this, canvas, node, fill2);
+      renderText(canvas, node2, fill2) {
+        renderText(this, canvas, node2, fill2);
       },
-      drawNodeFill(canvas, node, rect, hasRadius2, fill2) {
-        drawNodeFill(this, canvas, node, rect, hasRadius2, fill2);
+      drawNodeFill(canvas, node2, rect, hasRadius2, fill2) {
+        drawNodeFill(this, canvas, node2, rect, hasRadius2, fill2);
       },
-      applyFill(fill2, node, graph, fillIndex = 0) {
-        return applyFill(this, fill2, node, graph, fillIndex);
+      applyFill(fill2, node2, graph, fillIndex = 0) {
+        return applyFill(this, fill2, node2, graph, fillIndex);
       },
-      applyGradientFill(fill2, node, graph) {
-        applyGradientFill(this, fill2, node, graph);
+      applyGradientFill(fill2, node2, graph) {
+        applyGradientFill(this, fill2, node2, graph);
       },
-      applyImageFill(fill2, node, graph) {
-        return applyImageFill(this, fill2, node, graph);
+      applyImageFill(fill2, node2, graph) {
+        return applyImageFill(this, fill2, node2, graph);
       },
-      drawArc(canvas, node, paint) {
-        drawArc(this, canvas, node, paint);
+      drawArc(canvas, node2, paint) {
+        drawArc(this, canvas, node2, paint);
       },
-      drawNodeStroke(canvas, node, rect, hasRadius2) {
-        drawNodeStroke(this, canvas, node, rect, hasRadius2);
+      drawNodeStroke(canvas, node2, rect, hasRadius2) {
+        drawNodeStroke(this, canvas, node2, rect, hasRadius2);
       },
-      drawStrokeWithAlign(canvas, node, rect, hasRadius2, align) {
-        drawStrokeWithAlign(this, canvas, node, rect, hasRadius2, align);
+      drawStrokeWithAlign(canvas, node2, rect, hasRadius2, align) {
+        drawStrokeWithAlign(this, canvas, node2, rect, hasRadius2, align);
       },
-      drawRRectStrokeWithAlign(canvas, rrect, node, stroke) {
-        drawRRectStrokeWithAlign(this, canvas, rrect, node, stroke);
+      drawRRectStrokeWithAlign(canvas, rrect, node2, stroke) {
+        drawRRectStrokeWithAlign(this, canvas, rrect, node2, stroke);
       },
-      drawIndividualSideStrokes(canvas, node, align) {
-        drawIndividualSideStrokes(this, canvas, node, align);
+      drawIndividualSideStrokes(canvas, node2, align) {
+        drawIndividualSideStrokes(this, canvas, node2, align);
       },
-      strokeNodeShape(canvas, node, paint) {
-        strokeNodeShape(this, canvas, node, paint);
+      strokeNodeShape(canvas, node2, paint) {
+        strokeNodeShape(this, canvas, node2, paint);
       },
-      makeNodeShapePath(node, rect, hasRadius2) {
-        return makeNodeShapePath(this, node, rect, hasRadius2);
+      makeNodeShapePath(node2, rect, hasRadius2) {
+        return makeNodeShapePath(this, node2, rect, hasRadius2);
       },
-      makePolygonPath(node) {
-        return makePolygonPath(this, node);
+      makePolygonPath(node2) {
+        return makePolygonPath(this, node2);
       },
-      makeRRect(node) {
-        return makeRRect(this, node);
+      makeRRect(node2) {
+        return makeRRect(this, node2);
       },
-      makeRRectWithSpread(node, spread) {
-        return makeRRectWithSpread(this, node, spread);
+      makeRRectWithSpread(node2, spread) {
+        return makeRRectWithSpread(this, node2, spread);
       },
-      makeRRectWithOffset(node, ox, oy, spread) {
-        return makeRRectWithOffset(this, node, ox, oy, spread);
+      makeRRectWithOffset(node2, ox, oy, spread) {
+        return makeRRectWithOffset(this, node2, ox, oy, spread);
       },
-      clipNodeShape(canvas, node, rect, hasRadius2) {
-        clipNodeShape(this, canvas, node, rect, hasRadius2);
+      clipNodeShape(canvas, node2, rect, hasRadius2) {
+        clipNodeShape(this, canvas, node2, rect, hasRadius2);
       },
-      getVectorPaths(node) {
-        return getVectorPaths(this, node);
+      getVectorPaths(node2) {
+        return getVectorPaths(this, node2);
       },
-      getFillGeometry(node) {
-        return getFillGeometry(this, node);
+      getFillGeometry(node2) {
+        return getFillGeometry(this, node2);
       },
-      getStrokeGeometry(node) {
-        return getStrokeGeometry(this, node);
+      getStrokeGeometry(node2) {
+        return getStrokeGeometry(this, node2);
       },
       getCachedDropShadow(dx, dy, sigma, color) {
         return getCachedDropShadow(this, dx, dy, sigma, color);
@@ -64217,8 +64218,8 @@ var init_methods = __esm({
       getCachedMaskBlur(sigma) {
         return getCachedMaskBlur(this, sigma);
       },
-      applyClippedBlur(canvas, node, rect, hasRadius2, sigma) {
-        applyClippedBlur(this, canvas, node, rect, hasRadius2, sigma);
+      applyClippedBlur(canvas, node2, rect, hasRadius2, sigma) {
+        applyClippedBlur(this, canvas, node2, rect, hasRadius2, sigma);
       }
     };
   }
@@ -64456,18 +64457,18 @@ var init_overlay_pass = __esm({
 });
 
 // packages/core/src/canvas/renderer/visual-bounds.ts
-function worldNodeVisualBounds(graph, node) {
-  const stroke = strokeOverflow(node.strokes, node.strokeCap, node.vectorNetwork);
-  const effects = effectOverflow(node.effects);
-  const points = matrix_default.mapPoints(getWorldMatrix(node, graph), [
+function worldNodeVisualBounds(graph, node2) {
+  const stroke = strokeOverflow(node2.strokes, node2.strokeCap, node2.vectorNetwork);
+  const effects = effectOverflow(node2.effects);
+  const points = matrix_default.mapPoints(getWorldMatrix(node2, graph), [
     -stroke - effects.left,
     -stroke - effects.top,
-    node.width + stroke + effects.right,
+    node2.width + stroke + effects.right,
     -stroke - effects.top,
-    node.width + stroke + effects.right,
-    node.height + stroke + effects.bottom,
+    node2.width + stroke + effects.right,
+    node2.height + stroke + effects.bottom,
     -stroke - effects.left,
-    node.height + stroke + effects.bottom
+    node2.height + stroke + effects.bottom
   ]);
   const xs = [points[0], points[2], points[4], points[6]];
   const ys = [points[1], points[3], points[5], points[7]];
@@ -64677,10 +64678,10 @@ function computeRetainedSubtreeBounds(graph, childId) {
   while (pending.length > 0) {
     const nodeId = pending.pop();
     if (!nodeId) continue;
-    const node = graph.getNode(nodeId);
-    if (!node?.visible) continue;
-    transformedBounds = unionVisualBounds(transformedBounds, worldNodeVisualBounds(graph, node));
-    pending.push(...node.childIds);
+    const node2 = graph.getNode(nodeId);
+    if (!node2?.visible) continue;
+    transformedBounds = unionVisualBounds(transformedBounds, worldNodeVisualBounds(graph, node2));
+    pending.push(...node2.childIds);
   }
   return unionVisualBounds(visualBounds, transformedBounds);
 }
@@ -65508,51 +65509,51 @@ var init_resolver2 = __esm({
 });
 
 // packages/core/src/canvas/text/index.ts
-function demandFace(r4, node, family, style) {
+function demandFace(r4, node2, family, style) {
   if (fontManager.isStyleLoaded(family, style)) return true;
-  const demand = fontFaceDemand(family, style, node.text);
-  r4.trackFontDemand?.(node, demand.key);
-  void fontResolver.demandForNode(demand, node.id, r4.onFontResolutionSettled);
+  const demand = fontFaceDemand(family, style, node2.text);
+  r4.trackFontDemand?.(node2, demand.key);
+  void fontResolver.demandForNode(demand, node2.id, r4.onFontResolutionSettled);
   return false;
 }
-function requiredNodeFaces(node) {
-  const baseFamily = node.fontFamily || DEFAULT_FONT_FAMILY;
+function requiredNodeFaces(node2) {
+  const baseFamily = node2.fontFamily || DEFAULT_FONT_FAMILY;
   const faces = /* @__PURE__ */ new Map();
   const add = (family, style) => faces.set(`${family}\0${style}`, { family, style });
-  add(baseFamily, weightToStyle(node.fontWeight, node.italic));
-  for (const run of node.styleRuns) {
+  add(baseFamily, weightToStyle(node2.fontWeight, node2.italic));
+  for (const run of node2.styleRuns) {
     const family = run.style.fontFamily ?? baseFamily;
-    const weight = run.style.fontWeight ?? node.fontWeight;
-    const italic = run.style.italic ?? node.italic;
+    const weight = run.style.fontWeight ?? node2.fontWeight;
+    const italic = run.style.italic ?? node2.italic;
     add(family, weightToStyle(weight, italic));
   }
   return Array.from(faces.values());
 }
-function languageForCharacter(node, sourceIndex) {
-  const run = node.styleRuns.find(
+function languageForCharacter(node2, sourceIndex) {
+  const run = node2.styleRuns.find(
     (item) => sourceIndex >= item.start && sourceIndex < item.start + item.length
   );
-  return run?.style.textLanguage ?? node.textLanguage;
+  return run?.style.textLanguage ?? node2.textLanguage;
 }
-function transformedSourceOffsets(node) {
+function transformedSourceOffsets(node2) {
   const offsets = [];
   let sourceIndex = 0;
-  for (const sourceCharacter of node.text) {
-    for (const _character of transformTextCase(sourceCharacter, node.textCase)) {
+  for (const sourceCharacter of node2.text) {
+    for (const _character of transformTextCase(sourceCharacter, node2.textCase)) {
       offsets.push(sourceIndex);
     }
     sourceIndex += sourceCharacter.length;
   }
   return offsets;
 }
-function requiredFacesReadiness(r4, node) {
+function requiredFacesReadiness(r4, node2) {
   let pending = false;
   let exhausted = false;
-  for (const { family, style } of requiredNodeFaces(node)) {
+  for (const { family, style } of requiredNodeFaces(node2)) {
     if (fontManager.isStyleLoaded(family, style)) continue;
-    const demand = fontFaceDemand(family, style, node.text);
+    const demand = fontFaceDemand(family, style, node2.text);
     const state = fontResolver.state(demand).state;
-    demandFace(r4, node, family, style);
+    demandFace(r4, node2, family, style);
     if (state === "failed" || state === "exhausted") {
       if (fontManager.isLoaded(family)) continue;
       exhausted = true;
@@ -65564,14 +65565,14 @@ function requiredFacesReadiness(r4, node) {
   if (exhausted && fontManager.isStyleLoaded(DEFAULT_FONT_FAMILY, "Regular")) return "substituted";
   return exhausted ? "exhausted" : "ready";
 }
-function demandRemoteCoverage(r4, node, characters) {
-  for (const { family, style } of requiredNodeFaces(node)) {
+function demandRemoteCoverage(r4, node2, characters) {
+  for (const { family, style } of requiredNodeFaces(node2)) {
     if (!fontManager.remoteStyleNeedsCoverage(family, style, characters)) continue;
     const demand = fontRemoteCoverageDemand(family, style, characters);
     const state = fontResolver.state(demand).state;
     if (state === "idle") {
-      r4.trackFontDemand?.(node, demand.key);
-      void fontResolver.demandForNode(demand, node.id, r4.onFontResolutionSettled);
+      r4.trackFontDemand?.(node2, demand.key);
+      void fontResolver.demandForNode(demand, node2.id, r4.onFontResolutionSettled);
       return true;
     }
     if (state === "loading") return true;
@@ -65579,19 +65580,19 @@ function demandRemoteCoverage(r4, node, characters) {
   }
   return false;
 }
-function observedGlyphReadiness(r4, node) {
-  const paragraph = buildParagraph(r4, node);
-  paragraph.layout(resolveParagraphLayoutWidth(node));
+function observedGlyphReadiness(r4, node2) {
+  const paragraph = buildParagraph(r4, node2);
+  paragraph.layout(resolveParagraphLayoutWidth(node2));
   const missingOccurrences = missingGlyphOccurrences(
-    transformTextCase(node.text, node.textCase),
+    transformTextCase(node2.text, node2.textCase),
     paragraph.getShapedLines(),
-    transformedSourceOffsets(node)
+    transformedSourceOffsets(node2)
   );
   paragraph.delete();
   if (missingOccurrences.length === 0) return "ready";
   const charactersByScript = /* @__PURE__ */ new Map();
   for (const { character, utf16Start } of missingOccurrences) {
-    const script = fontFallbackScriptForCharacter(character, languageForCharacter(node, utf16Start));
+    const script = fontFallbackScriptForCharacter(character, languageForCharacter(node2, utf16Start));
     if (!script) continue;
     const characters = charactersByScript.get(script) ?? [];
     characters.push(character);
@@ -65600,7 +65601,7 @@ function observedGlyphReadiness(r4, node) {
   let pending = false;
   let exhausted = charactersByScript.size === 0;
   for (const [script, characters] of charactersByScript) {
-    if (demandRemoteCoverage(r4, node, characters)) {
+    if (demandRemoteCoverage(r4, node2, characters)) {
       pending = true;
       continue;
     }
@@ -65617,8 +65618,8 @@ function observedGlyphReadiness(r4, node) {
     }
     pending = true;
     if (state === "idle") {
-      r4.trackFontDemand?.(node, demand.key);
-      void fontResolver.demandForNode(demand, node.id, r4.onFontResolutionSettled);
+      r4.trackFontDemand?.(node2, demand.key);
+      void fontResolver.demandForNode(demand, node2.id, r4.onFontResolutionSettled);
     }
   }
   if (pending) return "pending";
@@ -65627,35 +65628,35 @@ function observedGlyphReadiness(r4, node) {
 function canObserveGlyphCoverage(r4) {
   return r4.ck !== void 0 && r4.fontProvider != null && r4.fontsLoaded !== void 0;
 }
-function nodeFontReadiness(r4, node) {
-  if (node.type !== "TEXT") return "ready";
-  const faces = requiredFacesReadiness(r4, node);
+function nodeFontReadiness(r4, node2) {
+  if (node2.type !== "TEXT") return "ready";
+  const faces = requiredFacesReadiness(r4, node2);
   if (faces !== "ready") return faces;
-  if (!node.text || !canObserveGlyphCoverage(r4)) return "ready";
-  return observedGlyphReadiness(r4, node);
+  if (!node2.text || !canObserveGlyphCoverage(r4)) return "ready";
+  return observedGlyphReadiness(r4, node2);
 }
-function isNodeFontLoaded(r4, node) {
-  const readiness = nodeFontReadiness(r4, node);
+function isNodeFontLoaded(r4, node2) {
+  const readiness = nodeFontReadiness(r4, node2);
   return readiness === "ready" || readiness === "substituted";
 }
-function measureTextNode(r4, node, maxWidth) {
-  if (!r4.fontsLoaded || !r4.fontProvider || !isNodeFontLoaded(r4, node)) return null;
-  if (node.type !== "TEXT" || !node.text) return null;
-  const paragraph = buildParagraph(r4, node);
-  paragraph.layout(resolveParagraphLayoutWidth(node, maxWidth));
+function measureTextNode(r4, node2, maxWidth) {
+  if (!r4.fontsLoaded || !r4.fontProvider || !isNodeFontLoaded(r4, node2)) return null;
+  if (node2.type !== "TEXT" || !node2.text) return null;
+  const paragraph = buildParagraph(r4, node2);
+  paragraph.layout(resolveParagraphLayoutWidth(node2, maxWidth));
   const width = paragraph.getLongestLine();
   const height = paragraph.getHeight();
   paragraph.delete();
   return { width: Math.ceil(width), height: Math.ceil(height) };
 }
-function buildTextPicture(r4, node) {
-  if (!r4.fontsLoaded || !r4.fontProvider || !isNodeFontLoaded(r4, node)) return null;
-  if (node.type !== "TEXT" || !node.text) return null;
+function buildTextPicture(r4, node2) {
+  if (!r4.fontsLoaded || !r4.fontProvider || !isNodeFontLoaded(r4, node2)) return null;
+  if (node2.type !== "TEXT" || !node2.text) return null;
   const ck = r4.ck;
   const recorder = new ck.PictureRecorder();
-  const bounds = ck.LTRBRect(0, 0, node.width || 1e6, node.height || 1e6);
+  const bounds = ck.LTRBRect(0, 0, node2.width || 1e6, node2.height || 1e6);
   const recCanvas = recorder.beginRecording(bounds);
-  const paragraph = buildParagraph(r4, node);
+  const paragraph = buildParagraph(r4, node2);
   recCanvas.drawParagraph(paragraph, 0, 0);
   paragraph.delete();
   const picture = recorder.finishRecordingAsPicture();
@@ -65664,19 +65665,19 @@ function buildTextPicture(r4, node) {
   picture.delete();
   return bytes ?? null;
 }
-function resolveParagraphLayoutWidth(node, maxWidth) {
+function resolveParagraphLayoutWidth(node2, maxWidth) {
   if (maxWidth !== void 0) return maxWidth;
-  if (node.textAutoResize === "WIDTH_AND_HEIGHT") return 1e6;
-  return node.width || 1e6;
+  if (node2.textAutoResize === "WIDTH_AND_HEIGHT") return 1e6;
+  return node2.width || 1e6;
 }
-function buildTruncateOpts(node, baseFontSize) {
-  if (node.textTruncation !== "ENDING") return {};
+function buildTruncateOpts(node2, baseFontSize) {
+  if (node2.textTruncation !== "ENDING") return {};
   const opts = { ellipsis: "\u2026" };
-  if (node.maxLines != null && node.maxLines > 0) {
-    opts.maxLines = node.maxLines;
-  } else if (node.height > 0) {
-    const lineH = node.lineHeight || baseFontSize * 1.2;
-    opts.maxLines = Math.max(1, Math.floor(node.height / lineH));
+  if (node2.maxLines != null && node2.maxLines > 0) {
+    opts.maxLines = node2.maxLines;
+  } else if (node2.height > 0) {
+    const lineH = node2.lineHeight || baseFontSize * 1.2;
+    opts.maxLines = Math.max(1, Math.floor(node2.height / lineH));
   }
   return opts;
 }
@@ -65702,9 +65703,9 @@ function resolveParagraphFontFamilies(primary, style, arabicFallbacks, cjkFallba
   }
   return resolved;
 }
-function getParagraphTextAlign(ck, node) {
-  const direction = resolveNodeTextDirection(node);
-  switch (node.textAlignHorizontal) {
+function getParagraphTextAlign(ck, node2) {
+  const direction = resolveNodeTextDirection(node2);
+  switch (node2.textAlignHorizontal) {
     case "CENTER":
       return ck.TextAlign.Center;
     case "RIGHT":
@@ -65761,40 +65762,40 @@ function styleRunColor(ck, style, baseColor) {
   const color = resolveRGBAForPreview(visibleFill.color).color;
   return ck.Color4f(color.r, color.g, color.b, color.a * visibleFill.opacity);
 }
-function styleRunLanguage(style, node) {
-  return style.textLanguage ?? node.textLanguage ?? void 0;
+function styleRunLanguage(style, node2) {
+  return style.textLanguage ?? node2.textLanguage ?? void 0;
 }
-function pushStyleRun(r4, builder, node, run, baseColor, baseFontSize, fontFamilies, halfLeading) {
+function pushStyleRun(r4, builder, node2, run, baseColor, baseFontSize, fontFamilies, halfLeading) {
   const ck = r4.ck;
   const style = run.style;
-  const runLineHeight = style.lineHeight !== void 0 ? style.lineHeight : node.lineHeight;
+  const runLineHeight = style.lineHeight !== void 0 ? style.lineHeight : node2.lineHeight;
   const runFontSize = style.fontSize ?? baseFontSize;
   builder.pushStyle(
     new ck.TextStyle({
       color: styleRunColor(ck, style, baseColor),
       fontFamilies: fontFamilies(
-        style.fontFamily ?? (node.fontFamily || DEFAULT_FONT_FAMILY),
-        style.fontWeight ?? node.fontWeight,
-        style.italic ?? node.italic
+        style.fontFamily ?? (node2.fontFamily || DEFAULT_FONT_FAMILY),
+        style.fontWeight ?? node2.fontWeight,
+        style.italic ?? node2.italic
       ),
       fontSize: runFontSize,
-      locale: styleRunLanguage(style, node),
+      locale: styleRunLanguage(style, node2),
       fontStyle: {
-        weight: { value: style.fontWeight ?? node.fontWeight },
-        slant: style.italic ?? node.italic ? ck.FontSlant.Italic : ck.FontSlant.Upright
+        weight: { value: style.fontWeight ?? node2.fontWeight },
+        slant: style.italic ?? node2.italic ? ck.FontSlant.Italic : ck.FontSlant.Upright
       },
-      fontVariations: textFontVariations(style.fontVariations ?? node.fontVariations),
-      fontFeatures: textFontFeatures(style.fontFeatures ?? node.fontFeatures),
-      letterSpacing: style.letterSpacing ?? (node.letterSpacing || 0),
-      decoration: textDecorationValue(ck, style.textDecoration ?? node.textDecoration),
+      fontVariations: textFontVariations(style.fontVariations ?? node2.fontVariations),
+      fontFeatures: textFontFeatures(style.fontFeatures ?? node2.fontFeatures),
+      letterSpacing: style.letterSpacing ?? (node2.letterSpacing || 0),
+      decoration: textDecorationValue(ck, style.textDecoration ?? node2.textDecoration),
       decorationStyle: textDecorationStyleValue(
         ck,
-        style.textDecorationStyle ?? node.textDecorationStyle
+        style.textDecorationStyle ?? node2.textDecorationStyle
       ),
-      decorationThickness: style.textDecorationThickness ?? node.textDecorationThickness ?? void 0,
+      decorationThickness: style.textDecorationThickness ?? node2.textDecorationThickness ?? void 0,
       decorationColor: textDecorationColor(
         ck,
-        style.textDecorationFills ?? node.textDecorationFills,
+        style.textDecorationFills ?? node2.textDecorationFills,
         baseColor
       ),
       heightMultiplier: runLineHeight ? runLineHeight / runFontSize : void 0,
@@ -65802,29 +65803,29 @@ function pushStyleRun(r4, builder, node, run, baseColor, baseFontSize, fontFamil
     })
   );
 }
-function addParagraphText(builder, node, text) {
-  builder.addText(transformTextCase(text, node.textCase));
+function addParagraphText(builder, node2, text) {
+  builder.addText(transformTextCase(text, node2.textCase));
 }
-function addStyledRuns(r4, builder, node, baseColor, baseFontSize, fontFamilies, halfLeading) {
-  const text = node.text;
+function addStyledRuns(r4, builder, node2, baseColor, baseFontSize, fontFamilies, halfLeading) {
+  const text = node2.text;
   let pos = 0;
-  for (const run of node.styleRuns) {
-    if (pos < run.start) addParagraphText(builder, node, text.slice(pos, run.start));
-    pushStyleRun(r4, builder, node, run, baseColor, baseFontSize, fontFamilies, halfLeading);
-    addParagraphText(builder, node, text.slice(run.start, run.start + run.length));
+  for (const run of node2.styleRuns) {
+    if (pos < run.start) addParagraphText(builder, node2, text.slice(pos, run.start));
+    pushStyleRun(r4, builder, node2, run, baseColor, baseFontSize, fontFamilies, halfLeading);
+    addParagraphText(builder, node2, text.slice(run.start, run.start + run.length));
     builder.pop();
     pos = run.start + run.length;
   }
-  if (pos < text.length) addParagraphText(builder, node, text.slice(pos));
+  if (pos < text.length) addParagraphText(builder, node2, text.slice(pos));
 }
-function buildParagraph(r4, node, color, { halfLeading = false } = {}) {
+function buildParagraph(r4, node2, color, { halfLeading = false } = {}) {
   const ck = r4.ck;
   const baseColor = color ?? ck.BLACK;
-  const baseFontSize = node.fontSize || DEFAULT_FONT_SIZE;
+  const baseFontSize = node2.fontSize || DEFAULT_FONT_SIZE;
   const cjkFallbacks = fontManager.getCJKFallbackFamilies();
   const arabicFallbacks = fontManager.getArabicFallbackFamilies();
-  const textDirection = resolveNodeTextDirection(node);
-  const truncateOpts = buildTruncateOpts(node, baseFontSize);
+  const textDirection = resolveNodeTextDirection(node2);
+  const truncateOpts = buildTruncateOpts(node2, baseFontSize);
   const fontFamilies = (primary, weight, italic = false) => resolveParagraphFontFamilies(
     primary,
     weightToStyle(weight, italic),
@@ -65832,47 +65833,47 @@ function buildParagraph(r4, node, color, { halfLeading = false } = {}) {
     cjkFallbacks
   );
   const paraStyle = new ck.ParagraphStyle({
-    textAlign: getParagraphTextAlign(ck, node),
+    textAlign: getParagraphTextAlign(ck, node2),
     textDirection: textDirection === "RTL" ? ck.TextDirection.RTL : ck.TextDirection.LTR,
-    textHeightBehavior: textHeightBehaviorValue(ck, node.leadingTrim),
+    textHeightBehavior: textHeightBehaviorValue(ck, node2.leadingTrim),
     ...truncateOpts,
     textStyle: {
       color: baseColor,
       fontFamilies: fontFamilies(
-        node.fontFamily || DEFAULT_FONT_FAMILY,
-        node.fontWeight,
-        node.italic
+        node2.fontFamily || DEFAULT_FONT_FAMILY,
+        node2.fontWeight,
+        node2.italic
       ),
       fontSize: baseFontSize,
-      locale: node.textLanguage ?? void 0,
+      locale: node2.textLanguage ?? void 0,
       fontStyle: {
-        weight: { value: node.fontWeight },
-        slant: node.italic ? ck.FontSlant.Italic : ck.FontSlant.Upright
+        weight: { value: node2.fontWeight },
+        slant: node2.italic ? ck.FontSlant.Italic : ck.FontSlant.Upright
       },
-      fontVariations: textFontVariations(node.fontVariations),
-      fontFeatures: textFontFeatures(node.fontFeatures),
-      letterSpacing: node.letterSpacing || 0,
-      decoration: textDecorationValue(ck, node.textDecoration),
-      decorationStyle: textDecorationStyleValue(ck, node.textDecorationStyle),
-      decorationThickness: node.textDecorationThickness ?? void 0,
-      decorationColor: textDecorationColor(ck, node.textDecorationFills, baseColor),
-      heightMultiplier: node.lineHeight ? node.lineHeight / baseFontSize : void 0,
+      fontVariations: textFontVariations(node2.fontVariations),
+      fontFeatures: textFontFeatures(node2.fontFeatures),
+      letterSpacing: node2.letterSpacing || 0,
+      decoration: textDecorationValue(ck, node2.textDecoration),
+      decorationStyle: textDecorationStyleValue(ck, node2.textDecorationStyle),
+      decorationThickness: node2.textDecorationThickness ?? void 0,
+      decorationColor: textDecorationColor(ck, node2.textDecorationFills, baseColor),
+      heightMultiplier: node2.lineHeight ? node2.lineHeight / baseFontSize : void 0,
       halfLeading
     }
   });
   if (!r4.fontProvider) throw new Error("Font provider not initialized");
   const builder = ck.ParagraphBuilder.MakeFromFontProvider(paraStyle, r4.fontProvider);
-  if (node.styleRuns.length === 0) {
-    addParagraphText(builder, node, node.text);
+  if (node2.styleRuns.length === 0) {
+    addParagraphText(builder, node2, node2.text);
   } else {
-    addStyledRuns(r4, builder, node, baseColor, baseFontSize, fontFamilies, halfLeading);
+    addStyledRuns(r4, builder, node2, baseColor, baseFontSize, fontFamilies, halfLeading);
   }
   const paragraph = builder.build();
-  if (node.textAutoResize === "WIDTH_AND_HEIGHT") {
+  if (node2.textAutoResize === "WIDTH_AND_HEIGHT") {
     paragraph.layout(1e6);
-    paragraph.layout(Math.max(node.width || 1, Math.ceil(paragraph.getLongestLine())));
+    paragraph.layout(Math.max(node2.width || 1, Math.ceil(paragraph.getLongestLine())));
   } else {
-    paragraph.layout(resolveParagraphLayoutWidth(node));
+    paragraph.layout(resolveParagraphLayoutWidth(node2));
   }
   builder.delete();
   return paragraph;
@@ -65992,18 +65993,18 @@ function findItem(item, items, equalsFn) {
   }
   return -1;
 }
-function calcBBox(node, toBBox) {
-  distBBox(node, 0, node.children.length, toBBox, node);
+function calcBBox(node2, toBBox) {
+  distBBox(node2, 0, node2.children.length, toBBox, node2);
 }
-function distBBox(node, k4, p6, toBBox, destNode) {
+function distBBox(node2, k4, p6, toBBox, destNode) {
   if (!destNode) destNode = createNode(null);
   destNode.minX = Infinity;
   destNode.minY = Infinity;
   destNode.maxX = -Infinity;
   destNode.maxY = -Infinity;
   for (let i2 = k4; i2 < p6; i2++) {
-    const child = node.children[i2];
-    extend(destNode, node.leaf ? toBBox(child) : child);
+    const child = node2.children[i2];
+    extend(destNode, node2.leaf ? toBBox(child) : child);
   }
   return destNode;
 }
@@ -66078,39 +66079,39 @@ var init_rbush = __esm({
         return this._all(this.data, []);
       }
       search(bbox) {
-        let node = this.data;
+        let node2 = this.data;
         const result = [];
-        if (!intersects(bbox, node)) return result;
+        if (!intersects(bbox, node2)) return result;
         const toBBox = this.toBBox;
         const nodesToSearch = [];
-        while (node) {
-          for (let i2 = 0; i2 < node.children.length; i2++) {
-            const child = node.children[i2];
-            const childBBox = node.leaf ? toBBox(child) : child;
+        while (node2) {
+          for (let i2 = 0; i2 < node2.children.length; i2++) {
+            const child = node2.children[i2];
+            const childBBox = node2.leaf ? toBBox(child) : child;
             if (intersects(bbox, childBBox)) {
-              if (node.leaf) result.push(child);
+              if (node2.leaf) result.push(child);
               else if (contains(bbox, childBBox)) this._all(child, result);
               else nodesToSearch.push(child);
             }
           }
-          node = nodesToSearch.pop();
+          node2 = nodesToSearch.pop();
         }
         return result;
       }
       collides(bbox) {
-        let node = this.data;
-        if (!intersects(bbox, node)) return false;
+        let node2 = this.data;
+        if (!intersects(bbox, node2)) return false;
         const nodesToSearch = [];
-        while (node) {
-          for (let i2 = 0; i2 < node.children.length; i2++) {
-            const child = node.children[i2];
-            const childBBox = node.leaf ? this.toBBox(child) : child;
+        while (node2) {
+          for (let i2 = 0; i2 < node2.children.length; i2++) {
+            const child = node2.children[i2];
+            const childBBox = node2.leaf ? this.toBBox(child) : child;
             if (intersects(bbox, childBBox)) {
-              if (node.leaf || contains(bbox, childBBox)) return true;
+              if (node2.leaf || contains(bbox, childBBox)) return true;
               nodesToSearch.push(child);
             }
           }
-          node = nodesToSearch.pop();
+          node2 = nodesToSearch.pop();
         }
         return false;
       }
@@ -66122,18 +66123,18 @@ var init_rbush = __esm({
           }
           return this;
         }
-        let node = this._build(data.slice(), 0, data.length - 1, 0);
+        let node2 = this._build(data.slice(), 0, data.length - 1, 0);
         if (!this.data.children.length) {
-          this.data = node;
-        } else if (this.data.height === node.height) {
-          this._splitRoot(this.data, node);
+          this.data = node2;
+        } else if (this.data.height === node2.height) {
+          this._splitRoot(this.data, node2);
         } else {
-          if (this.data.height < node.height) {
+          if (this.data.height < node2.height) {
             const tmpNode = this.data;
-            this.data = node;
-            node = tmpNode;
+            this.data = node2;
+            node2 = tmpNode;
           }
-          this._insert(node, this.data.height - node.height - 1, true);
+          this._insert(node2, this.data.height - node2.height - 1, true);
         }
         return this;
       }
@@ -66147,38 +66148,38 @@ var init_rbush = __esm({
       }
       remove(item, equalsFn) {
         if (!item) return this;
-        let node = this.data;
+        let node2 = this.data;
         const bbox = this.toBBox(item);
         const path = [];
         const indexes = [];
         let i2, parent, goingUp;
-        while (node || path.length) {
-          if (!node) {
-            node = path.pop();
+        while (node2 || path.length) {
+          if (!node2) {
+            node2 = path.pop();
             parent = path[path.length - 1];
             i2 = indexes.pop();
             goingUp = true;
           }
-          if (node.leaf) {
-            const index = findItem(item, node.children, equalsFn);
+          if (node2.leaf) {
+            const index = findItem(item, node2.children, equalsFn);
             if (index !== -1) {
-              node.children.splice(index, 1);
-              path.push(node);
+              node2.children.splice(index, 1);
+              path.push(node2);
               this._condense(path);
               return this;
             }
           }
-          if (!goingUp && !node.leaf && contains(node, bbox)) {
-            path.push(node);
+          if (!goingUp && !node2.leaf && contains(node2, bbox)) {
+            path.push(node2);
             indexes.push(i2);
             i2 = 0;
-            parent = node;
-            node = node.children[0];
+            parent = node2;
+            node2 = node2.children[0];
           } else if (parent) {
             i2++;
-            node = parent.children[i2];
+            node2 = parent.children[i2];
             goingUp = false;
-          } else node = null;
+          } else node2 = null;
         }
         return this;
       }
@@ -66198,31 +66199,31 @@ var init_rbush = __esm({
         this.data = data;
         return this;
       }
-      _all(node, result) {
+      _all(node2, result) {
         const nodesToSearch = [];
-        while (node) {
-          if (node.leaf) result.push(...node.children);
-          else nodesToSearch.push(...node.children);
-          node = nodesToSearch.pop();
+        while (node2) {
+          if (node2.leaf) result.push(...node2.children);
+          else nodesToSearch.push(...node2.children);
+          node2 = nodesToSearch.pop();
         }
         return result;
       }
       _build(items, left, right, height) {
         const N3 = right - left + 1;
         let M6 = this._maxEntries;
-        let node;
+        let node2;
         if (N3 <= M6) {
-          node = createNode(items.slice(left, right + 1));
-          calcBBox(node, this.toBBox);
-          return node;
+          node2 = createNode(items.slice(left, right + 1));
+          calcBBox(node2, this.toBBox);
+          return node2;
         }
         if (!height) {
           height = Math.ceil(Math.log(N3) / Math.log(M6));
           M6 = Math.ceil(N3 / Math.pow(M6, height - 1));
         }
-        node = createNode([]);
-        node.leaf = false;
-        node.height = height;
+        node2 = createNode([]);
+        node2.leaf = false;
+        node2.height = height;
         const N22 = Math.ceil(N3 / M6);
         const N1 = N22 * Math.ceil(Math.sqrt(M6));
         multiSelect(items, left, right, N1, this.compareMinX);
@@ -66231,21 +66232,21 @@ var init_rbush = __esm({
           multiSelect(items, i2, right2, N22, this.compareMinY);
           for (let j2 = i2; j2 <= right2; j2 += N22) {
             const right3 = Math.min(j2 + N22 - 1, right2);
-            node.children.push(this._build(items, j2, right3, height - 1));
+            node2.children.push(this._build(items, j2, right3, height - 1));
           }
         }
-        calcBBox(node, this.toBBox);
-        return node;
+        calcBBox(node2, this.toBBox);
+        return node2;
       }
-      _chooseSubtree(bbox, node, level, path) {
+      _chooseSubtree(bbox, node2, level, path) {
         while (true) {
-          path.push(node);
-          if (node.leaf || path.length - 1 === level) break;
+          path.push(node2);
+          if (node2.leaf || path.length - 1 === level) break;
           let minArea = Infinity;
           let minEnlargement = Infinity;
           let targetNode;
-          for (let i2 = 0; i2 < node.children.length; i2++) {
-            const child = node.children[i2];
+          for (let i2 = 0; i2 < node2.children.length; i2++) {
+            const child = node2.children[i2];
             const area = bboxArea(child);
             const enlargement = enlargedArea(bbox, child) - area;
             if (enlargement < minEnlargement) {
@@ -66259,16 +66260,16 @@ var init_rbush = __esm({
               }
             }
           }
-          node = targetNode || node.children[0];
+          node2 = targetNode || node2.children[0];
         }
-        return node;
+        return node2;
       }
       _insert(item, level, isNode) {
         const bbox = isNode ? item : this.toBBox(item);
         const insertPath = [];
-        const node = this._chooseSubtree(bbox, this.data, level, insertPath);
-        node.children.push(item);
-        extend(node, bbox);
+        const node2 = this._chooseSubtree(bbox, this.data, level, insertPath);
+        node2.children.push(item);
+        extend(node2, bbox);
         while (level >= 0) {
           if (insertPath[level].children.length > this._maxEntries) {
             this._split(insertPath, level);
@@ -66279,32 +66280,32 @@ var init_rbush = __esm({
       }
       // split overflowed node into two
       _split(insertPath, level) {
-        const node = insertPath[level];
-        const M6 = node.children.length;
+        const node2 = insertPath[level];
+        const M6 = node2.children.length;
         const m2 = this._minEntries;
-        this._chooseSplitAxis(node, m2, M6);
-        const splitIndex = this._chooseSplitIndex(node, m2, M6);
-        const newNode = createNode(node.children.splice(splitIndex, node.children.length - splitIndex));
-        newNode.height = node.height;
-        newNode.leaf = node.leaf;
-        calcBBox(node, this.toBBox);
+        this._chooseSplitAxis(node2, m2, M6);
+        const splitIndex = this._chooseSplitIndex(node2, m2, M6);
+        const newNode = createNode(node2.children.splice(splitIndex, node2.children.length - splitIndex));
+        newNode.height = node2.height;
+        newNode.leaf = node2.leaf;
+        calcBBox(node2, this.toBBox);
         calcBBox(newNode, this.toBBox);
         if (level) insertPath[level - 1].children.push(newNode);
-        else this._splitRoot(node, newNode);
+        else this._splitRoot(node2, newNode);
       }
-      _splitRoot(node, newNode) {
-        this.data = createNode([node, newNode]);
-        this.data.height = node.height + 1;
+      _splitRoot(node2, newNode) {
+        this.data = createNode([node2, newNode]);
+        this.data.height = node2.height + 1;
         this.data.leaf = false;
         calcBBox(this.data, this.toBBox);
       }
-      _chooseSplitIndex(node, m2, M6) {
+      _chooseSplitIndex(node2, m2, M6) {
         let index;
         let minOverlap = Infinity;
         let minArea = Infinity;
         for (let i2 = m2; i2 <= M6 - m2; i2++) {
-          const bbox1 = distBBox(node, 0, i2, this.toBBox);
-          const bbox2 = distBBox(node, i2, M6, this.toBBox);
+          const bbox1 = distBBox(node2, 0, i2, this.toBBox);
+          const bbox2 = distBBox(node2, i2, M6, this.toBBox);
           const overlap = intersectionArea(bbox1, bbox2);
           const area = bboxArea(bbox1) + bboxArea(bbox2);
           if (overlap < minOverlap) {
@@ -66321,28 +66322,28 @@ var init_rbush = __esm({
         return index || M6 - m2;
       }
       // sorts node children by the best axis for split
-      _chooseSplitAxis(node, m2, M6) {
-        const compareMinX = node.leaf ? this.compareMinX : compareNodeMinX;
-        const compareMinY = node.leaf ? this.compareMinY : compareNodeMinY;
-        const xMargin = this._allDistMargin(node, m2, M6, compareMinX);
-        const yMargin = this._allDistMargin(node, m2, M6, compareMinY);
-        if (xMargin < yMargin) node.children.sort(compareMinX);
+      _chooseSplitAxis(node2, m2, M6) {
+        const compareMinX = node2.leaf ? this.compareMinX : compareNodeMinX;
+        const compareMinY = node2.leaf ? this.compareMinY : compareNodeMinY;
+        const xMargin = this._allDistMargin(node2, m2, M6, compareMinX);
+        const yMargin = this._allDistMargin(node2, m2, M6, compareMinY);
+        if (xMargin < yMargin) node2.children.sort(compareMinX);
       }
       // total margin of all possible split distributions where each node is at least m full
-      _allDistMargin(node, m2, M6, compare) {
-        node.children.sort(compare);
+      _allDistMargin(node2, m2, M6, compare) {
+        node2.children.sort(compare);
         const toBBox = this.toBBox;
-        const leftBBox = distBBox(node, 0, m2, toBBox);
-        const rightBBox = distBBox(node, M6 - m2, M6, toBBox);
+        const leftBBox = distBBox(node2, 0, m2, toBBox);
+        const rightBBox = distBBox(node2, M6 - m2, M6, toBBox);
         let margin = bboxMargin(leftBBox) + bboxMargin(rightBBox);
         for (let i2 = m2; i2 < M6 - m2; i2++) {
-          const child = node.children[i2];
-          extend(leftBBox, node.leaf ? toBBox(child) : child);
+          const child = node2.children[i2];
+          extend(leftBBox, node2.leaf ? toBBox(child) : child);
           margin += bboxMargin(leftBBox);
         }
         for (let i2 = M6 - m2 - 1; i2 >= m2; i2--) {
-          const child = node.children[i2];
-          extend(rightBBox, node.leaf ? toBBox(child) : child);
+          const child = node2.children[i2];
+          extend(rightBBox, node2.leaf ? toBBox(child) : child);
           margin += bboxMargin(rightBBox);
         }
         return margin;
@@ -66367,10 +66368,10 @@ var init_rbush = __esm({
 });
 
 // packages/core/src/canvas/renderer/chunks/record.ts
-function clipAncestor(r4, canvas, graph, node) {
-  canvas.concat(getWorldMatrix(node, graph));
-  clipNodeShape(r4, canvas, node, r4.ck.LTRBRect(0, 0, node.width, node.height), nodeHasRadius(node));
-  const inverse = matrix_default.invert(getWorldMatrix(node, graph));
+function clipAncestor(r4, canvas, graph, node2) {
+  canvas.concat(getWorldMatrix(node2, graph));
+  clipNodeShape(r4, canvas, node2, r4.ck.LTRBRect(0, 0, node2.width, node2.height), nodeHasRadius(node2));
+  const inverse = matrix_default.invert(getWorldMatrix(node2, graph));
   if (inverse) canvas.concat(inverse);
 }
 function drawChunkContent(renderer, canvas, graph, chunk) {
@@ -66460,18 +66461,18 @@ var init_cache2 = __esm({
 });
 
 // packages/core/src/canvas/renderer/chunks/index.ts
-function nodeRequiresAtomicChunk(graph, node) {
-  const isolated = node.opacity < 1 || node.blendMode !== "NORMAL" && node.blendMode !== "PASS_THROUGH" || node.effects.some(
+function nodeRequiresAtomicChunk(graph, node2) {
+  const isolated = node2.opacity < 1 || node2.blendMode !== "NORMAL" && node2.blendMode !== "PASS_THROUGH" || node2.effects.some(
     (effect) => effect.visible && (effect.type === "LAYER_BLUR" || effect.type === "FOREGROUND_BLUR" || effect.type === "BACKGROUND_BLUR")
   );
-  const hasMasks = node.childIds.some((childId) => graph.getNode(childId)?.isMask === true);
+  const hasMasks = node2.childIds.some((childId) => graph.getNode(childId)?.isMask === true);
   return isolated || hasMasks;
 }
-function shouldSplit(graph, node, descendantCount) {
-  return node.childIds.length > 0 && descendantCount > MAX_CHUNK_NODES && !nodeRequiresAtomicChunk(graph, node);
+function shouldSplit(graph, node2, descendantCount) {
+  return node2.childIds.length > 0 && descendantCount > MAX_CHUNK_NODES && !nodeRequiresAtomicChunk(graph, node2);
 }
-function estimateCost(nodeCount, node) {
-  const visibleEffects = node.effects.filter((effect) => effect.visible).length;
+function estimateCost(nodeCount, node2) {
+  const visibleEffects = node2.effects.filter((effect) => effect.visible).length;
   return nodeCount + visibleEffects * 8;
 }
 function subtreeBounds(graph, nodeId) {
@@ -66481,20 +66482,20 @@ function subtreeBounds(graph, nodeId) {
     (id) => graph.getAbsolutePosition(id)
   );
 }
-function clipAncestorIds(graph, node) {
+function clipAncestorIds(graph, node2) {
   const ids = [];
-  let parent = node.parentId ? graph.getNode(node.parentId) : void 0;
+  let parent = node2.parentId ? graph.getNode(node2.parentId) : void 0;
   while (parent) {
     if (parent.clipsContent) ids.unshift(parent.id);
     parent = parent.parentId ? graph.getNode(parent.parentId) : void 0;
   }
   return ids;
 }
-function chunkContext(graph, node) {
-  const parent = node.parentId ? graph.getNode(node.parentId) : void 0;
+function chunkContext(graph, node2) {
+  const parent = node2.parentId ? graph.getNode(node2.parentId) : void 0;
   return {
     parentTransform: parent ? getWorldMatrix(parent, graph) : matrix_default.identity(),
-    ancestorClipIds: clipAncestorIds(graph, node)
+    ancestorClipIds: clipAncestorIds(graph, node2)
   };
 }
 function countDescendants2(graph, nodeIds) {
@@ -66507,17 +66508,17 @@ function countDescendants2(graph, nodeIds) {
   while (stack.length > 0) {
     const entry = stack.pop();
     if (!entry) continue;
-    const node = graph.getNode(entry.nodeId);
-    if (!node?.visible) continue;
+    const node2 = graph.getNode(entry.nodeId);
+    if (!node2?.visible) continue;
     if (!entry.expanded) {
       visited++;
       stack.push({ nodeId: entry.nodeId, expanded: true });
-      for (const childId of node.childIds) stack.push({ nodeId: childId, expanded: false });
+      for (const childId of node2.childIds) stack.push({ nodeId: childId, expanded: false });
       continue;
     }
     let count = 1;
-    for (const childId of node.childIds) count += counts.get(childId) ?? 0;
-    counts.set(node.id, count);
+    for (const childId of node2.childIds) count += counts.get(childId) ?? 0;
+    counts.set(node2.id, count);
   }
   return { counts, visited };
 }
@@ -66528,29 +66529,29 @@ function buildChunks(graph, nodeIds, counts) {
   while (stack.length > 0) {
     const nodeId = stack.pop();
     if (!nodeId) continue;
-    const node = graph.getNode(nodeId);
-    if (!node?.visible) continue;
+    const node2 = graph.getNode(nodeId);
+    if (!node2?.visible) continue;
     const descendantCount = counts.get(nodeId) ?? 1;
-    const split = shouldSplit(graph, node, descendantCount);
+    const split = shouldSplit(graph, node2, descendantCount);
     const kind = split ? "self" : "subtree";
-    const bounds = split ? worldNodeVisualBounds(graph, node) : subtreeBounds(graph, nodeId);
+    const bounds = split ? worldNodeVisualBounds(graph, node2) : subtreeBounds(graph, nodeId);
     if (bounds) {
       const nodeCount = split ? 1 : descendantCount;
       chunks.push({
         id: `${nodeId}:${kind}`,
         nodeId,
         kind,
-        context: chunkContext(graph, node),
-        interruptible: split || !nodeRequiresAtomicChunk(graph, node),
+        context: chunkContext(graph, node2),
+        interruptible: split || !nodeRequiresAtomicChunk(graph, node2),
         painterOrder: painterOrder++,
         ...bounds,
         nodeCount,
-        estimatedCost: estimateCost(nodeCount, node)
+        estimatedCost: estimateCost(nodeCount, node2)
       });
     }
     if (!split) continue;
-    for (let childIndex = node.childIds.length - 1; childIndex >= 0; childIndex--) {
-      const childId = node.childIds[childIndex];
+    for (let childIndex = node2.childIds.length - 1; childIndex >= 0; childIndex--) {
+      const childId = node2.childIds[childIndex];
       if (childId) stack.push(childId);
     }
   }
@@ -66626,19 +66627,19 @@ var init_chunks = __esm({
       }
       updateNode(graph, nodeId) {
         const ids = this.chunkIdsByNode.get(nodeId);
-        const node = graph.getNode(nodeId);
-        if (!ids || !node) return 0;
+        const node2 = graph.getNode(nodeId);
+        if (!ids || !node2) return 0;
         let updated = 0;
         for (const id of ids) {
           const chunk = this.chunks.get(id);
           if (!chunk) continue;
           this.tree.remove(chunk);
-          const bounds = chunk.kind === "self" ? worldNodeVisualBounds(graph, node) : subtreeBounds(graph, nodeId);
+          const bounds = chunk.kind === "self" ? worldNodeVisualBounds(graph, node2) : subtreeBounds(graph, nodeId);
           if (!bounds) {
             this.tree.insert(chunk);
             continue;
           }
-          Object.assign(chunk, bounds, { context: chunkContext(graph, node) });
+          Object.assign(chunk, bounds, { context: chunkContext(graph, node2) });
           this.tree.insert(chunk);
           updated++;
         }
@@ -66671,8 +66672,8 @@ var init_chunks = __esm({
             if (!id || visited.has(id)) continue;
             visited.add(id);
             dependencies.add(id);
-            const node = graph.getNode(id);
-            if (node) pending.push(...node.childIds);
+            const node2 = graph.getNode(id);
+            if (node2) pending.push(...node2.childIds);
           }
         }
         for (const dependencyId of dependencies) {
@@ -66864,8 +66865,8 @@ var init_clock = __esm({
 // packages/core/src/canvas/renderer/tiles/render.ts
 function isBoundedAtomicBlurChunk(graph, chunk) {
   if (chunk.interruptible || chunk.kind !== "subtree") return false;
-  const node = graph.getNode(chunk.nodeId);
-  return node?.effects.some(
+  const node2 = graph.getNode(chunk.nodeId);
+  return node2?.effects.some(
     (effect) => effect.visible && (effect.type === "LAYER_BLUR" || effect.type === "FOREGROUND_BLUR")
   ) === true;
 }
@@ -67188,8 +67189,8 @@ var init_controller = __esm({
       invalidateNode(nodeId, graph) {
         const chunks = this.index?.getChunksDependingOnNode(nodeId) ?? [];
         const owningChunks = this.index?.getChunksForNode(nodeId) ?? [];
-        const node = graph?.getNode(nodeId);
-        if (graph && node && owningChunks.some((chunk) => chunk.interruptible === nodeRequiresAtomicChunk(graph, node))) {
+        const node2 = graph?.getNode(nodeId);
+        if (graph && node2 && owningChunks.some((chunk) => chunk.interruptible === nodeRequiresAtomicChunk(graph, node2))) {
           this.invalidateStructure();
           return;
         }
@@ -67545,9 +67546,9 @@ var init_renderer = __esm({
       isRectangularType(type) {
         return type === "FRAME" || type === "RECTANGLE" || type === "ROUNDED_RECTANGLE" || type === "COMPONENT" || type === "INSTANCE" || type === "SECTION" || type === "GROUP";
       }
-      effectOverflow(node) {
+      effectOverflow(node2) {
         let expand2 = 0;
-        for (const e6 of node.effects) {
+        for (const e6 of node2.effects) {
           if (!e6.visible) continue;
           const blur = e6.radius;
           const spread = e6.spread;
@@ -67575,11 +67576,11 @@ var init_renderer = __esm({
       syncFontGeneration() {
         syncFontGeneration(this);
       }
-      trackFontDemand(node, key) {
-        trackFontDemand(this, node, key);
+      trackFontDemand(node2, key) {
+        trackFontDemand(this, node2, key);
       }
-      isTextPictureCurrent(node) {
-        return isTextPictureCurrent(this, node);
+      isTextPictureCurrent(node2) {
+        return isTextPictureCurrent(this, node2);
       }
       async prepareForExport(graph, pageId, nodeIds) {
         return prepareForExport(this, graph, pageId, nodeIds);
@@ -67693,32 +67694,32 @@ var init_renderer = __esm({
           }
         }
       }
-      measureTextNode(node, maxWidth) {
-        return measureTextNode(this, node, maxWidth);
+      measureTextNode(node2, maxWidth) {
+        return measureTextNode(this, node2, maxWidth);
       }
-      nodeFontReadiness(node) {
-        return nodeFontReadiness(this, node);
+      nodeFontReadiness(node2) {
+        return nodeFontReadiness(this, node2);
       }
-      isNodeFontLoaded(node) {
-        return isNodeFontLoaded(this, node);
+      isNodeFontLoaded(node2) {
+        return isNodeFontLoaded(this, node2);
       }
-      buildTextPicture(node) {
-        return buildTextPicture(this, node);
+      buildTextPicture(node2) {
+        return buildTextPicture(this, node2);
       }
-      buildParagraph(node, color, opts) {
-        return buildParagraph(this, node, color, opts);
+      buildParagraph(node2, color, opts) {
+        return buildParagraph(this, node2, color, opts);
       }
-      resolveFillColorInfo(fill2, fillIndex, node, graph) {
-        return resolveFillColorInfo(fill2, fillIndex, node, graph);
+      resolveFillColorInfo(fill2, fillIndex, node2, graph) {
+        return resolveFillColorInfo(fill2, fillIndex, node2, graph);
       }
-      resolveFillColor(fill2, fillIndex, node, graph) {
-        return resolveFillColor(fill2, fillIndex, node, graph);
+      resolveFillColor(fill2, fillIndex, node2, graph) {
+        return resolveFillColor(fill2, fillIndex, node2, graph);
       }
-      resolveStrokeColorInfo(stroke, strokeIndex, node, graph) {
-        return resolveStrokeColorInfo(stroke, strokeIndex, node, graph);
+      resolveStrokeColorInfo(stroke, strokeIndex, node2, graph) {
+        return resolveStrokeColorInfo(stroke, strokeIndex, node2, graph);
       }
-      resolveStrokeColor(stroke, strokeIndex, node, graph) {
-        return resolveStrokeColor(stroke, strokeIndex, node, graph);
+      resolveStrokeColor(stroke, strokeIndex, node2, graph) {
+        return resolveStrokeColor(stroke, strokeIndex, node2, graph);
       }
       screenToCanvas(sx, sy) {
         return {
@@ -68022,25 +68023,25 @@ function renderAttrs(attrs) {
   }
   return parts.length > 0 ? " " + parts.join(" ") : "";
 }
-function renderSVGNode(node, indent = 0) {
+function renderSVGNode(node2, indent = 0) {
   const pad = "  ".repeat(indent);
-  const attrsStr = renderAttrs(node.attrs);
-  if (node.children.length === 0) {
-    return `${pad}<${node.tag}${attrsStr}/>`;
+  const attrsStr = renderAttrs(node2.attrs);
+  if (node2.children.length === 0) {
+    return `${pad}<${node2.tag}${attrsStr}/>`;
   }
-  const hasOnlyText = node.children.length === 1 && typeof node.children[0] === "string";
+  const hasOnlyText = node2.children.length === 1 && typeof node2.children[0] === "string";
   if (hasOnlyText) {
-    return `${pad}<${node.tag}${attrsStr}>${escapeText(node.children[0])}</${node.tag}>`;
+    return `${pad}<${node2.tag}${attrsStr}>${escapeText(node2.children[0])}</${node2.tag}>`;
   }
-  const lines = [`${pad}<${node.tag}${attrsStr}>`];
-  for (const child of node.children) {
+  const lines = [`${pad}<${node2.tag}${attrsStr}>`];
+  for (const child of node2.children) {
     if (typeof child === "string") {
       lines.push(`${"  ".repeat(indent + 1)}${escapeText(child)}`);
     } else {
       lines.push(renderSVGNode(child, indent + 1));
     }
   }
-  lines.push(`${pad}</${node.tag}>`);
+  lines.push(`${pad}</${node2.tag}>`);
   return lines.join("\n");
 }
 var init_node2 = __esm({
@@ -68208,20 +68209,20 @@ function vectorNetworkToSVGPaths(network, decimals = 2) {
   const path = unfilledSegmentsToPath(network, decimals);
   return path ? [path] : [];
 }
-function makePolygonPoints(node) {
-  return polygonVertices(node).map((point) => `${round2(point.x)},${round2(point.y)}`).join(" ");
+function makePolygonPoints(node2) {
+  return polygonVertices(node2).map((point) => `${round2(point.x)},${round2(point.y)}`).join(" ");
 }
-function roundedRectPath(node) {
-  const w3 = node.width;
-  const h4 = node.height;
+function roundedRectPath(node2) {
+  const w3 = node2.width;
+  const h4 = node2.height;
   let tl2, tr2, br, bl2;
-  if (node.independentCorners) {
-    tl2 = node.topLeftRadius;
-    tr2 = node.topRightRadius;
-    br = node.bottomRightRadius;
-    bl2 = node.bottomLeftRadius;
+  if (node2.independentCorners) {
+    tl2 = node2.topLeftRadius;
+    tr2 = node2.topRightRadius;
+    br = node2.bottomRightRadius;
+    bl2 = node2.bottomLeftRadius;
   } else {
-    tl2 = tr2 = br = bl2 = node.cornerRadius;
+    tl2 = tr2 = br = bl2 = node2.cornerRadius;
   }
   tl2 = Math.min(tl2, w3 / 2, h4 / 2);
   tr2 = Math.min(tr2, w3 / 2, h4 / 2);
@@ -68240,13 +68241,13 @@ function roundedRectPath(node) {
     "Z"
   ].filter(Boolean).join("");
 }
-function arcPath(node) {
-  if (!node.arcData) return "";
-  const { startingAngle, endingAngle, innerRadius } = node.arcData;
-  const cx = node.width / 2;
-  const cy = node.height / 2;
-  const rx = node.width / 2;
-  const ry = node.height / 2;
+function arcPath(node2) {
+  if (!node2.arcData) return "";
+  const { startingAngle, endingAngle, innerRadius } = node2.arcData;
+  const cx = node2.width / 2;
+  const cy = node2.height / 2;
+  const rx = node2.width / 2;
+  const ry = node2.height / 2;
   const fullCircle = Math.abs(endingAngle - startingAngle) >= Math.PI * 2 - 1e-3;
   if (fullCircle && innerRadius <= 0) {
     return `M${round2(cx - rx)} ${round2(cy)}A${round2(rx)} ${round2(ry)} 0 1 1 ${round2(cx + rx)} ${round2(cy)}A${round2(rx)} ${round2(ry)} 0 1 1 ${round2(cx - rx)} ${round2(cy)}Z`;
@@ -68299,7 +68300,7 @@ function formatColor2(color, opacity = 1, colorSpace = getDefaultRenderColorSpac
   }
   return colorToHex(alphaColor);
 }
-function createGradientDef(fill2, node, ctx) {
+function createGradientDef(fill2, node2, ctx) {
   const stops = fill2.gradientStops;
   const t2 = fill2.gradientTransform;
   if (!stops || !t2) return null;
@@ -68346,9 +68347,9 @@ function createGradientDef(fill2, node, ctx) {
     };
   }
   if (fill2.type === "GRADIENT_ANGULAR") {
-    const cx = round2(t2.m02 * node.width);
-    const cy = round2(t2.m12 * node.height);
-    const r4 = Math.max(node.width, node.height);
+    const cx = round2(t2.m02 * node2.width);
+    const cy = round2(t2.m12 * node2.height);
+    const r4 = Math.max(node2.width, node2.height);
     return {
       id,
       node: svg("radialGradient", { id, cx, cy, r: r4, gradientUnits: "userSpaceOnUse" }, ...stopNodes)
@@ -68356,7 +68357,7 @@ function createGradientDef(fill2, node, ctx) {
   }
   return null;
 }
-function createImagePattern(fill2, node, ctx) {
+function createImagePattern(fill2, node2, ctx) {
   if (!fill2.imageHash) return null;
   const data = ctx.graph.images.get(fill2.imageHash);
   if (!data) return null;
@@ -68375,8 +68376,8 @@ function createImagePattern(fill2, node, ctx) {
       },
       svg("image", {
         href: `data:${mime};base64,${base64}`,
-        width: node.width,
-        height: node.height,
+        width: node2.width,
+        height: node2.height,
         preserveAspectRatio: fill2.imageScaleMode === "FIT" ? "xMidYMid meet" : "xMidYMid slice"
       })
     )
@@ -68443,20 +68444,20 @@ function createFilterDef(effects, ctx) {
     node: svg("filter", { id }, ...primitives)
   };
 }
-function resolveFill(fill2, node, ctx) {
+function resolveFill(fill2, node2, ctx) {
   if (!fill2.visible) return null;
   if (fill2.type === "SOLID") {
     return formatColor2(fill2.color, fill2.opacity, ctx.colorSpace);
   }
   if (fill2.type.startsWith("GRADIENT")) {
-    const grad = createGradientDef(fill2, node, ctx);
+    const grad = createGradientDef(fill2, node2, ctx);
     if (grad) {
       ctx.defs.push(grad.node);
       return `url(#${grad.id})`;
     }
   }
   if (fill2.type === "IMAGE") {
-    const pattern2 = createImagePattern(fill2, node, ctx);
+    const pattern2 = createImagePattern(fill2, node2, ctx);
     if (pattern2) {
       ctx.defs.push(pattern2.node);
       return `url(#${pattern2.id})`;
@@ -68505,10 +68506,10 @@ var init_defs = __esm({
 });
 
 // packages/core/src/io/formats/svg/export.ts
-function vectorShapeElements(node, common, strokeAttrs, ctx, fallbackFills) {
+function vectorShapeElements(node2, common, strokeAttrs, ctx, fallbackFills) {
   const elements = [];
-  if (node.fillGeometry.length > 0) {
-    for (const geo of node.fillGeometry) {
+  if (node2.fillGeometry.length > 0) {
+    for (const geo of node2.fillGeometry) {
       const d3 = geometryBlobToSVGPath(geo.commandsBlob);
       if (!d3) continue;
       const attrs = {
@@ -68527,7 +68528,7 @@ function vectorShapeElements(node, common, strokeAttrs, ctx, fallbackFills) {
         continue;
       }
       for (const [index, fill2] of visibleFills.entries()) {
-        const fillAttr = resolveFill(fill2, node, ctx);
+        const fillAttr = resolveFill(fill2, node2, ctx);
         if (!fillAttr) continue;
         elements.push(
           svg("path", {
@@ -68538,14 +68539,14 @@ function vectorShapeElements(node, common, strokeAttrs, ctx, fallbackFills) {
         );
       }
     }
-  } else if (node.vectorNetwork) {
-    const paths = vectorNetworkToSVGPaths(node.vectorNetwork);
+  } else if (node2.vectorNetwork) {
+    const paths = vectorNetworkToSVGPaths(node2.vectorNetwork);
     for (const d3 of paths) {
       elements.push(svg("path", { d: d3, ...common }));
     }
   }
-  if (node.strokeGeometry.length > 0 && strokeAttrs.stroke && strokeAttrs.stroke !== "none") {
-    for (const geo of node.strokeGeometry) {
+  if (node2.strokeGeometry.length > 0 && strokeAttrs.stroke && strokeAttrs.stroke !== "none") {
+    for (const geo of node2.strokeGeometry) {
       const d3 = geometryBlobToSVGPath(geo.commandsBlob);
       if (d3) {
         elements.push(
@@ -68559,24 +68560,24 @@ function vectorShapeElements(node, common, strokeAttrs, ctx, fallbackFills) {
       }
     }
   }
-  return elements.length > 0 ? elements : [svg("rect", { width: round2(node.width), height: round2(node.height), ...common })];
+  return elements.length > 0 ? elements : [svg("rect", { width: round2(node2.width), height: round2(node2.height), ...common })];
 }
-function nodeShapeElements(node, fillAttr, strokeAttrs, ctx) {
+function nodeShapeElements(node2, fillAttr, strokeAttrs, ctx) {
   const common = {
     fill: fillAttr ?? "none",
     ...strokeAttrs
   };
-  switch (node.type) {
+  switch (node2.type) {
     case "ELLIPSE": {
-      if (node.arcData) {
-        return [svg("path", { d: arcPath(node), ...common })];
+      if (node2.arcData) {
+        return [svg("path", { d: arcPath(node2), ...common })];
       }
       return [
         svg("ellipse", {
-          cx: round2(node.width / 2),
-          cy: round2(node.height / 2),
-          rx: round2(node.width / 2),
-          ry: round2(node.height / 2),
+          cx: round2(node2.width / 2),
+          cy: round2(node2.height / 2),
+          rx: round2(node2.width / 2),
+          ry: round2(node2.height / 2),
           ...common
         })
       ];
@@ -68586,33 +68587,33 @@ function nodeShapeElements(node, fillAttr, strokeAttrs, ctx) {
         svg("line", {
           x1: 0,
           y1: 0,
-          x2: round2(node.width),
-          y2: round2(node.height),
+          x2: round2(node2.width),
+          y2: round2(node2.height),
           fill: "none",
           ...strokeAttrs
         })
       ];
     case "STAR":
     case "POLYGON":
-      return [svg("polygon", { points: makePolygonPoints(node), ...common })];
+      return [svg("polygon", { points: makePolygonPoints(node2), ...common })];
     case "VECTOR":
-      return vectorShapeElements(node, common, strokeAttrs, ctx);
+      return vectorShapeElements(node2, common, strokeAttrs, ctx);
     default: {
-      if (hasRadius(node)) {
-        if (node.independentCorners) {
-          return [svg("path", { d: roundedRectPath(node), ...common })];
+      if (hasRadius(node2)) {
+        if (node2.independentCorners) {
+          return [svg("path", { d: roundedRectPath(node2), ...common })];
         }
         return [
           svg("rect", {
-            width: round2(node.width),
-            height: round2(node.height),
-            rx: round2(node.cornerRadius),
-            ry: round2(node.cornerRadius),
+            width: round2(node2.width),
+            height: round2(node2.height),
+            rx: round2(node2.cornerRadius),
+            ry: round2(node2.cornerRadius),
             ...common
           })
         ];
       }
-      return [svg("rect", { width: round2(node.width), height: round2(node.height), ...common })];
+      return [svg("rect", { width: round2(node2.width), height: round2(node2.height), ...common })];
     }
   }
 }
@@ -68633,89 +68634,89 @@ function styleOverrideToTspanAttrs(style, colorSpace) {
   }
   return attrs;
 }
-function isLogicalTextEnd(node, direction) {
-  return direction === "LTR" && node.textAlignHorizontal === "RIGHT" || direction === "RTL" && node.textAlignHorizontal === "LEFT";
+function isLogicalTextEnd(node2, direction) {
+  return direction === "LTR" && node2.textAlignHorizontal === "RIGHT" || direction === "RTL" && node2.textAlignHorizontal === "LEFT";
 }
-function textAnchorForNode(node, direction) {
-  if (node.textAlignHorizontal === "CENTER") return "middle";
-  if (isLogicalTextEnd(node, direction)) return "end";
+function textAnchorForNode(node2, direction) {
+  if (node2.textAlignHorizontal === "CENTER") return "middle";
+  if (isLogicalTextEnd(node2, direction)) return "end";
   return void 0;
 }
-function textXForNode(node, direction) {
-  if (node.textAlignHorizontal === "CENTER") return round2(node.width / 2);
-  if (isLogicalTextEnd(node, direction)) return round2(node.width);
+function textXForNode(node2, direction) {
+  if (node2.textAlignHorizontal === "CENTER") return round2(node2.width / 2);
+  if (isLogicalTextEnd(node2, direction)) return round2(node2.width);
   return 0;
 }
-function renderTextNode(node, fillAttr, colorSpace) {
-  const direction = resolveNodeTextDirection(node);
-  const textAnchor = textAnchorForNode(node, direction);
+function renderTextNode(node2, fillAttr, colorSpace) {
+  const direction = resolveNodeTextDirection(node2);
+  const textAnchor = textAnchorForNode(node2, direction);
   let textDecoration;
-  if (node.textDecoration === "UNDERLINE") textDecoration = "underline";
-  else if (node.textDecoration === "STRIKETHROUGH") textDecoration = "line-through";
+  if (node2.textDecoration === "UNDERLINE") textDecoration = "underline";
+  else if (node2.textDecoration === "STRIKETHROUGH") textDecoration = "line-through";
   const attrs = {
-    "font-family": node.fontFamily || void 0,
-    "font-size": node.fontSize || void 0,
-    "font-weight": node.fontWeight !== 400 ? node.fontWeight : void 0,
-    "font-style": node.italic ? "italic" : void 0,
+    "font-family": node2.fontFamily || void 0,
+    "font-size": node2.fontSize || void 0,
+    "font-weight": node2.fontWeight !== 400 ? node2.fontWeight : void 0,
+    "font-style": node2.italic ? "italic" : void 0,
     fill: fillAttr ?? void 0,
     direction: direction === "RTL" ? "rtl" : void 0,
     "text-anchor": textAnchor,
     "text-decoration": textDecoration,
-    "letter-spacing": node.letterSpacing ? round2(node.letterSpacing) : void 0
+    "letter-spacing": node2.letterSpacing ? round2(node2.letterSpacing) : void 0
   };
-  const x3 = textXForNode(node, direction);
-  const y3 = node.fontSize || 14;
-  if (node.styleRuns.length > 0) {
+  const x3 = textXForNode(node2, direction);
+  const y3 = node2.fontSize || 14;
+  if (node2.styleRuns.length > 0) {
     const spans = [];
     let pos = 0;
-    for (const run of node.styleRuns) {
-      const text = node.text.slice(pos, pos + run.length);
+    for (const run of node2.styleRuns) {
+      const text = node2.text.slice(pos, pos + run.length);
       pos += run.length;
       spans.push(svg("tspan", styleOverrideToTspanAttrs(run.style, colorSpace), text));
     }
     return svg("text", { x: x3, y: y3, ...attrs }, ...spans);
   }
-  return svg("text", { x: x3, y: y3, ...attrs }, node.text);
+  return svg("text", { x: x3, y: y3, ...attrs }, node2.text);
 }
-function buildTransformAttr(node) {
+function buildTransformAttr(node2) {
   const transforms = [];
-  if (node.x !== 0 || node.y !== 0) transforms.push(`translate(${round2(node.x)}, ${round2(node.y)})`);
-  if (node.rotation !== 0) {
+  if (node2.x !== 0 || node2.y !== 0) transforms.push(`translate(${round2(node2.x)}, ${round2(node2.y)})`);
+  if (node2.rotation !== 0) {
     transforms.push(
-      `rotate(${round2(node.rotation)}, ${round2(node.width / 2)}, ${round2(node.height / 2)})`
+      `rotate(${round2(node2.rotation)}, ${round2(node2.width / 2)}, ${round2(node2.height / 2)})`
     );
   }
-  if (node.flipX || node.flipY) {
-    const tx = node.flipX ? node.width : 0;
-    const ty = node.flipY ? node.height : 0;
-    const sx = node.flipX ? -1 : 1;
-    const sy = node.flipY ? -1 : 1;
+  if (node2.flipX || node2.flipY) {
+    const tx = node2.flipX ? node2.width : 0;
+    const ty = node2.flipY ? node2.height : 0;
+    const sx = node2.flipX ? -1 : 1;
+    const sy = node2.flipY ? -1 : 1;
     transforms.push(`translate(${round2(tx)}, ${round2(ty)}) scale(${sx}, ${sy})`);
   }
   return transforms.length > 0 ? transforms.join(" ") : void 0;
 }
-function buildGroupAttrs(node, ctx) {
+function buildGroupAttrs(node2, ctx) {
   const attrs = {};
-  const transform2 = buildTransformAttr(node);
+  const transform2 = buildTransformAttr(node2);
   if (transform2) attrs.transform = transform2;
-  if (node.opacity < 1) attrs.opacity = round2(node.opacity);
-  const blend = SVG_BLEND_MODE[node.blendMode];
-  if (blend && blend !== "normal" && node.blendMode !== "PASS_THROUGH") {
+  if (node2.opacity < 1) attrs.opacity = round2(node2.opacity);
+  const blend = SVG_BLEND_MODE[node2.blendMode];
+  if (blend && blend !== "normal" && node2.blendMode !== "PASS_THROUGH") {
     attrs.style = `mix-blend-mode: ${blend}`;
   }
-  const filterDef = createFilterDef(node.effects, ctx);
+  const filterDef = createFilterDef(node2.effects, ctx);
   if (filterDef) {
     ctx.defs.push(filterDef.node);
     attrs.filter = `url(#${filterDef.id})`;
   }
   let clipId;
-  if (node.clipsContent && node.childIds.length > 0) {
+  if (node2.clipsContent && node2.childIds.length > 0) {
     clipId = nextDefId(ctx, "clip");
     ctx.defs.push(
       svg(
         "clipPath",
         { id: clipId },
-        svg("rect", { width: round2(node.width), height: round2(node.height) })
+        svg("rect", { width: round2(node2.width), height: round2(node2.height) })
       )
     );
   }
@@ -68740,13 +68741,13 @@ function buildSVGStrokeAttrs(visibleStrokes, colorSpace) {
   }
   return attrs;
 }
-function hasPathLevelFills(node) {
-  return node.type === "VECTOR" && node.fillGeometry.some((geometry) => geometry.fills?.length);
+function hasPathLevelFills(node2) {
+  return node2.type === "VECTOR" && node2.fillGeometry.some((geometry) => geometry.fills?.length);
 }
-function buildShapeChildren(node, visibleFills, fillAttr, strokeAttrs, visibleStrokeCount, ctx) {
-  if (hasPathLevelFills(node)) {
+function buildShapeChildren(node2, visibleFills, fillAttr, strokeAttrs, visibleStrokeCount, ctx) {
+  if (hasPathLevelFills(node2)) {
     return vectorShapeElements(
-      node,
+      node2,
       { fill: fillAttr ?? "none", ...strokeAttrs },
       strokeAttrs,
       ctx,
@@ -68756,11 +68757,11 @@ function buildShapeChildren(node, visibleFills, fillAttr, strokeAttrs, visibleSt
   if (visibleFills.length > 1) {
     const elements = [];
     for (const fill2 of visibleFills) {
-      const ref = resolveFill(fill2, node, ctx);
+      const ref = resolveFill(fill2, node2, ctx);
       if (ref) {
         elements.push(
           ...nodeShapeElements(
-            node,
+            node2,
             ref,
             fill2 === visibleFills[visibleFills.length - 1] ? strokeAttrs : {},
             ctx
@@ -68771,33 +68772,33 @@ function buildShapeChildren(node, visibleFills, fillAttr, strokeAttrs, visibleSt
     return elements;
   }
   const hasFillOrStroke = fillAttr || visibleStrokeCount > 0;
-  if (hasFillOrStroke && !isGroupLike(node)) {
-    return nodeShapeElements(node, fillAttr, strokeAttrs, ctx);
+  if (hasFillOrStroke && !isGroupLike(node2)) {
+    return nodeShapeElements(node2, fillAttr, strokeAttrs, ctx);
   }
   return [];
 }
-function renderNode2(node, ctx) {
-  if (!node.visible) return null;
-  const { attrs: groupAttrs, clipId } = buildGroupAttrs(node, ctx);
-  if (node.type === "TEXT") {
-    const firstFill = node.fills.find((f5) => f5.visible);
-    const fillAttr2 = firstFill ? resolveFill(firstFill, node, ctx) : null;
-    const textEl = renderTextNode(node, fillAttr2, ctx.colorSpace);
+function renderNode2(node2, ctx) {
+  if (!node2.visible) return null;
+  const { attrs: groupAttrs, clipId } = buildGroupAttrs(node2, ctx);
+  if (node2.type === "TEXT") {
+    const firstFill = node2.fills.find((f5) => f5.visible);
+    const fillAttr2 = firstFill ? resolveFill(firstFill, node2, ctx) : null;
+    const textEl = renderTextNode(node2, fillAttr2, ctx.colorSpace);
     return svg("g", groupAttrs, textEl);
   }
-  const visibleFills = node.fills.filter((f5) => f5.visible);
-  const visibleStrokes = node.strokes.filter((s2) => s2.visible);
-  const fillAttr = visibleFills.length > 0 && !hasPathLevelFills(node) ? resolveFill(visibleFills[0], node, ctx) : null;
+  const visibleFills = node2.fills.filter((f5) => f5.visible);
+  const visibleStrokes = node2.strokes.filter((s2) => s2.visible);
+  const fillAttr = visibleFills.length > 0 && !hasPathLevelFills(node2) ? resolveFill(visibleFills[0], node2, ctx) : null;
   const strokeAttrs = buildSVGStrokeAttrs(visibleStrokes, ctx.colorSpace);
   const children = buildShapeChildren(
-    node,
+    node2,
     visibleFills,
     fillAttr,
     strokeAttrs,
     visibleStrokes.length,
     ctx
   );
-  const childNodes = ctx.graph.getChildren(node.id);
+  const childNodes = ctx.graph.getChildren(node2.id);
   const childContent = [];
   for (const child of childNodes) {
     const rendered = renderNode2(child, ctx);
@@ -68817,8 +68818,8 @@ function renderNode2(node, ctx) {
   }
   return svg("g", groupAttrs, ...validChildren);
 }
-function isGroupLike(node) {
-  return node.type === "GROUP";
+function isGroupLike(node2) {
+  return node2.type === "GROUP";
 }
 function renderNodesToSVG(graph, _pageId, nodeIds, options = {}) {
   const bounds = computeContentBounds(graph, nodeIds);
@@ -68834,13 +68835,13 @@ function renderNodesToSVG(graph, _pageId, nodeIds, options = {}) {
   };
   const contentNodes = [];
   for (const id of nodeIds) {
-    const node = graph.getNode(id);
-    if (!node?.visible) continue;
+    const node2 = graph.getNode(id);
+    if (!node2?.visible) continue;
     const abs2 = graph.getAbsolutePosition(id);
     const offsetX = abs2.x - minX;
     const offsetY = abs2.y - minY;
-    const needsOffset = offsetX !== node.x || offsetY !== node.y;
-    const clone = needsOffset ? { ...node, x: round2(offsetX), y: round2(offsetY) } : node;
+    const needsOffset = offsetX !== node2.x || offsetY !== node2.y;
+    const clone = needsOffset ? { ...node2, x: round2(offsetX), y: round2(offsetY) } : node2;
     const rendered = renderNode2(clone, ctx);
     if (rendered) contentNodes.push(rendered);
   }
@@ -72243,7 +72244,7 @@ var require_trees = __commonJS({
       const elems = desc.stat_desc.elems;
       let n2, m2;
       let max_code = -1;
-      let node;
+      let node2;
       s2.heap_len = 0;
       s2.heap_max = HEAP_SIZE;
       for (n2 = 0; n2 < elems; n2++) {
@@ -72255,19 +72256,19 @@ var require_trees = __commonJS({
         }
       }
       while (s2.heap_len < 2) {
-        node = s2.heap[++s2.heap_len] = max_code < 2 ? ++max_code : 0;
-        tree2[node * 2] = 1;
-        s2.depth[node] = 0;
+        node2 = s2.heap[++s2.heap_len] = max_code < 2 ? ++max_code : 0;
+        tree2[node2 * 2] = 1;
+        s2.depth[node2] = 0;
         s2.opt_len--;
         if (has_stree) {
-          s2.static_len -= stree[node * 2 + 1];
+          s2.static_len -= stree[node2 * 2 + 1];
         }
       }
       desc.max_code = max_code;
       for (n2 = s2.heap_len >> 1; n2 >= 1; n2--) {
         pqdownheap(s2, tree2, n2);
       }
-      node = elems;
+      node2 = elems;
       do {
         n2 = s2.heap[
           1
@@ -72289,13 +72290,13 @@ var require_trees = __commonJS({
         ];
         s2.heap[--s2.heap_max] = n2;
         s2.heap[--s2.heap_max] = m2;
-        tree2[node * 2] = tree2[n2 * 2] + tree2[m2 * 2];
-        s2.depth[node] = (s2.depth[n2] >= s2.depth[m2] ? s2.depth[n2] : s2.depth[m2]) + 1;
-        tree2[n2 * 2 + 1] = tree2[m2 * 2 + 1] = node;
+        tree2[node2 * 2] = tree2[n2 * 2] + tree2[m2 * 2];
+        s2.depth[node2] = (s2.depth[n2] >= s2.depth[m2] ? s2.depth[n2] : s2.depth[m2]) + 1;
+        tree2[n2 * 2 + 1] = tree2[m2 * 2 + 1] = node2;
         s2.heap[
           1
           /*SMALLEST*/
-        ] = node++;
+        ] = node2++;
         pqdownheap(
           s2,
           tree2,
@@ -77639,8 +77640,8 @@ var require_html2canvas = __commonJS({
           return Bounds2;
         })()
       );
-      var parseBounds = function(context2, node) {
-        return Bounds.fromClientRect(context2, node.getBoundingClientRect());
+      var parseBounds = function(context2, node2) {
+        return Bounds.fromClientRect(context2, node2.getBoundingClientRect());
       };
       var parseDocumentSize = function(document2) {
         var body = document2.body;
@@ -81565,15 +81566,15 @@ var require_html2canvas = __commonJS({
         document2.body.appendChild(testElement);
         var range = document2.createRange();
         testElement.innerHTML = typeof "".repeat === "function" ? "&#128104;".repeat(10) : "";
-        var node = testElement.firstChild;
-        var textList = toCodePoints$1(node.data).map(function(i3) {
+        var node2 = testElement.firstChild;
+        var textList = toCodePoints$1(node2.data).map(function(i3) {
           return fromCodePoint$1(i3);
         });
         var offset = 0;
         var prev = {};
         var supports = textList.every(function(text, i3) {
-          range.setStart(node, offset);
-          range.setEnd(node, offset + text.length);
+          range.setStart(node2, offset);
+          range.setEnd(node2, offset + text.length);
           var rect = range.getBoundingClientRect();
           offset += text.length;
           var boundAhead = rect.x > prev.x || rect.y > prev.y;
@@ -81633,10 +81634,10 @@ var require_html2canvas = __commonJS({
           var data = ctx.getImageData(0, 0, size, size).data;
           ctx.fillStyle = "red";
           ctx.fillRect(0, 0, size, size);
-          var node = document2.createElement("div");
-          node.style.backgroundImage = "url(" + greenImageSrc + ")";
-          node.style.height = size + "px";
-          return isGreenPixel(data) ? loadSerializedSVG$1(createForeignObjectSVG(size, size, 0, 0, node)) : Promise.reject(false);
+          var node2 = document2.createElement("div");
+          node2.style.backgroundImage = "url(" + greenImageSrc + ")";
+          node2.style.height = size + "px";
+          return isGreenPixel(data) ? loadSerializedSVG$1(createForeignObjectSVG(size, size, 0, 0, node2)) : Promise.reject(false);
         }).then(function(img2) {
           ctx.drawImage(img2, 0, 0);
           return isGreenPixel(ctx.getImageData(0, 0, size, size).data);
@@ -81644,7 +81645,7 @@ var require_html2canvas = __commonJS({
           return false;
         });
       };
-      var createForeignObjectSVG = function(width, height, x3, y3, node) {
+      var createForeignObjectSVG = function(width, height, x3, y3, node2) {
         var xmlns = "http://www.w3.org/2000/svg";
         var svg2 = document.createElementNS(xmlns, "svg");
         var foreignObject = document.createElementNS(xmlns, "foreignObject");
@@ -81656,7 +81657,7 @@ var require_html2canvas = __commonJS({
         foreignObject.setAttributeNS(null, "y", y3.toString());
         foreignObject.setAttributeNS(null, "externalResourcesRequired", "true");
         svg2.appendChild(foreignObject);
-        foreignObject.appendChild(node);
+        foreignObject.appendChild(node2);
         return svg2;
       };
       var loadSerializedSVG$1 = function(svg2) {
@@ -81721,44 +81722,44 @@ var require_html2canvas = __commonJS({
           return TextBounds2;
         })()
       );
-      var parseTextBounds = function(context2, value, styles, node) {
+      var parseTextBounds = function(context2, value, styles, node2) {
         var textList = breakText(value, styles);
         var textBounds = [];
         var offset = 0;
         textList.forEach(function(text) {
           if (styles.textDecorationLine.length || text.trim().length > 0) {
             if (FEATURES.SUPPORT_RANGE_BOUNDS) {
-              var clientRects = createRange(node, offset, text.length).getClientRects();
+              var clientRects = createRange(node2, offset, text.length).getClientRects();
               if (clientRects.length > 1) {
                 var subSegments = segmentGraphemes(text);
                 var subOffset_1 = 0;
                 subSegments.forEach(function(subSegment) {
-                  textBounds.push(new TextBounds(subSegment, Bounds.fromDOMRectList(context2, createRange(node, subOffset_1 + offset, subSegment.length).getClientRects())));
+                  textBounds.push(new TextBounds(subSegment, Bounds.fromDOMRectList(context2, createRange(node2, subOffset_1 + offset, subSegment.length).getClientRects())));
                   subOffset_1 += subSegment.length;
                 });
               } else {
                 textBounds.push(new TextBounds(text, Bounds.fromDOMRectList(context2, clientRects)));
               }
             } else {
-              var replacementNode = node.splitText(text.length);
-              textBounds.push(new TextBounds(text, getWrapperBounds(context2, node)));
-              node = replacementNode;
+              var replacementNode = node2.splitText(text.length);
+              textBounds.push(new TextBounds(text, getWrapperBounds(context2, node2)));
+              node2 = replacementNode;
             }
           } else if (!FEATURES.SUPPORT_RANGE_BOUNDS) {
-            node = node.splitText(text.length);
+            node2 = node2.splitText(text.length);
           }
           offset += text.length;
         });
         return textBounds;
       };
-      var getWrapperBounds = function(context2, node) {
-        var ownerDocument = node.ownerDocument;
+      var getWrapperBounds = function(context2, node2) {
+        var ownerDocument = node2.ownerDocument;
         if (ownerDocument) {
           var wrapper = ownerDocument.createElement("html2canvaswrapper");
-          wrapper.appendChild(node.cloneNode(true));
-          var parentNode = node.parentNode;
+          wrapper.appendChild(node2.cloneNode(true));
+          var parentNode = node2.parentNode;
           if (parentNode) {
-            parentNode.replaceChild(wrapper, node);
+            parentNode.replaceChild(wrapper, node2);
             var bounds = parseBounds(context2, wrapper);
             if (wrapper.firstChild) {
               parentNode.replaceChild(wrapper.firstChild, wrapper);
@@ -81768,14 +81769,14 @@ var require_html2canvas = __commonJS({
         }
         return Bounds.EMPTY;
       };
-      var createRange = function(node, offset, length) {
-        var ownerDocument = node.ownerDocument;
+      var createRange = function(node2, offset, length) {
+        var ownerDocument = node2.ownerDocument;
         if (!ownerDocument) {
           throw new Error("Node has no owner document");
         }
         var range = ownerDocument.createRange();
-        range.setStart(node, offset);
-        range.setEnd(node, offset + length);
+        range.setStart(node2, offset);
+        range.setEnd(node2, offset + length);
         return range;
       };
       var segmentGraphemes = function(value) {
@@ -81838,9 +81839,9 @@ var require_html2canvas = __commonJS({
       var TextContainer = (
         /** @class */
         /* @__PURE__ */ (function() {
-          function TextContainer2(context2, node, styles) {
-            this.text = transform2(node.data, styles.textTransform);
-            this.textBounds = parseTextBounds(context2, this.text, styles, node);
+          function TextContainer2(context2, node2, styles) {
+            this.text = transform2(node2.data, styles.textTransform);
+            this.textBounds = parseTextBounds(context2, this.text, styles, node2);
           }
           return TextContainer2;
         })()
@@ -81960,9 +81961,9 @@ var require_html2canvas = __commonJS({
         }
         return bounds;
       };
-      var getInputValue = function(node) {
-        var value = node.type === PASSWORD ? new Array(node.value.length + 1).join("\u2022") : node.value;
-        return value.length === 0 ? node.placeholder || "" : value;
+      var getInputValue = function(node2) {
+        var value = node2.type === PASSWORD ? new Array(node2.value.length + 1).join("\u2022") : node2.value;
+        return value.length === 0 ? node2.placeholder || "" : value;
       };
       var CHECKBOX = "checkbox";
       var RADIO = "radio";
@@ -82055,8 +82056,8 @@ var require_html2canvas = __commonJS({
         })(ElementContainer)
       );
       var LIST_OWNERS = ["OL", "UL", "MENU"];
-      var parseNodeTree = function(context2, node, parent, root) {
-        for (var childNode = node.firstChild, nextNode = void 0; childNode; childNode = nextNode) {
+      var parseNodeTree = function(context2, node2, parent, root) {
+        for (var childNode = node2.firstChild, nextNode = void 0; childNode; childNode = nextNode) {
           nextNode = childNode.nextSibling;
           if (isTextNode(childNode) && childNode.data.trim().length > 0) {
             parent.textNodes.push(new TextContainer(context2, childNode, parent.styles));
@@ -82124,71 +82125,71 @@ var require_html2canvas = __commonJS({
         parseNodeTree(context2, element, container, container);
         return container;
       };
-      var createsRealStackingContext = function(node, container, root) {
-        return container.styles.isPositionedWithZIndex() || container.styles.opacity < 1 || container.styles.isTransformed() || isBodyElement(node) && root.styles.isTransparent();
+      var createsRealStackingContext = function(node2, container, root) {
+        return container.styles.isPositionedWithZIndex() || container.styles.opacity < 1 || container.styles.isTransformed() || isBodyElement(node2) && root.styles.isTransparent();
       };
       var createsStackingContext = function(styles) {
         return styles.isPositioned() || styles.isFloating();
       };
-      var isTextNode = function(node) {
-        return node.nodeType === Node.TEXT_NODE;
+      var isTextNode = function(node2) {
+        return node2.nodeType === Node.TEXT_NODE;
       };
-      var isElementNode = function(node) {
-        return node.nodeType === Node.ELEMENT_NODE;
+      var isElementNode = function(node2) {
+        return node2.nodeType === Node.ELEMENT_NODE;
       };
-      var isHTMLElementNode = function(node) {
-        return isElementNode(node) && typeof node.style !== "undefined" && !isSVGElementNode(node);
+      var isHTMLElementNode = function(node2) {
+        return isElementNode(node2) && typeof node2.style !== "undefined" && !isSVGElementNode(node2);
       };
       var isSVGElementNode = function(element) {
         return typeof element.className === "object";
       };
-      var isLIElement = function(node) {
-        return node.tagName === "LI";
+      var isLIElement = function(node2) {
+        return node2.tagName === "LI";
       };
-      var isOLElement = function(node) {
-        return node.tagName === "OL";
+      var isOLElement = function(node2) {
+        return node2.tagName === "OL";
       };
-      var isInputElement = function(node) {
-        return node.tagName === "INPUT";
+      var isInputElement = function(node2) {
+        return node2.tagName === "INPUT";
       };
-      var isHTMLElement = function(node) {
-        return node.tagName === "HTML";
+      var isHTMLElement = function(node2) {
+        return node2.tagName === "HTML";
       };
-      var isSVGElement = function(node) {
-        return node.tagName === "svg";
+      var isSVGElement = function(node2) {
+        return node2.tagName === "svg";
       };
-      var isBodyElement = function(node) {
-        return node.tagName === "BODY";
+      var isBodyElement = function(node2) {
+        return node2.tagName === "BODY";
       };
-      var isCanvasElement = function(node) {
-        return node.tagName === "CANVAS";
+      var isCanvasElement = function(node2) {
+        return node2.tagName === "CANVAS";
       };
-      var isVideoElement = function(node) {
-        return node.tagName === "VIDEO";
+      var isVideoElement = function(node2) {
+        return node2.tagName === "VIDEO";
       };
-      var isImageElement = function(node) {
-        return node.tagName === "IMG";
+      var isImageElement = function(node2) {
+        return node2.tagName === "IMG";
       };
-      var isIFrameElement = function(node) {
-        return node.tagName === "IFRAME";
+      var isIFrameElement = function(node2) {
+        return node2.tagName === "IFRAME";
       };
-      var isStyleElement = function(node) {
-        return node.tagName === "STYLE";
+      var isStyleElement = function(node2) {
+        return node2.tagName === "STYLE";
       };
-      var isScriptElement = function(node) {
-        return node.tagName === "SCRIPT";
+      var isScriptElement = function(node2) {
+        return node2.tagName === "SCRIPT";
       };
-      var isTextareaElement = function(node) {
-        return node.tagName === "TEXTAREA";
+      var isTextareaElement = function(node2) {
+        return node2.tagName === "TEXTAREA";
       };
-      var isSelectElement = function(node) {
-        return node.tagName === "SELECT";
+      var isSelectElement = function(node2) {
+        return node2.tagName === "SELECT";
       };
-      var isSlotElement = function(node) {
-        return node.tagName === "SLOT";
+      var isSlotElement = function(node2) {
+        return node2.tagName === "SLOT";
       };
-      var isCustomElement = function(node) {
-        return node.tagName.indexOf("-") > 0;
+      var isCustomElement = function(node2) {
+        return node2.tagName.indexOf("-") > 0;
       };
       var CounterState = (
         /** @class */
@@ -82737,27 +82738,27 @@ var require_html2canvas = __commonJS({
             documentClone.close();
             return iframeLoad;
           };
-          DocumentCloner2.prototype.createElementClone = function(node) {
+          DocumentCloner2.prototype.createElementClone = function(node2) {
             if (isDebugging(
-              node,
+              node2,
               2
               /* CLONE */
             )) {
               debugger;
             }
-            if (isCanvasElement(node)) {
-              return this.createCanvasClone(node);
+            if (isCanvasElement(node2)) {
+              return this.createCanvasClone(node2);
             }
-            if (isVideoElement(node)) {
-              return this.createVideoClone(node);
+            if (isVideoElement(node2)) {
+              return this.createVideoClone(node2);
             }
-            if (isStyleElement(node)) {
-              return this.createStyleClone(node);
+            if (isStyleElement(node2)) {
+              return this.createStyleClone(node2);
             }
-            var clone = node.cloneNode(false);
+            var clone = node2.cloneNode(false);
             if (isImageElement(clone)) {
-              if (isImageElement(node) && node.currentSrc && node.currentSrc !== node.src) {
-                clone.src = node.currentSrc;
+              if (isImageElement(node2) && node2.currentSrc && node2.currentSrc !== node2.src) {
+                clone.src = node2.currentSrc;
                 clone.srcset = "";
               }
               if (clone.loading === "lazy") {
@@ -82769,14 +82770,14 @@ var require_html2canvas = __commonJS({
             }
             return clone;
           };
-          DocumentCloner2.prototype.createCustomElementClone = function(node) {
+          DocumentCloner2.prototype.createCustomElementClone = function(node2) {
             var clone = document.createElement("html2canvascustomelement");
-            copyCSSStyles(node.style, clone);
+            copyCSSStyles(node2.style, clone);
             return clone;
           };
-          DocumentCloner2.prototype.createStyleClone = function(node) {
+          DocumentCloner2.prototype.createStyleClone = function(node2) {
             try {
-              var sheet = node.sheet;
+              var sheet = node2.sheet;
               if (sheet && sheet.cssRules) {
                 var css = [].slice.call(sheet.cssRules, 0).reduce(function(css2, rule) {
                   if (rule && typeof rule.cssText === "string") {
@@ -82784,7 +82785,7 @@ var require_html2canvas = __commonJS({
                   }
                   return css2;
                 }, "");
-                var style = node.cloneNode(false);
+                var style = node2.cloneNode(false);
                 style.textContent = css;
                 return style;
               }
@@ -82794,7 +82795,7 @@ var require_html2canvas = __commonJS({
                 throw e7;
               }
             }
-            return node.cloneNode(false);
+            return node2.cloneNode(false);
           };
           DocumentCloner2.prototype.createCanvasClone = function(canvas) {
             var _a2;
@@ -82861,9 +82862,9 @@ var require_html2canvas = __commonJS({
               }
             }
           };
-          DocumentCloner2.prototype.cloneChildNodes = function(node, clone, copyStyles) {
+          DocumentCloner2.prototype.cloneChildNodes = function(node2, clone, copyStyles) {
             var _this = this;
-            for (var child = node.shadowRoot ? node.shadowRoot.firstChild : node.firstChild; child; child = child.nextSibling) {
+            for (var child = node2.shadowRoot ? node2.shadowRoot.firstChild : node2.firstChild; child; child = child.nextSibling) {
               if (isElementNode(child) && isSlotElement(child) && typeof child.assignedNodes === "function") {
                 var assignedNodes = child.assignedNodes();
                 if (assignedNodes.length) {
@@ -82876,56 +82877,56 @@ var require_html2canvas = __commonJS({
               }
             }
           };
-          DocumentCloner2.prototype.cloneNode = function(node, copyStyles) {
-            if (isTextNode(node)) {
-              return document.createTextNode(node.data);
+          DocumentCloner2.prototype.cloneNode = function(node2, copyStyles) {
+            if (isTextNode(node2)) {
+              return document.createTextNode(node2.data);
             }
-            if (!node.ownerDocument) {
-              return node.cloneNode(false);
+            if (!node2.ownerDocument) {
+              return node2.cloneNode(false);
             }
-            var window2 = node.ownerDocument.defaultView;
-            if (window2 && isElementNode(node) && (isHTMLElementNode(node) || isSVGElementNode(node))) {
-              var clone = this.createElementClone(node);
+            var window2 = node2.ownerDocument.defaultView;
+            if (window2 && isElementNode(node2) && (isHTMLElementNode(node2) || isSVGElementNode(node2))) {
+              var clone = this.createElementClone(node2);
               clone.style.transitionProperty = "none";
-              var style = window2.getComputedStyle(node);
-              var styleBefore = window2.getComputedStyle(node, ":before");
-              var styleAfter = window2.getComputedStyle(node, ":after");
-              if (this.referenceElement === node && isHTMLElementNode(clone)) {
+              var style = window2.getComputedStyle(node2);
+              var styleBefore = window2.getComputedStyle(node2, ":before");
+              var styleAfter = window2.getComputedStyle(node2, ":after");
+              if (this.referenceElement === node2 && isHTMLElementNode(clone)) {
                 this.clonedReferenceElement = clone;
               }
               if (isBodyElement(clone)) {
                 createPseudoHideStyles(clone);
               }
               var counters = this.counters.parse(new CSSParsedCounterDeclaration(this.context, style));
-              var before = this.resolvePseudoContent(node, clone, styleBefore, PseudoElementType.BEFORE);
-              if (isCustomElement(node)) {
+              var before = this.resolvePseudoContent(node2, clone, styleBefore, PseudoElementType.BEFORE);
+              if (isCustomElement(node2)) {
                 copyStyles = true;
               }
-              if (!isVideoElement(node)) {
-                this.cloneChildNodes(node, clone, copyStyles);
+              if (!isVideoElement(node2)) {
+                this.cloneChildNodes(node2, clone, copyStyles);
               }
               if (before) {
                 clone.insertBefore(before, clone.firstChild);
               }
-              var after = this.resolvePseudoContent(node, clone, styleAfter, PseudoElementType.AFTER);
+              var after = this.resolvePseudoContent(node2, clone, styleAfter, PseudoElementType.AFTER);
               if (after) {
                 clone.appendChild(after);
               }
               this.counters.pop(counters);
-              if (style && (this.options.copyStyles || isSVGElementNode(node)) && !isIFrameElement(node) || copyStyles) {
+              if (style && (this.options.copyStyles || isSVGElementNode(node2)) && !isIFrameElement(node2) || copyStyles) {
                 copyCSSStyles(style, clone);
               }
-              if (node.scrollTop !== 0 || node.scrollLeft !== 0) {
-                this.scrolledElements.push([clone, node.scrollLeft, node.scrollTop]);
+              if (node2.scrollTop !== 0 || node2.scrollLeft !== 0) {
+                this.scrolledElements.push([clone, node2.scrollLeft, node2.scrollTop]);
               }
-              if ((isTextareaElement(node) || isSelectElement(node)) && (isTextareaElement(clone) || isSelectElement(clone))) {
-                clone.value = node.value;
+              if ((isTextareaElement(node2) || isSelectElement(node2)) && (isTextareaElement(clone) || isSelectElement(clone))) {
+                clone.value = node2.value;
               }
               return clone;
             }
-            return node.cloneNode(false);
+            return node2.cloneNode(false);
           };
-          DocumentCloner2.prototype.resolvePseudoContent = function(node, clone, style, pseudoElt) {
+          DocumentCloner2.prototype.resolvePseudoContent = function(node2, clone, style, pseudoElt) {
             var _this = this;
             if (!style) {
               return;
@@ -82951,7 +82952,7 @@ var require_html2canvas = __commonJS({
                 if (token.name === "attr") {
                   var attr = token.values.filter(isIdentToken);
                   if (attr.length) {
-                    anonymousReplacedElement.appendChild(document2.createTextNode(node.getAttribute(attr[0].value) || ""));
+                    anonymousReplacedElement.appendChild(document2.createTextNode(node2.getAttribute(attr[0].value) || ""));
                   }
                 } else if (token.name === "counter") {
                   var _a2 = token.values.filter(nonFunctionArgSeparator), counter = _a2[0], counterStyle = _a2[1];
@@ -86018,15 +86019,15 @@ var require_purify_cjs = __commonJS({
         }
         return false;
       };
-      const _forceRemove = function _forceRemove2(node) {
+      const _forceRemove = function _forceRemove2(node2) {
         arrayPush(DOMPurify.removed, {
-          element: node
+          element: node2
         });
         try {
-          getParentNode(node).removeChild(node);
+          getParentNode(node2).removeChild(node2);
         } catch (_3) {
-          remove(node);
-          if (!getParentNode(node)) {
+          remove(node2);
+          if (!getParentNode(node2)) {
             throw typeErrorCreate("a node selected for removal could not be detached from its tree and cannot be safely returned; refusing to sanitize in place");
           }
         }
@@ -86107,12 +86108,12 @@ var require_purify_cjs = __commonJS({
       const _neutralizeSubtree = function _neutralizeSubtree2(root) {
         const stack = [root];
         while (stack.length > 0) {
-          const node = stack.pop();
-          const nodeType = getNodeType ? getNodeType(node) : node.nodeType;
+          const node2 = stack.pop();
+          const nodeType = getNodeType ? getNodeType(node2) : node2.nodeType;
           if (nodeType === NODE_TYPE.element) {
-            _stripDisallowedAttributes(node);
+            _stripDisallowedAttributes(node2);
           }
-          const childNodes = getChildNodes(node);
+          const childNodes = getChildNodes(node2);
           if (childNodes) {
             for (let i2 = childNodes.length - 1; i2 >= 0; --i2) {
               stack.push(childNodes[i2]);
@@ -86126,18 +86127,18 @@ var require_purify_cjs = __commonJS({
         }
         const stack = [root];
         while (stack.length > 0) {
-          const node = stack.pop();
-          const nodeType = getNodeType ? getNodeType(node) : node.nodeType;
-          if (nodeType === NODE_TYPE.processingInstruction || nodeType === NODE_TYPE.comment && regExpTest(COMMENT_MARKUP_PROBE, node.data)) {
+          const node2 = stack.pop();
+          const nodeType = getNodeType ? getNodeType(node2) : node2.nodeType;
+          if (nodeType === NODE_TYPE.processingInstruction || nodeType === NODE_TYPE.comment && regExpTest(COMMENT_MARKUP_PROBE, node2.data)) {
             try {
-              remove(node);
+              remove(node2);
             } catch (_3) {
             }
             continue;
           }
           if (nodeType === NODE_TYPE.element) {
-            const element = node;
-            const lcTag = transformCaseFunc(getNodeName ? getNodeName(node) : node.nodeName);
+            const element = node2;
+            const lcTag = transformCaseFunc(getNodeName ? getNodeName(node2) : node2.nodeName);
             try {
               if (element.hasAttribute && element.hasAttribute("patchsrc")) {
                 element.removeAttribute("patchsrc");
@@ -86148,7 +86149,7 @@ var require_purify_cjs = __commonJS({
             } catch (_3) {
             }
           }
-          const childNodes = getChildNodes(node);
+          const childNodes = getChildNodes(node2);
           if (childNodes) {
             for (let i2 = childNodes.length - 1; i2 >= 0; --i2) {
               stack.push(childNodes[i2]);
@@ -86207,13 +86208,13 @@ var require_purify_cjs = __commonJS({
         value = stringReplace(value, TMPLIT_EXPR$1, " ");
         return value;
       };
-      const _scrubTemplateExpressions2 = function _scrubTemplateExpressions(node) {
+      const _scrubTemplateExpressions2 = function _scrubTemplateExpressions(node2) {
         var _node$querySelectorAl;
-        node.normalize();
-        const doc = getOwnerDocument ? getOwnerDocument(node) : node.ownerDocument;
+        node2.normalize();
+        const doc = getOwnerDocument ? getOwnerDocument(node2) : node2.ownerDocument;
         const walker = createNodeIterator.call(
-          doc || node,
-          node,
+          doc || node2,
+          node2,
           // eslint-disable-next-line no-bitwise
           NodeFilter.SHOW_TEXT | NodeFilter.SHOW_COMMENT | NodeFilter.SHOW_CDATA_SECTION | NodeFilter.SHOW_PROCESSING_INSTRUCTION,
           null
@@ -86223,7 +86224,7 @@ var require_purify_cjs = __commonJS({
           currentNode.data = _stripTemplateExpressions(currentNode.data);
           currentNode = walker.nextNode();
         }
-        const templates = (_node$querySelectorAl = node.querySelectorAll) === null || _node$querySelectorAl === void 0 ? void 0 : _node$querySelectorAl.call(node, "template");
+        const templates = (_node$querySelectorAl = node2.querySelectorAll) === null || _node$querySelectorAl === void 0 ? void 0 : _node$querySelectorAl.call(node2, "template");
         if (templates) {
           arrayForEach(templates, (tmpl) => {
             if (_isDocumentFragment(tmpl.content)) {
@@ -86561,10 +86562,10 @@ var require_purify_cjs = __commonJS({
             _sanitizeShadowDOM2(item.shadow);
             continue;
           }
-          const node = item.node;
-          const nodeType = getNodeType ? getNodeType(node) : node.nodeType;
+          const node2 = item.node;
+          const nodeType = getNodeType ? getNodeType(node2) : node2.nodeType;
           const isElement2 = nodeType === NODE_TYPE.element;
-          const childNodes = getChildNodes(node);
+          const childNodes = getChildNodes(node2);
           if (childNodes) {
             for (let i2 = childNodes.length - 1; i2 >= 0; --i2) {
               stack.push({
@@ -86574,9 +86575,9 @@ var require_purify_cjs = __commonJS({
             }
           }
           if (isElement2) {
-            const rootName = getNodeName ? getNodeName(node) : null;
+            const rootName = getNodeName ? getNodeName(node2) : null;
             if (typeof rootName === "string" && transformCaseFunc(rootName) === "template") {
-              const content = node.content;
+              const content = node2.content;
               if (_isDocumentFragment(content)) {
                 stack.push({
                   node: content,
@@ -86586,7 +86587,7 @@ var require_purify_cjs = __commonJS({
             }
           }
           if (isElement2) {
-            const sr2 = getShadowRoot(node);
+            const sr2 = getShadowRoot(node2);
             if (_isDocumentFragment(sr2)) {
               stack.push({
                 node: null,
@@ -88549,7 +88550,7 @@ var require_microtask = __commonJS({
     var microtask = safeGetBuiltIn("queueMicrotask");
     var notify;
     var toggle;
-    var node;
+    var node2;
     var promise;
     var then;
     if (!microtask) {
@@ -88567,10 +88568,10 @@ var require_microtask = __commonJS({
       };
       if (!IS_IOS && !IS_NODE && !IS_WEBOS_WEBKIT && MutationObserver && document2) {
         toggle = true;
-        node = document2.createTextNode("");
-        new MutationObserver(flush).observe(node, { characterData: true });
+        node2 = document2.createTextNode("");
+        new MutationObserver(flush).observe(node2, { characterData: true });
         notify = function() {
-          node.data = toggle = !toggle;
+          node2.data = toggle = !toggle;
         };
       } else if (!IS_IOS_PEBBLE && Promise2 && Promise2.resolve) {
         promise = Promise2.resolve(void 0);
@@ -94152,7 +94153,7 @@ var require_lib2 = __commonJS({
       }
       return preset;
     }
-    function node(_ref) {
+    function node2(_ref) {
       var DOMParser2 = _ref.DOMParser, canvas = _ref.canvas, fetch3 = _ref.fetch;
       return {
         window: null,
@@ -94167,7 +94168,7 @@ var require_lib2 = __commonJS({
     var index = /* @__PURE__ */ Object.freeze({
       __proto__: null,
       offscreen,
-      node
+      node: node2
     });
     function compressSpaces(str) {
       return str.replace(/(?!\u3000)\s+/gm, " ");
@@ -95575,12 +95576,12 @@ var require_lib2 = __commonJS({
       skewY: SkewY
     };
     var Element = /* @__PURE__ */ (function() {
-      function Element2(document2, node2) {
+      function Element2(document2, node3) {
         var _this = this;
         var captureTextNodes = arguments.length > 2 && arguments[2] !== void 0 ? arguments[2] : false;
         _classCallCheck__default["default"](this, Element2);
         this.document = document2;
-        this.node = node2;
+        this.node = node3;
         this.captureTextNodes = captureTextNodes;
         this.attributes = /* @__PURE__ */ Object.create(null);
         this.styles = /* @__PURE__ */ Object.create(null);
@@ -95589,10 +95590,10 @@ var require_lib2 = __commonJS({
         this.animationFrozenValue = "";
         this.parent = null;
         this.children = [];
-        if (!node2 || node2.nodeType !== 1) {
+        if (!node3 || node3.nodeType !== 1) {
           return;
         }
-        Array.from(node2.attributes).forEach(function(attribute) {
+        Array.from(node3.attributes).forEach(function(attribute) {
           var nodeName = normalizeAttributeName(attribute.nodeName);
           _this.attributes[nodeName] = new Property(document2, nodeName, attribute.value);
         });
@@ -95618,7 +95619,7 @@ var require_lib2 = __commonJS({
             definitions[id.getString()] = this;
           }
         }
-        Array.from(node2.childNodes).forEach(function(childNode) {
+        Array.from(node3.childNodes).forEach(function(childNode) {
           if (childNode.nodeType === 1) {
             _this.addChild(childNode);
           } else if (captureTextNodes && (childNode.nodeType === 3 || childNode.nodeType === 4)) {
@@ -95750,11 +95751,11 @@ var require_lib2 = __commonJS({
         key: "matchesSelector",
         value: function matchesSelector(selector) {
           var _node$getAttribute;
-          var node2 = this.node;
-          if (typeof node2.matches === "function") {
-            return node2.matches(selector);
+          var node3 = this.node;
+          if (typeof node3.matches === "function") {
+            return node3.matches(selector);
           }
-          var styleClasses = (_node$getAttribute = node2.getAttribute) === null || _node$getAttribute === void 0 ? void 0 : _node$getAttribute.call(node2, "class");
+          var styleClasses = (_node$getAttribute = node3.getAttribute) === null || _node$getAttribute === void 0 ? void 0 : _node$getAttribute.call(node3, "class");
           if (!styleClasses || styleClasses === "") {
             return false;
           }
@@ -95845,10 +95846,10 @@ var require_lib2 = __commonJS({
     var UnknownElement = /* @__PURE__ */ (function(_Element) {
       _inherits__default["default"](UnknownElement2, _Element);
       var _super = _createSuper$J(UnknownElement2);
-      function UnknownElement2(document2, node2, captureTextNodes) {
+      function UnknownElement2(document2, node3, captureTextNodes) {
         var _this;
         _classCallCheck__default["default"](this, UnknownElement2);
-        _this = _super.call(this, document2, node2, captureTextNodes);
+        _this = _super.call(this, document2, node3, captureTextNodes);
         return _this;
       }
       return UnknownElement2;
@@ -96491,10 +96492,10 @@ var require_lib2 = __commonJS({
     var PathElement = /* @__PURE__ */ (function(_RenderedElement) {
       _inherits__default["default"](PathElement2, _RenderedElement);
       var _super = _createSuper$G(PathElement2);
-      function PathElement2(document2, node2, captureTextNodes) {
+      function PathElement2(document2, node3, captureTextNodes) {
         var _this;
         _classCallCheck__default["default"](this, PathElement2);
-        _this = _super.call(this, document2, node2, captureTextNodes);
+        _this = _super.call(this, document2, node3, captureTextNodes);
         _this.type = "path";
         _this.pathParser = null;
         _this.pathParser = new PathParser(_this.getAttribute("d").getString());
@@ -96905,10 +96906,10 @@ var require_lib2 = __commonJS({
     var GlyphElement = /* @__PURE__ */ (function(_PathElement) {
       _inherits__default["default"](GlyphElement2, _PathElement);
       var _super = _createSuper$F(GlyphElement2);
-      function GlyphElement2(document2, node2, captureTextNodes) {
+      function GlyphElement2(document2, node3, captureTextNodes) {
         var _this;
         _classCallCheck__default["default"](this, GlyphElement2);
-        _this = _super.call(this, document2, node2, captureTextNodes);
+        _this = _super.call(this, document2, node3, captureTextNodes);
         _this.type = "glyph";
         _this.horizAdvX = _this.getAttribute("horiz-adv-x").getNumber();
         _this.unicode = _this.getAttribute("unicode").getString();
@@ -96945,10 +96946,10 @@ var require_lib2 = __commonJS({
     var TextElement = /* @__PURE__ */ (function(_RenderedElement) {
       _inherits__default["default"](TextElement2, _RenderedElement);
       var _super = _createSuper$E(TextElement2);
-      function TextElement2(document2, node2, captureTextNodes) {
+      function TextElement2(document2, node3, captureTextNodes) {
         var _this;
         _classCallCheck__default["default"](this, TextElement2);
-        _this = _super.call(this, document2, node2, (this instanceof TextElement2 ? this.constructor : void 0) === TextElement2 ? true : captureTextNodes);
+        _this = _super.call(this, document2, node3, (this instanceof TextElement2 ? this.constructor : void 0) === TextElement2 ? true : captureTextNodes);
         _this.type = "text";
         _this.x = 0;
         _this.y = 0;
@@ -97047,8 +97048,8 @@ var require_lib2 = __commonJS({
         }
       }, {
         key: "getTextFromNode",
-        value: function getTextFromNode(node2) {
-          var textNode = node2 || this.node;
+        value: function getTextFromNode(node3) {
+          var textNode = node3 || this.node;
           var childNodes = Array.from(textNode.parentNode.childNodes);
           var index2 = childNodes.indexOf(textNode);
           var lastIndex = childNodes.length - 1;
@@ -97363,10 +97364,10 @@ var require_lib2 = __commonJS({
     var TSpanElement = /* @__PURE__ */ (function(_TextElement) {
       _inherits__default["default"](TSpanElement2, _TextElement);
       var _super = _createSuper$D(TSpanElement2);
-      function TSpanElement2(document2, node2, captureTextNodes) {
+      function TSpanElement2(document2, node3, captureTextNodes) {
         var _this;
         _classCallCheck__default["default"](this, TSpanElement2);
-        _this = _super.call(this, document2, node2, (this instanceof TSpanElement2 ? this.constructor : void 0) === TSpanElement2 ? true : captureTextNodes);
+        _this = _super.call(this, document2, node3, (this instanceof TSpanElement2 ? this.constructor : void 0) === TSpanElement2 ? true : captureTextNodes);
         _this.type = "tspan";
         _this.text = _this.children.length > 0 ? "" : _this.getTextFromNode();
         return _this;
@@ -97876,10 +97877,10 @@ var require_lib2 = __commonJS({
     var PolylineElement = /* @__PURE__ */ (function(_PathElement) {
       _inherits__default["default"](PolylineElement2, _PathElement);
       var _super = _createSuper$w(PolylineElement2);
-      function PolylineElement2(document2, node2, captureTextNodes) {
+      function PolylineElement2(document2, node3, captureTextNodes) {
         var _this;
         _classCallCheck__default["default"](this, PolylineElement2);
-        _this = _super.call(this, document2, node2, captureTextNodes);
+        _this = _super.call(this, document2, node3, captureTextNodes);
         _this.type = "polyline";
         _this.points = [];
         _this.points = Point.parsePath(_this.getAttribute("points").getString());
@@ -98239,10 +98240,10 @@ var require_lib2 = __commonJS({
     var GradientElement = /* @__PURE__ */ (function(_Element) {
       _inherits__default["default"](GradientElement2, _Element);
       var _super = _createSuper$q(GradientElement2);
-      function GradientElement2(document2, node2, captureTextNodes) {
+      function GradientElement2(document2, node3, captureTextNodes) {
         var _this;
         _classCallCheck__default["default"](this, GradientElement2);
-        _this = _super.call(this, document2, node2, captureTextNodes);
+        _this = _super.call(this, document2, node3, captureTextNodes);
         _this.attributesToInherit = ["gradientUnits"];
         _this.stops = [];
         var _assertThisInitialize = _assertThisInitialized__default["default"](_this), stops = _assertThisInitialize.stops, children = _assertThisInitialize.children;
@@ -98351,10 +98352,10 @@ var require_lib2 = __commonJS({
     var LinearGradientElement = /* @__PURE__ */ (function(_GradientElement) {
       _inherits__default["default"](LinearGradientElement2, _GradientElement);
       var _super = _createSuper$p(LinearGradientElement2);
-      function LinearGradientElement2(document2, node2, captureTextNodes) {
+      function LinearGradientElement2(document2, node3, captureTextNodes) {
         var _this;
         _classCallCheck__default["default"](this, LinearGradientElement2);
-        _this = _super.call(this, document2, node2, captureTextNodes);
+        _this = _super.call(this, document2, node3, captureTextNodes);
         _this.type = "linearGradient";
         _this.attributesToInherit.push("x1", "y1", "x2", "y2");
         return _this;
@@ -98413,10 +98414,10 @@ var require_lib2 = __commonJS({
     var RadialGradientElement = /* @__PURE__ */ (function(_GradientElement) {
       _inherits__default["default"](RadialGradientElement2, _GradientElement);
       var _super = _createSuper$o(RadialGradientElement2);
-      function RadialGradientElement2(document2, node2, captureTextNodes) {
+      function RadialGradientElement2(document2, node3, captureTextNodes) {
         var _this;
         _classCallCheck__default["default"](this, RadialGradientElement2);
-        _this = _super.call(this, document2, node2, captureTextNodes);
+        _this = _super.call(this, document2, node3, captureTextNodes);
         _this.type = "radialGradient";
         _this.attributesToInherit.push("cx", "cy", "r", "fx", "fy", "fr");
         return _this;
@@ -98483,10 +98484,10 @@ var require_lib2 = __commonJS({
     var StopElement = /* @__PURE__ */ (function(_Element) {
       _inherits__default["default"](StopElement2, _Element);
       var _super = _createSuper$n(StopElement2);
-      function StopElement2(document2, node2, captureTextNodes) {
+      function StopElement2(document2, node3, captureTextNodes) {
         var _this;
         _classCallCheck__default["default"](this, StopElement2);
-        _this = _super.call(this, document2, node2, captureTextNodes);
+        _this = _super.call(this, document2, node3, captureTextNodes);
         _this.type = "stop";
         var offset = Math.max(0, Math.min(1, _this.getAttribute("offset").getNumber()));
         var stopOpacity = _this.getStyle("stop-opacity");
@@ -98531,10 +98532,10 @@ var require_lib2 = __commonJS({
     var AnimateElement = /* @__PURE__ */ (function(_Element) {
       _inherits__default["default"](AnimateElement2, _Element);
       var _super = _createSuper$m(AnimateElement2);
-      function AnimateElement2(document2, node2, captureTextNodes) {
+      function AnimateElement2(document2, node3, captureTextNodes) {
         var _this;
         _classCallCheck__default["default"](this, AnimateElement2);
-        _this = _super.call(this, document2, node2, captureTextNodes);
+        _this = _super.call(this, document2, node3, captureTextNodes);
         _this.type = "animate";
         _this.duration = 0;
         _this.initialValue = null;
@@ -98815,10 +98816,10 @@ var require_lib2 = __commonJS({
     var FontElement = /* @__PURE__ */ (function(_Element) {
       _inherits__default["default"](FontElement2, _Element);
       var _super = _createSuper$j(FontElement2);
-      function FontElement2(document2, node2, captureTextNodes) {
+      function FontElement2(document2, node3, captureTextNodes) {
         var _this;
         _classCallCheck__default["default"](this, FontElement2);
-        _this = _super.call(this, document2, node2, captureTextNodes);
+        _this = _super.call(this, document2, node3, captureTextNodes);
         _this.type = "font";
         _this.glyphs = /* @__PURE__ */ Object.create(null);
         _this.horizAdvX = _this.getAttribute("horiz-adv-x").getNumber();
@@ -98899,10 +98900,10 @@ var require_lib2 = __commonJS({
     var FontFaceElement = /* @__PURE__ */ (function(_Element) {
       _inherits__default["default"](FontFaceElement2, _Element);
       var _super = _createSuper$i(FontFaceElement2);
-      function FontFaceElement2(document2, node2, captureTextNodes) {
+      function FontFaceElement2(document2, node3, captureTextNodes) {
         var _this;
         _classCallCheck__default["default"](this, FontFaceElement2);
-        _this = _super.call(this, document2, node2, captureTextNodes);
+        _this = _super.call(this, document2, node3, captureTextNodes);
         _this.type = "font-face";
         _this.ascent = _this.getAttribute("ascent").getNumber();
         _this.descent = _this.getAttribute("descent").getNumber();
@@ -99027,15 +99028,15 @@ var require_lib2 = __commonJS({
     var AElement = /* @__PURE__ */ (function(_TextElement) {
       _inherits__default["default"](AElement2, _TextElement);
       var _super = _createSuper$f(AElement2);
-      function AElement2(document2, node2, captureTextNodes) {
+      function AElement2(document2, node3, captureTextNodes) {
         var _this;
         _classCallCheck__default["default"](this, AElement2);
-        _this = _super.call(this, document2, node2, captureTextNodes);
+        _this = _super.call(this, document2, node3, captureTextNodes);
         _this.type = "a";
-        var childNodes = node2.childNodes;
+        var childNodes = node3.childNodes;
         var firstChild = childNodes[0];
-        var hasText = childNodes.length > 0 && Array.from(childNodes).every(function(node3) {
-          return node3.nodeType === 3;
+        var hasText = childNodes.length > 0 && Array.from(childNodes).every(function(node4) {
+          return node4.nodeType === 3;
         });
         _this.hasText = hasText;
         _this.text = hasText ? _this.getTextFromNode(firstChild) : "";
@@ -99189,10 +99190,10 @@ var require_lib2 = __commonJS({
     var TextPathElement = /* @__PURE__ */ (function(_TextElement) {
       _inherits__default["default"](TextPathElement2, _TextElement);
       var _super = _createSuper$e(TextPathElement2);
-      function TextPathElement2(document2, node2, captureTextNodes) {
+      function TextPathElement2(document2, node3, captureTextNodes) {
         var _this;
         _classCallCheck__default["default"](this, TextPathElement2);
-        _this = _super.call(this, document2, node2, captureTextNodes);
+        _this = _super.call(this, document2, node3, captureTextNodes);
         _this.type = "textPath";
         _this.textWidth = 0;
         _this.textHeight = 0;
@@ -99852,10 +99853,10 @@ var require_lib2 = __commonJS({
     var ImageElement = /* @__PURE__ */ (function(_RenderedElement) {
       _inherits__default["default"](ImageElement2, _RenderedElement);
       var _super = _createSuper$d(ImageElement2);
-      function ImageElement2(document2, node2, captureTextNodes) {
+      function ImageElement2(document2, node3, captureTextNodes) {
         var _this;
         _classCallCheck__default["default"](this, ImageElement2);
-        _this = _super.call(this, document2, node2, captureTextNodes);
+        _this = _super.call(this, document2, node3, captureTextNodes);
         _this.type = "image";
         _this.loaded = false;
         var href = _this.getHrefAttribute().getString();
@@ -100069,7 +100070,7 @@ var require_lib2 = __commonJS({
         key: "load",
         value: (function() {
           var _load = _asyncToGenerator__default["default"](/* @__PURE__ */ _regeneratorRuntime__default["default"].mark(function _callee(fontFamily, url) {
-            var document2, svgDocument, fonts2;
+            var document2, svgDocument, fonts;
             return _regeneratorRuntime__default["default"].wrap(function _callee$(_context) {
               while (1) {
                 switch (_context.prev = _context.next) {
@@ -100080,8 +100081,8 @@ var require_lib2 = __commonJS({
                     return document2.canvg.parser.load(url);
                   case 4:
                     svgDocument = _context.sent;
-                    fonts2 = svgDocument.getElementsByTagName("font");
-                    Array.from(fonts2).forEach(function(fontNode) {
+                    fonts = svgDocument.getElementsByTagName("font");
+                    Array.from(fonts).forEach(function(fontNode) {
                       var font = document2.createElement(fontNode);
                       document2.definitions[fontFamily] = font;
                     });
@@ -100136,13 +100137,13 @@ var require_lib2 = __commonJS({
     var StyleElement = /* @__PURE__ */ (function(_Element) {
       _inherits__default["default"](StyleElement2, _Element);
       var _super = _createSuper$b(StyleElement2);
-      function StyleElement2(document2, node2, captureTextNodes) {
+      function StyleElement2(document2, node3, captureTextNodes) {
         var _this;
         _classCallCheck__default["default"](this, StyleElement2);
-        _this = _super.call(this, document2, node2, captureTextNodes);
+        _this = _super.call(this, document2, node3, captureTextNodes);
         _this.type = "style";
         var css = compressSpaces(
-          Array.from(node2.childNodes).map(function(_3) {
+          Array.from(node3.childNodes).map(function(_3) {
             return _3.textContent;
           }).join("").replace(/(\/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+\/)|(^[\s]*\/\/.*)/gm, "").replace(/@import.*;/g, "")
           // remove imports
@@ -100344,10 +100345,10 @@ var require_lib2 = __commonJS({
     var FeColorMatrixElement = /* @__PURE__ */ (function(_Element) {
       _inherits__default["default"](FeColorMatrixElement2, _Element);
       var _super = _createSuper$9(FeColorMatrixElement2);
-      function FeColorMatrixElement2(document2, node2, captureTextNodes) {
+      function FeColorMatrixElement2(document2, node3, captureTextNodes) {
         var _this;
         _classCallCheck__default["default"](this, FeColorMatrixElement2);
-        _this = _super.call(this, document2, node2, captureTextNodes);
+        _this = _super.call(this, document2, node3, captureTextNodes);
         _this.type = "feColorMatrix";
         var matrix = toNumbers(_this.getAttribute("values").getString());
         switch (_this.getAttribute("type").getString("matrix")) {
@@ -100681,10 +100682,10 @@ var require_lib2 = __commonJS({
     var FeDropShadowElement = /* @__PURE__ */ (function(_Element) {
       _inherits__default["default"](FeDropShadowElement2, _Element);
       var _super = _createSuper$5(FeDropShadowElement2);
-      function FeDropShadowElement2(document2, node2, captureTextNodes) {
+      function FeDropShadowElement2(document2, node3, captureTextNodes) {
         var _this;
         _classCallCheck__default["default"](this, FeDropShadowElement2);
-        _this = _super.call(this, document2, node2, captureTextNodes);
+        _this = _super.call(this, document2, node3, captureTextNodes);
         _this.type = "feDropShadow";
         _this.addStylesFromStyleDefinition();
         return _this;
@@ -100808,10 +100809,10 @@ var require_lib2 = __commonJS({
     var FeGaussianBlurElement = /* @__PURE__ */ (function(_Element) {
       _inherits__default["default"](FeGaussianBlurElement2, _Element);
       var _super = _createSuper$2(FeGaussianBlurElement2);
-      function FeGaussianBlurElement2(document2, node2, captureTextNodes) {
+      function FeGaussianBlurElement2(document2, node3, captureTextNodes) {
         var _this;
         _classCallCheck__default["default"](this, FeGaussianBlurElement2);
-        _this = _super.call(this, document2, node2, captureTextNodes);
+        _this = _super.call(this, document2, node3, captureTextNodes);
         _this.type = "feGaussianBlur";
         _this.blurRadius = Math.floor(_this.getAttribute("stdDeviation").getNumber());
         _this.extraFilterDistance = _this.blurRadius;
@@ -101088,18 +101089,18 @@ var require_lib2 = __commonJS({
         }
       }, {
         key: "createElement",
-        value: function createElement(node2) {
-          var elementType = node2.nodeName.replace(/^[^:]+:/, "");
+        value: function createElement(node3) {
+          var elementType = node3.nodeName.replace(/^[^:]+:/, "");
           var ElementType = Document2.elementTypes[elementType];
           if (typeof ElementType !== "undefined") {
-            return new ElementType(this, node2);
+            return new ElementType(this, node3);
           }
-          return new UnknownElement(this, node2);
+          return new UnknownElement(this, node3);
         }
       }, {
         key: "createTextNode",
-        value: function createTextNode(node2) {
-          return new TextNode(this, node2);
+        value: function createTextNode(node3) {
+          return new TextNode(this, node3);
         }
       }, {
         key: "setViewBox",
@@ -111086,37 +111087,37 @@ var init_pdf = __esm({
 });
 
 // packages/core/src/io/formats/pptx/style.ts
-function firstVisibleFill(node) {
-  return node.fills.find((f5) => f5.visible) ?? null;
+function firstVisibleFill(node2) {
+  return node2.fills.find((f5) => f5.visible) ?? null;
 }
-function firstVisibleStroke(node) {
-  return node.strokes.find((s2) => s2.visible) ?? null;
+function firstVisibleStroke(node2) {
+  return node2.strokes.find((s2) => s2.visible) ?? null;
 }
-function isRounded(node) {
-  return effectiveRadius(node) > 0;
+function isRounded(node2) {
+  return effectiveRadius(node2) > 0;
 }
-function hasAsymmetricCorners(node) {
-  if (!node.independentCorners) return false;
+function hasAsymmetricCorners(node2) {
+  if (!node2.independentCorners) return false;
   const radii = [
-    node.topLeftRadius,
-    node.topRightRadius,
-    node.bottomRightRadius,
-    node.bottomLeftRadius
+    node2.topLeftRadius,
+    node2.topRightRadius,
+    node2.bottomRightRadius,
+    node2.bottomLeftRadius
   ];
   return radii.some((radius) => Math.abs(radius - radii[0]) > 1e-6);
 }
-function effectiveRadius(node) {
-  return node.independentCorners ? node.topLeftRadius : node.cornerRadius;
+function effectiveRadius(node2) {
+  return node2.independentCorners ? node2.topLeftRadius : node2.cornerRadius;
 }
-function getSolidOffsetShadow(node) {
-  const e6 = node.effects.find((fx) => fx.visible && fx.type === "DROP_SHADOW");
+function getSolidOffsetShadow(node2) {
+  const e6 = node2.effects.find((fx) => fx.visible && fx.type === "DROP_SHADOW");
   if (!e6) return null;
   if (e6.radius > 1) return null;
   if (Math.abs(e6.offset.x) < 0.5 && Math.abs(e6.offset.y) < 0.5 && e6.spread <= 0) return null;
   return e6;
 }
-function mapShadow(node, opacity) {
-  const e6 = node.effects.find(
+function mapShadow(node2, opacity) {
+  const e6 = node2.effects.find(
     (fx) => fx.visible && (fx.type === "DROP_SHADOW" || fx.type === "INNER_SHADOW")
   );
   if (!e6) return void 0;
@@ -111176,14 +111177,14 @@ function inch(ctx, px2) {
 function pt(ctx, px2) {
   return px2 * 72 / ctx.pxPerInch;
 }
-function nodeBox(ctx, node) {
-  const transform2 = getNodeTransform(ctx, node);
+function nodeBox(ctx, node2) {
+  const transform2 = getNodeTransform(ctx, node2);
   const [centerX, centerY] = matrix_default.mapPoints(transform2.matrix, [
-    node.width / 2,
-    node.height / 2
+    node2.width / 2,
+    node2.height / 2
   ]);
-  const w3 = Math.max(inch(ctx, node.width * transform2.scaleX), MIN_SIZE_IN);
-  const h4 = Math.max(inch(ctx, node.height * transform2.scaleY), MIN_SIZE_IN);
+  const w3 = Math.max(inch(ctx, node2.width * transform2.scaleX), MIN_SIZE_IN);
+  const h4 = Math.max(inch(ctx, node2.height * transform2.scaleY), MIN_SIZE_IN);
   return {
     x: ctx.offsetX + inch(ctx, centerX) - w3 / 2,
     y: ctx.offsetY + inch(ctx, centerY) - h4 / 2,
@@ -111193,8 +111194,8 @@ function nodeBox(ctx, node) {
     flipH: transform2.mirrored
   };
 }
-function hasUnsupportedTransform(ctx, node) {
-  const { matrix, scaleX, scaleY } = getNodeTransform(ctx, node);
+function hasUnsupportedTransform(ctx, node2) {
+  const { matrix, scaleX, scaleY } = getNodeTransform(ctx, node2);
   if (scaleX <= MATRIX_EPSILON || scaleY <= MATRIX_EPSILON) return true;
   if (Math.abs(matrix[6]) > MATRIX_EPSILON || Math.abs(matrix[7]) > MATRIX_EPSILON || Math.abs(matrix[8] - 1) > MATRIX_EPSILON) {
     return true;
@@ -111202,19 +111203,19 @@ function hasUnsupportedTransform(ctx, node) {
   const basisDot = matrix[0] * matrix[1] + matrix[3] * matrix[4];
   return Math.abs(basisDot) > MATRIX_EPSILON * scaleX * scaleY;
 }
-function transformNodeVector(ctx, node, vector) {
-  const { matrix } = getNodeTransform(ctx, node);
+function transformNodeVector(ctx, node2, vector) {
+  const { matrix } = getNodeTransform(ctx, node2);
   return {
     x: inch(ctx, matrix[0] * vector.x + matrix[1] * vector.y),
     y: inch(ctx, matrix[3] * vector.x + matrix[4] * vector.y)
   };
 }
-function nodeScale(ctx, node) {
-  const { scaleX, scaleY } = getNodeTransform(ctx, node);
+function nodeScale(ctx, node2) {
+  const { scaleX, scaleY } = getNodeTransform(ctx, node2);
   return { x: scaleX, y: scaleY };
 }
-function getNodeTransform(ctx, node) {
-  const matrix = matrix_default.multiply(ctx.toSlideSpace, getWorldMatrix(node, ctx.graph));
+function getNodeTransform(ctx, node2) {
+  const matrix = matrix_default.multiply(ctx.toSlideSpace, getWorldMatrix(node2, ctx.graph));
   const scaleX = Math.hypot(matrix[0], matrix[3]);
   const scaleY = Math.hypot(matrix[1], matrix[4]);
   const mirrored = matrix[0] * matrix[4] - matrix[1] * matrix[3] < 0;
@@ -111239,8 +111240,8 @@ function makeIsolatedRasterize(graph, context2) {
     if (!extracted.pageId || extracted.nodeIds.length === 0) return null;
     if (options?.paintOnly) {
       for (const nodeId of extracted.nodeIds) {
-        const node = extracted.graph.getNode(nodeId);
-        if (node) node.childIds = [];
+        const node2 = extracted.graph.getNode(nodeId);
+        if (node2) node2.childIds = [];
       }
     }
     const targets = new Set(extracted.nodeIds);
@@ -115700,7 +115701,7 @@ var require_trees2 = __commonJS({
       var elems = desc.stat_desc.elems;
       var n2, m2;
       var max_code = -1;
-      var node;
+      var node2;
       s2.heap_len = 0;
       s2.heap_max = HEAP_SIZE;
       for (n2 = 0; n2 < elems; n2++) {
@@ -115712,19 +115713,19 @@ var require_trees2 = __commonJS({
         }
       }
       while (s2.heap_len < 2) {
-        node = s2.heap[++s2.heap_len] = max_code < 2 ? ++max_code : 0;
-        tree2[node * 2] = 1;
-        s2.depth[node] = 0;
+        node2 = s2.heap[++s2.heap_len] = max_code < 2 ? ++max_code : 0;
+        tree2[node2 * 2] = 1;
+        s2.depth[node2] = 0;
         s2.opt_len--;
         if (has_stree) {
-          s2.static_len -= stree[node * 2 + 1];
+          s2.static_len -= stree[node2 * 2 + 1];
         }
       }
       desc.max_code = max_code;
       for (n2 = s2.heap_len >> 1; n2 >= 1; n2--) {
         pqdownheap(s2, tree2, n2);
       }
-      node = elems;
+      node2 = elems;
       do {
         n2 = s2.heap[
           1
@@ -115746,13 +115747,13 @@ var require_trees2 = __commonJS({
         ];
         s2.heap[--s2.heap_max] = n2;
         s2.heap[--s2.heap_max] = m2;
-        tree2[node * 2] = tree2[n2 * 2] + tree2[m2 * 2];
-        s2.depth[node] = (s2.depth[n2] >= s2.depth[m2] ? s2.depth[n2] : s2.depth[m2]) + 1;
-        tree2[n2 * 2 + 1] = tree2[m2 * 2 + 1] = node;
+        tree2[node2 * 2] = tree2[n2 * 2] + tree2[m2 * 2];
+        s2.depth[node2] = (s2.depth[n2] >= s2.depth[m2] ? s2.depth[n2] : s2.depth[m2]) + 1;
+        tree2[n2 * 2 + 1] = tree2[m2 * 2 + 1] = node2;
         s2.heap[
           1
           /*SMALLEST*/
-        ] = node++;
+        ] = node2++;
         pqdownheap(
           s2,
           tree2,
@@ -126329,7 +126330,7 @@ var init_pptxgen_es = __esm({
 
 // packages/core/src/io/formats/pptx/export.ts
 async function renderNodesToPPTX(graph, _pageId, nodeIds, options = {}) {
-  const roots = nodeIds.map((id) => graph.getNode(id)).filter((node) => node?.visible === true);
+  const roots = nodeIds.map((id) => graph.getNode(id)).filter((node2) => node2?.visible === true);
   if (!roots.length) return null;
   const { default: PptxGen } = await Promise.resolve().then(() => (init_pptxgen_es(), pptxgen_es_exports));
   const first = roots[0];
@@ -126382,29 +126383,29 @@ async function renderNodesToPPTX(graph, _pageId, nodeIds, options = {}) {
   options.onStats?.(stats);
   return new Uint8Array(raw);
 }
-async function walkNode(ctx, node, inheritedOpacity) {
-  if (!node.visible) {
+async function walkNode(ctx, node2, inheritedOpacity) {
+  if (!node2.visible) {
     ctx.stats.skipped += 1;
     return;
   }
-  const opacity = inheritedOpacity * node.opacity;
-  const fallbackReason = getFallbackReason(ctx, node);
+  const opacity = inheritedOpacity * node2.opacity;
+  const fallbackReason = getFallbackReason(ctx, node2);
   if (fallbackReason) {
-    await addFallbackImage(ctx, node, opacity, fallbackReason);
+    await addFallbackImage(ctx, node2, opacity, fallbackReason);
     return;
   }
-  if (node.type === "TEXT") {
-    addEditableText(ctx, node, opacity);
+  if (node2.type === "TEXT") {
+    addEditableText(ctx, node2, opacity);
     return;
   }
-  if (isImageLeaf(node)) {
-    await addFallbackImage(ctx, node, opacity, null);
+  if (isImageLeaf(node2)) {
+    await addFallbackImage(ctx, node2, opacity, null);
     ctx.stats.editable += 1;
     return;
   }
-  if (SHAPE_TYPES.has(node.type)) addEditableShape(ctx, node, opacity);
-  if (CONTAINER_TYPES3.has(node.type)) {
-    for (const childId of node.childIds) {
+  if (SHAPE_TYPES.has(node2.type)) addEditableShape(ctx, node2, opacity);
+  if (CONTAINER_TYPES3.has(node2.type)) {
+    for (const childId of node2.childIds) {
       const child = ctx.graph.getNode(childId);
       if (child) await walkNode(ctx, child, opacity);
     }
@@ -126450,46 +126451,46 @@ function rootRasterReason(root) {
   if (fills[0] && fills[0].type !== "SOLID") return "non-solid frame background";
   return null;
 }
-function getShadowFallbackReason(node) {
-  const shadows = node.effects.filter(
+function getShadowFallbackReason(node2) {
+  const shadows = node2.effects.filter(
     (effect) => effect.visible && (effect.type === "DROP_SHADOW" || effect.type === "INNER_SHADOW")
   );
   if (shadows.length > 1) return "multiple shadows";
   if (shadows.length === 0) return null;
   const shadow = shadows[0];
-  if (shadow.spread !== 0 && getSolidOffsetShadow(node) !== shadow) return "shadow spread";
+  if (shadow.spread !== 0 && getSolidOffsetShadow(node2) !== shadow) return "shadow spread";
   return null;
 }
-function getFallbackReason(ctx, node) {
-  const commonReason = getCommonFallbackReason(ctx, node);
+function getFallbackReason(ctx, node2) {
+  const commonReason = getCommonFallbackReason(ctx, node2);
   if (commonReason) return commonReason;
-  if (node.type === "TEXT") return getTextFallbackReason(node);
-  if (SHAPE_TYPES.has(node.type) || CONTAINER_TYPES3.has(node.type)) {
-    return getShapeFallbackReason(node);
+  if (node2.type === "TEXT") return getTextFallbackReason(node2);
+  if (SHAPE_TYPES.has(node2.type) || CONTAINER_TYPES3.has(node2.type)) {
+    return getShapeFallbackReason(node2);
   }
-  return `node type ${node.type}`;
+  return `node type ${node2.type}`;
 }
-function getCommonFallbackReason(ctx, node) {
+function getCommonFallbackReason(ctx, node2) {
   const { graph } = ctx;
-  if (hasUnsupportedTransform(ctx, node)) return "unsupported transform";
-  if (!SIMPLE_BLENDS.has(node.blendMode)) return "blend mode";
-  if (node.effects.some((e6) => e6.visible && e6.type !== "DROP_SHADOW" && e6.type !== "INNER_SHADOW"))
+  if (hasUnsupportedTransform(ctx, node2)) return "unsupported transform";
+  if (!SIMPLE_BLENDS.has(node2.blendMode)) return "blend mode";
+  if (node2.effects.some((e6) => e6.visible && e6.type !== "DROP_SHADOW" && e6.type !== "INNER_SHADOW"))
     return "blur effect";
-  const shadowReason = getShadowFallbackReason(node);
+  const shadowReason = getShadowFallbackReason(node2);
   if (shadowReason) return shadowReason;
-  if (hasAsymmetricCorners(node)) return "asymmetric corners";
-  if (node.strokes.filter((stroke) => stroke.visible).length > 1) return "multiple strokes";
-  if (node.childIds.some((id) => graph.getNode(id)?.isMask)) return "contains mask";
-  if (clipsOverflowingContent(graph, node)) return "clipped content";
-  if (isVectorOnlyContainer(graph, node)) return "vector graphics";
+  if (hasAsymmetricCorners(node2)) return "asymmetric corners";
+  if (node2.strokes.filter((stroke) => stroke.visible).length > 1) return "multiple strokes";
+  if (node2.childIds.some((id) => graph.getNode(id)?.isMask)) return "contains mask";
+  if (clipsOverflowingContent(graph, node2)) return "clipped content";
+  if (isVectorOnlyContainer(graph, node2)) return "vector graphics";
   return null;
 }
-function getTextFallbackReason(node) {
-  const fills = node.fills.filter((fill2) => fill2.visible);
+function getTextFallbackReason(node2) {
+  const fills = node2.fills.filter((fill2) => fill2.visible);
   if (fills.length > 1) return "multiple text fills";
   if (fills[0] && fills[0].type !== "SOLID") return "non-solid text fill";
-  if (node.strokes.some((stroke) => stroke.visible)) return "text stroke";
-  for (const run of node.styleRuns) {
+  if (node2.strokes.some((stroke) => stroke.visible)) return "text stroke";
+  for (const run of node2.styleRuns) {
     const runFills = run.style.fills?.filter((fill2) => fill2.visible) ?? [];
     if (runFills.length > 1 || runFills.some((fill2) => fill2.type !== "SOLID")) {
       return "unsupported text run fill";
@@ -126497,23 +126498,23 @@ function getTextFallbackReason(node) {
   }
   return null;
 }
-function getShapeFallbackReason(node) {
-  const visibleFills = node.fills.filter((fill2) => fill2.visible);
+function getShapeFallbackReason(node2) {
+  const visibleFills = node2.fills.filter((fill2) => fill2.visible);
   if (visibleFills.some((fill2) => fill2.type.startsWith("GRADIENT"))) return "gradient fill";
   if (visibleFills.length > 1) return "multiple fills";
-  if (visibleFills.some((fill2) => fill2.type === "IMAGE") && node.childIds.length > 0) {
+  if (visibleFills.some((fill2) => fill2.type === "IMAGE") && node2.childIds.length > 0) {
     return "image background container";
   }
   return null;
 }
-function isImageLeaf(node) {
-  return node.childIds.length === 0 && node.fills.some((f5) => f5.visible && f5.type === "IMAGE");
+function isImageLeaf(node2) {
+  return node2.childIds.length === 0 && node2.fills.some((f5) => f5.visible && f5.type === "IMAGE");
 }
-function clipsOverflowingContent(graph, node) {
-  if (!node.clipsContent || !CONTAINER_TYPES3.has(node.type)) return false;
-  const toNodeSpace = matrix_default.invert(getWorldMatrix(node, graph));
+function clipsOverflowingContent(graph, node2) {
+  if (!node2.clipsContent || !CONTAINER_TYPES3.has(node2.type)) return false;
+  const toNodeSpace = matrix_default.invert(getWorldMatrix(node2, graph));
   if (!toNodeSpace) return false;
-  const pending = [...node.childIds];
+  const pending = [...node2.childIds];
   while (pending.length > 0) {
     const childId = pending.pop();
     const child = childId ? graph.getNode(childId) : void 0;
@@ -126530,26 +126531,26 @@ function clipsOverflowingContent(graph, node) {
       child.height
     ]);
     for (let i2 = 0; i2 < corners.length; i2 += 2) {
-      const outsideX = corners[i2] < -CLIP_EPSILON_PX || corners[i2] > node.width + CLIP_EPSILON_PX;
-      const outsideY = corners[i2 + 1] < -CLIP_EPSILON_PX || corners[i2 + 1] > node.height + CLIP_EPSILON_PX;
+      const outsideX = corners[i2] < -CLIP_EPSILON_PX || corners[i2] > node2.width + CLIP_EPSILON_PX;
+      const outsideY = corners[i2 + 1] < -CLIP_EPSILON_PX || corners[i2 + 1] > node2.height + CLIP_EPSILON_PX;
       if (outsideX || outsideY) return true;
     }
     pending.push(...child.childIds);
   }
   return false;
 }
-function isVectorOnlyContainer(graph, node) {
-  if (!CONTAINER_TYPES3.has(node.type)) return false;
-  const children = node.childIds.map((id) => graph.getNode(id)).filter((child) => child?.visible === true);
+function isVectorOnlyContainer(graph, node2) {
+  if (!CONTAINER_TYPES3.has(node2.type)) return false;
+  const children = node2.childIds.map((id) => graph.getNode(id)).filter((child) => child?.visible === true);
   return children.length > 0 && children.every((child) => child.type === "VECTOR");
 }
-function addEditableShape(ctx, node, opacity) {
-  const fill2 = firstVisibleFill(node);
-  const stroke = firstVisibleStroke(node);
+function addEditableShape(ctx, node2, opacity) {
+  const fill2 = firstVisibleFill(node2);
+  const stroke = firstVisibleStroke(node2);
   if (!fill2 && !stroke) return;
-  const box = nodeBox(ctx, node);
-  const solidShadow = getSolidOffsetShadow(node);
-  if (solidShadow) addSolidShadowShape(ctx, node, box, opacity, solidShadow);
+  const box = nodeBox(ctx, node2);
+  const solidShadow = getSolidOffsetShadow(node2);
+  if (solidShadow) addSolidShadowShape(ctx, node2, box, opacity, solidShadow);
   const common = {
     x: box.x,
     y: box.y,
@@ -126557,7 +126558,7 @@ function addEditableShape(ctx, node, opacity) {
     h: box.h,
     rotate: box.rotate,
     flipH: box.flipH,
-    shadow: solidShadow ? void 0 : mapShadow(node, opacity),
+    shadow: solidShadow ? void 0 : mapShadow(node2, opacity),
     fill: fill2?.type === "SOLID" ? {
       color: hex2(fill2.color),
       transparency: transparency(opacity * fill2.opacity * fill2.color.a)
@@ -126569,25 +126570,25 @@ function addEditableShape(ctx, node, opacity) {
       dashType: (stroke.dashPattern?.length ?? 0) > 0 ? "dash" : "solid"
     } : { color: "FFFFFF", transparency: 100, width: 0 }
   };
-  if (node.type === "LINE") {
+  if (node2.type === "LINE") {
     const paint = stroke ?? fill2;
     if (!paint) return;
     ctx.slide.addShape("line", {
       ...common,
       line: {
         color: hex2(paint.color),
-        width: Math.max(pt(ctx, stroke?.weight ?? node.height), 0.25),
+        width: Math.max(pt(ctx, stroke?.weight ?? node2.height), 0.25),
         transparency: transparency(opacity * paint.opacity * paint.color.a)
       }
     });
-  } else if (node.type === "ELLIPSE") {
+  } else if (node2.type === "ELLIPSE") {
     ctx.slide.addShape("ellipse", common);
-  } else if (isRounded(node)) {
-    const scale = nodeScale(ctx, node);
+  } else if (isRounded(node2)) {
+    const scale = nodeScale(ctx, node2);
     ctx.slide.addShape("roundRect", {
       ...common,
       rectRadius: Math.min(
-        inch(ctx, effectiveRadius(node) * Math.min(scale.x, scale.y)),
+        inch(ctx, effectiveRadius(node2) * Math.min(scale.x, scale.y)),
         Math.min(box.w, box.h) / 2
       )
     });
@@ -126596,14 +126597,14 @@ function addEditableShape(ctx, node, opacity) {
   }
   ctx.stats.editable += 1;
 }
-function addEditableText(ctx, node, opacity) {
-  if (!node.text) {
+function addEditableText(ctx, node2, opacity) {
+  if (!node2.text) {
     ctx.stats.skipped += 1;
     return;
   }
-  const box = nodeBox(ctx, node);
-  const singleLine = node.maxLines === 1 || node.textAutoResize === "WIDTH_AND_HEIGHT";
-  const runs = buildTextRuns(ctx, node, opacity);
+  const box = nodeBox(ctx, node2);
+  const singleLine = node2.maxLines === 1 || node2.textAutoResize === "WIDTH_AND_HEIGHT";
+  const runs = buildTextRuns(ctx, node2, opacity);
   ctx.slide.addText(runs, {
     x: box.x,
     y: box.y,
@@ -126611,22 +126612,22 @@ function addEditableText(ctx, node, opacity) {
     h: box.h,
     rotate: box.rotate,
     flipH: box.flipH,
-    align: mapHAlign(node.textAlignHorizontal),
-    valign: mapVAlign(node.textAlignVertical),
+    align: mapHAlign(node2.textAlignHorizontal),
+    valign: mapVAlign(node2.textAlignVertical),
     margin: 0,
     wrap: !singleLine,
     // If the receiving app reflows text past the box, shrink to avoid layout
     // breakage; otherwise this has no effect.
     fit: "shrink",
-    lineSpacing: node.lineHeight != null ? pt(ctx, node.lineHeight) : void 0,
-    shadow: mapShadow(node, opacity)
+    lineSpacing: node2.lineHeight != null ? pt(ctx, node2.lineHeight) : void 0,
+    shadow: mapShadow(node2, opacity)
   });
   ctx.stats.editable += 1;
 }
-function buildTextRuns(ctx, node, opacity) {
-  const text = applyTextCase(node.text, node.textCase);
+function buildTextRuns(ctx, node2, opacity) {
+  const text = applyTextCase(node2.text, node2.textCase);
   const segs = [];
-  const sorted = [...node.styleRuns].sort((a4, b5) => a4.start - b5.start);
+  const sorted = [...node2.styleRuns].sort((a4, b5) => a4.start - b5.start);
   let cursor = 0;
   for (const run of sorted) {
     const start2 = Math.max(run.start, cursor);
@@ -126637,36 +126638,36 @@ function buildTextRuns(ctx, node, opacity) {
   }
   if (cursor < text.length) segs.push({ start: cursor, end: text.length, style: {} });
   if (segs.length === 0) segs.push({ start: 0, end: text.length, style: {} });
-  const baseFill = firstVisibleFill(node);
+  const baseFill = firstVisibleFill(node2);
   return segs.map((seg) => {
     const s2 = seg.style;
     const fill2 = s2.fills?.find((f5) => f5.visible && f5.type === "SOLID") ?? baseFill;
-    const fontSize = s2.fontSize ?? node.fontSize;
-    const weight = s2.fontWeight ?? node.fontWeight;
-    const deco = s2.textDecoration ?? node.textDecoration;
+    const fontSize = s2.fontSize ?? node2.fontSize;
+    const weight = s2.fontWeight ?? node2.fontWeight;
+    const deco = s2.textDecoration ?? node2.textDecoration;
     return {
       text: text.slice(seg.start, seg.end),
       options: {
-        fontFace: s2.fontFamily ?? node.fontFamily,
+        fontFace: s2.fontFamily ?? node2.fontFamily,
         fontSize: round22(pt(ctx, fontSize)),
         bold: weight >= 600,
-        italic: s2.italic ?? node.italic,
+        italic: s2.italic ?? node2.italic,
         color: fill2 ? hex2(fill2.color) : "000000",
         transparency: transparency(opacity * (fill2 ? fill2.opacity * fill2.color.a : 1)),
-        charSpacing: charSpacingPt(ctx, s2.letterSpacing ?? node.letterSpacing),
+        charSpacing: charSpacingPt(ctx, s2.letterSpacing ?? node2.letterSpacing),
         underline: deco === "UNDERLINE" ? { style: "sng" } : void 0,
         strike: deco === "STRIKETHROUGH" ? "sngStrike" : void 0
       }
     };
   });
 }
-async function addFallbackImage(ctx, node, opacity, reason, options) {
-  const data = await ctx.rasterize([node.id], ctx.fallbackScale, options);
+async function addFallbackImage(ctx, node2, opacity, reason, options) {
+  const data = await ctx.rasterize([node2.id], ctx.fallbackScale, options);
   if (!data) {
     ctx.stats.skipped += 1;
     return;
   }
-  const box = nodeBox(ctx, node);
+  const box = nodeBox(ctx, node2);
   ctx.slide.addImage({
     data: `data:image/png;base64,${encodeBase64(data)}`,
     x: box.x,
@@ -126686,15 +126687,15 @@ function charSpacingPt(ctx, px2) {
   if (!px2) return void 0;
   return round22(pt(ctx, px2));
 }
-function addSolidShadowShape(ctx, node, box, opacity, shadow) {
+function addSolidShadowShape(ctx, node2, box, opacity, shadow) {
   const sp = shadow.spread;
-  const offset = transformNodeVector(ctx, node, shadow.offset);
-  const scale = nodeScale(ctx, node);
+  const offset = transformNodeVector(ctx, node2, shadow.offset);
+  const scale = nodeScale(ctx, node2);
   const spreadX = inch(ctx, sp * scale.x);
   const spreadY = inch(ctx, sp * scale.y);
   let shapeType = "rect";
-  if (isRounded(node)) shapeType = "roundRect";
-  else if (node.type === "ELLIPSE") shapeType = "ellipse";
+  if (isRounded(node2)) shapeType = "roundRect";
+  else if (node2.type === "ELLIPSE") shapeType = "ellipse";
   ctx.slide.addShape(shapeType, {
     x: box.x + offset.x - spreadX,
     y: box.y + offset.y - spreadY,
@@ -126709,7 +126710,7 @@ function addSolidShadowShape(ctx, node, box, opacity, shadow) {
     line: { color: "FFFFFF", transparency: 100, width: 0 },
     ...shapeType === "roundRect" ? {
       rectRadius: Math.min(
-        inch(ctx, effectiveRadius(node) * Math.min(scale.x, scale.y)),
+        inch(ctx, effectiveRadius(node2) * Math.min(scale.x, scale.y)),
         Math.min(box.w, box.h) / 2
       )
     } : {}
@@ -136263,20 +136264,20 @@ var init_default = __esm({
         return templateElement.content;
       },
       setDocumentType(document2, name, publicId, systemId) {
-        const doctypeNode = document2.childNodes.find((node) => node.nodeName === "#documentType");
+        const doctypeNode = document2.childNodes.find((node2) => node2.nodeName === "#documentType");
         if (doctypeNode) {
           doctypeNode.name = name;
           doctypeNode.publicId = publicId;
           doctypeNode.systemId = systemId;
         } else {
-          const node = {
+          const node2 = {
             nodeName: "#documentType",
             name,
             publicId,
             systemId,
             parentNode: null
           };
-          defaultTreeAdapter.appendChild(document2, node);
+          defaultTreeAdapter.appendChild(document2, node2);
         }
       },
       setDocumentMode(document2, mode) {
@@ -136285,11 +136286,11 @@ var init_default = __esm({
       getDocumentMode(document2) {
         return document2.mode;
       },
-      detachNode(node) {
-        if (node.parentNode) {
-          const idx = node.parentNode.childNodes.indexOf(node);
-          node.parentNode.childNodes.splice(idx, 1);
-          node.parentNode = null;
+      detachNode(node2) {
+        if (node2.parentNode) {
+          const idx = node2.parentNode.childNodes.indexOf(node2);
+          node2.parentNode.childNodes.splice(idx, 1);
+          node2.parentNode = null;
         }
       },
       insertText(parentNode, text) {
@@ -136319,14 +136320,14 @@ var init_default = __esm({
         }
       },
       //Tree traversing
-      getFirstChild(node) {
-        return node.childNodes[0];
+      getFirstChild(node2) {
+        return node2.childNodes[0];
       },
-      getChildNodes(node) {
-        return node.childNodes;
+      getChildNodes(node2) {
+        return node2.childNodes;
       },
-      getParentNode(node) {
-        return node.parentNode;
+      getParentNode(node2) {
+        return node2.parentNode;
       },
       getAttrList(element) {
         return element.attrs;
@@ -136354,27 +136355,27 @@ var init_default = __esm({
         return doctypeNode.systemId;
       },
       //Node types
-      isTextNode(node) {
-        return node.nodeName === "#text";
+      isTextNode(node2) {
+        return node2.nodeName === "#text";
       },
-      isCommentNode(node) {
-        return node.nodeName === "#comment";
+      isCommentNode(node2) {
+        return node2.nodeName === "#comment";
       },
-      isDocumentTypeNode(node) {
-        return node.nodeName === "#documentType";
+      isDocumentTypeNode(node2) {
+        return node2.nodeName === "#documentType";
       },
-      isElementNode(node) {
-        return Object.prototype.hasOwnProperty.call(node, "tagName");
+      isElementNode(node2) {
+        return Object.prototype.hasOwnProperty.call(node2, "tagName");
       },
       // Source code location
-      setNodeSourceCodeLocation(node, location) {
-        node.sourceCodeLocation = location;
+      setNodeSourceCodeLocation(node2, location) {
+        node2.sourceCodeLocation = location;
       },
-      getNodeSourceCodeLocation(node) {
-        return node.sourceCodeLocation;
+      getNodeSourceCodeLocation(node2) {
+        return node2.sourceCodeLocation;
       },
-      updateNodeSourceCodeLocation(node, endLocation) {
-        node.sourceCodeLocation = { ...node.sourceCodeLocation, ...endLocation };
+      updateNodeSourceCodeLocation(node2, endLocation) {
+        node2.sourceCodeLocation = { ...node2.sourceCodeLocation, ...endLocation };
       }
     };
   }
@@ -138779,19 +138780,19 @@ var init_parser2 = __esm({
       }
       //Stack events
       /** @internal */
-      onItemPush(node, tid, isTop) {
+      onItemPush(node2, tid, isTop) {
         var _a2, _b2;
-        (_b2 = (_a2 = this.treeAdapter).onItemPush) === null || _b2 === void 0 ? void 0 : _b2.call(_a2, node);
+        (_b2 = (_a2 = this.treeAdapter).onItemPush) === null || _b2 === void 0 ? void 0 : _b2.call(_a2, node2);
         if (isTop && this.openElements.stackTop > 0)
-          this._setContextModes(node, tid);
+          this._setContextModes(node2, tid);
       }
       /** @internal */
-      onItemPop(node, isTop) {
+      onItemPop(node2, isTop) {
         var _a2, _b2;
         if (this.options.sourceCodeLocationInfo) {
-          this._setEndLocation(node, this.currentToken);
+          this._setEndLocation(node2, this.currentToken);
         }
-        (_b2 = (_a2 = this.treeAdapter).onItemPop) === null || _b2 === void 0 ? void 0 : _b2.call(_a2, node, this.openElements.current);
+        (_b2 = (_a2 = this.treeAdapter).onItemPop) === null || _b2 === void 0 ? void 0 : _b2.call(_a2, node2, this.openElements.current);
         if (isTop) {
           let current;
           let currentTagId;
@@ -138828,13 +138829,13 @@ var init_parser2 = __esm({
       }
       /** @protected */
       _findFormInFragmentContext() {
-        let node = this.fragmentContext;
-        while (node) {
-          if (this.treeAdapter.getTagName(node) === TAG_NAMES.FORM) {
-            this.formElement = node;
+        let node2 = this.fragmentContext;
+        while (node2) {
+          if (this.treeAdapter.getTagName(node2) === TAG_NAMES.FORM) {
+            this.formElement = node2;
             break;
           }
-          node = this.treeAdapter.getParentNode(node);
+          node2 = this.treeAdapter.getParentNode(node2);
         }
       }
       _initTokenizerForFragmentParsing() {
@@ -138876,7 +138877,7 @@ var init_parser2 = __esm({
         this.treeAdapter.setDocumentType(this.document, name, publicId, systemId);
         if (token.location) {
           const documentChildren = this.treeAdapter.getChildNodes(this.document);
-          const docTypeNode = documentChildren.find((node) => this.treeAdapter.isDocumentTypeNode(node));
+          const docTypeNode = documentChildren.find((node2) => this.treeAdapter.isDocumentTypeNode(node2));
           if (docTypeNode) {
             this.treeAdapter.setNodeSourceCodeLocation(docTypeNode, token.location);
           }
@@ -139798,15 +139799,15 @@ var init_escape = __esm({
 });
 
 // node_modules/.bun/parse5@8.0.1/node_modules/parse5/dist/serializer/index.js
-function isVoidElement(node, options) {
-  return options.treeAdapter.isElementNode(node) && options.treeAdapter.getNamespaceURI(node) === NS.HTML && VOID_ELEMENTS.has(options.treeAdapter.getTagName(node));
+function isVoidElement(node2, options) {
+  return options.treeAdapter.isElementNode(node2) && options.treeAdapter.getNamespaceURI(node2) === NS.HTML && VOID_ELEMENTS.has(options.treeAdapter.getTagName(node2));
 }
-function serialize2(node, options) {
+function serialize2(node2, options) {
   const opts = { ...defaultOpts, ...options };
-  if (isVoidElement(node, opts)) {
+  if (isVoidElement(node2, opts)) {
     return "";
   }
-  return serializeChildNodes(node, opts);
+  return serializeChildNodes(node2, opts);
 }
 function serializeChildNodes(parentNode, options) {
   let html = "";
@@ -139819,28 +139820,28 @@ function serializeChildNodes(parentNode, options) {
   }
   return html;
 }
-function serializeNode(node, options) {
-  if (options.treeAdapter.isElementNode(node)) {
-    return serializeElement(node, options);
+function serializeNode(node2, options) {
+  if (options.treeAdapter.isElementNode(node2)) {
+    return serializeElement(node2, options);
   }
-  if (options.treeAdapter.isTextNode(node)) {
-    return serializeTextNode(node, options);
+  if (options.treeAdapter.isTextNode(node2)) {
+    return serializeTextNode(node2, options);
   }
-  if (options.treeAdapter.isCommentNode(node)) {
-    return serializeCommentNode(node, options);
+  if (options.treeAdapter.isCommentNode(node2)) {
+    return serializeCommentNode(node2, options);
   }
-  if (options.treeAdapter.isDocumentTypeNode(node)) {
-    return serializeDocumentTypeNode(node, options);
+  if (options.treeAdapter.isDocumentTypeNode(node2)) {
+    return serializeDocumentTypeNode(node2, options);
   }
   return "";
 }
-function serializeElement(node, options) {
-  const tn2 = options.treeAdapter.getTagName(node);
-  return `<${tn2}${serializeAttributes(node, options)}>${isVoidElement(node, options) ? "" : `${serializeChildNodes(node, options)}</${tn2}>`}`;
+function serializeElement(node2, options) {
+  const tn2 = options.treeAdapter.getTagName(node2);
+  return `<${tn2}${serializeAttributes(node2, options)}>${isVoidElement(node2, options) ? "" : `${serializeChildNodes(node2, options)}</${tn2}>`}`;
 }
-function serializeAttributes(node, { treeAdapter }) {
+function serializeAttributes(node2, { treeAdapter }) {
   let html = "";
-  for (const attr of treeAdapter.getAttrList(node)) {
+  for (const attr of treeAdapter.getAttrList(node2)) {
     html += " ";
     if (attr.namespace) {
       switch (attr.namespace) {
@@ -139870,18 +139871,18 @@ function serializeAttributes(node, { treeAdapter }) {
   }
   return html;
 }
-function serializeTextNode(node, options) {
+function serializeTextNode(node2, options) {
   const { treeAdapter } = options;
-  const content = treeAdapter.getTextNodeContent(node);
-  const parent = treeAdapter.getParentNode(node);
+  const content = treeAdapter.getTextNodeContent(node2);
+  const parent = treeAdapter.getParentNode(node2);
   const parentTn = parent && treeAdapter.isElementNode(parent) && treeAdapter.getTagName(parent);
   return parentTn && treeAdapter.getNamespaceURI(parent) === NS.HTML && hasUnescapedText(parentTn, options.scriptingEnabled) ? content : escapeText2(content);
 }
-function serializeCommentNode(node, { treeAdapter }) {
-  return `<!--${treeAdapter.getCommentNodeContent(node)}-->`;
+function serializeCommentNode(node2, { treeAdapter }) {
+  return `<!--${treeAdapter.getCommentNodeContent(node2)}-->`;
 }
-function serializeDocumentTypeNode(node, { treeAdapter }) {
-  return `<!DOCTYPE ${treeAdapter.getDocumentTypeNodeName(node)}>`;
+function serializeDocumentTypeNode(node2, { treeAdapter }) {
+  return `<!DOCTYPE ${treeAdapter.getDocumentTypeNodeName(node2)}>`;
 }
 var VOID_ELEMENTS, defaultOpts;
 var init_serializer = __esm({
@@ -139959,15 +139960,15 @@ function escapeText3(value) {
 function escapeAttr2(value) {
   return escapeText3(value).replaceAll('"', "&quot;");
 }
-function serializeText(node) {
-  return escapeText3(node.text);
+function serializeText(node2) {
+  return escapeText3(node2.text);
 }
-function serializeStyle(node) {
-  if (!node.inlineStyle || Object.keys(node.inlineStyle).length === 0) return void 0;
-  return Object.entries(node.inlineStyle).filter(([, value]) => value !== "").map(([property, value]) => `${property}: ${value}`).join("; ");
+function serializeStyle(node2) {
+  if (!node2.inlineStyle || Object.keys(node2.inlineStyle).length === 0) return void 0;
+  return Object.entries(node2.inlineStyle).filter(([, value]) => value !== "").map(([property, value]) => `${property}: ${value}`).join("; ");
 }
-function serializeTailwindClasses(node) {
-  const style = serializeStyle(node);
+function serializeTailwindClasses(node2) {
+  const style = serializeStyle(node2);
   if (!style) return void 0;
   const className = twirl(style);
   return className.length > 0 ? className : void 0;
@@ -139976,30 +139977,30 @@ function mergeClassNames(...values) {
   const className = values.flatMap((value) => value ? splitWhitespace(value) : []).map((value) => value.trim()).filter((value) => value.length > 0).join(" ");
   return className.length > 0 ? className : void 0;
 }
-function serializeAttrs(node, options) {
-  const style = serializeStyle(node);
-  const tailwindClass = options.style === "tailwind" ? serializeTailwindClasses(node) : void 0;
-  const attrsWithoutStyle = { ...node.attrs };
+function serializeAttrs(node2, options) {
+  const style = serializeStyle(node2);
+  const tailwindClass = options.style === "tailwind" ? serializeTailwindClasses(node2) : void 0;
+  const attrsWithoutStyle = { ...node2.attrs };
   delete attrsWithoutStyle.style;
-  const sourceAttrs = options.style === "tailwind" && tailwindClass ? attrsWithoutStyle : node.attrs;
+  const sourceAttrs = options.style === "tailwind" && tailwindClass ? attrsWithoutStyle : node2.attrs;
   const attrs = { ...sourceAttrs };
-  if (tailwindClass) attrs.class = mergeClassNames(node.attrs.class, tailwindClass);
+  if (tailwindClass) attrs.class = mergeClassNames(node2.attrs.class, tailwindClass);
   if (style && options.style !== "tailwind") attrs.style = style;
   const serialized = Object.entries(attrs).filter((entry) => typeof entry[1] === "string" && entry[1] !== "").map(([name, value]) => `${name}="${escapeAttr2(value)}"`);
   if (serialized.length === 0) return "";
   return ` ${serialized.join(" ")}`;
 }
-function serializeElement2(node, options) {
-  const tagName = node.tagName.toLowerCase();
-  const attrs = serializeAttrs(node, options);
+function serializeElement2(node2, options) {
+  const tagName = node2.tagName.toLowerCase();
+  const attrs = serializeAttrs(node2, options);
   if (VOID_ELEMENTS2.has(tagName)) return `<${tagName}${attrs}>`;
-  return `<${tagName}${attrs}>${node.children.map((child) => serializeNode2(child, options)).join("")}</${tagName}>`;
+  return `<${tagName}${attrs}>${node2.children.map((child) => serializeNode2(child, options)).join("")}</${tagName}>`;
 }
-function serializeNode2(node, options = {}) {
-  return node.type === "text" ? serializeText(node) : serializeElement2(node, options);
+function serializeNode2(node2, options = {}) {
+  return node2.type === "text" ? serializeText(node2) : serializeElement2(node2, options);
 }
 function serializeHTML(document2, options = {}) {
-  return document2.children.map((node) => serializeNode2(node, options)).join("");
+  return document2.children.map((node2) => serializeNode2(node2, options)).join("");
 }
 var VOID_ELEMENTS2;
 var init_serialize2 = __esm({
@@ -146153,17 +146154,17 @@ var require_parse2 = __commonJS({
 var require_walk = __commonJS({
   "node_modules/.bun/postcss-value-parser@4.2.0/node_modules/postcss-value-parser/lib/walk.js"(exports2, module2) {
     module2.exports = function walk(nodes, cb, bubble) {
-      var i2, max2, node, result;
+      var i2, max2, node2, result;
       for (i2 = 0, max2 = nodes.length; i2 < max2; i2 += 1) {
-        node = nodes[i2];
+        node2 = nodes[i2];
         if (!bubble) {
-          result = cb(node, i2, nodes);
+          result = cb(node2, i2, nodes);
         }
-        if (result !== false && node.type === "function" && Array.isArray(node.nodes)) {
-          walk(node.nodes, cb, bubble);
+        if (result !== false && node2.type === "function" && Array.isArray(node2.nodes)) {
+          walk(node2.nodes, cb, bubble);
         }
         if (bubble) {
-          cb(node, i2, nodes);
+          cb(node2, i2, nodes);
         }
       }
     };
@@ -146173,28 +146174,28 @@ var require_walk = __commonJS({
 // node_modules/.bun/postcss-value-parser@4.2.0/node_modules/postcss-value-parser/lib/stringify.js
 var require_stringify = __commonJS({
   "node_modules/.bun/postcss-value-parser@4.2.0/node_modules/postcss-value-parser/lib/stringify.js"(exports2, module2) {
-    function stringifyNode(node, custom) {
-      var type = node.type;
-      var value = node.value;
+    function stringifyNode(node2, custom) {
+      var type = node2.type;
+      var value = node2.value;
       var buf;
       var customResult;
-      if (custom && (customResult = custom(node)) !== void 0) {
+      if (custom && (customResult = custom(node2)) !== void 0) {
         return customResult;
       } else if (type === "word" || type === "space") {
         return value;
       } else if (type === "string") {
-        buf = node.quote || "";
-        return buf + value + (node.unclosed ? "" : buf);
+        buf = node2.quote || "";
+        return buf + value + (node2.unclosed ? "" : buf);
       } else if (type === "comment") {
-        return "/*" + value + (node.unclosed ? "" : "*/");
+        return "/*" + value + (node2.unclosed ? "" : "*/");
       } else if (type === "div") {
-        return (node.before || "") + value + (node.after || "");
-      } else if (Array.isArray(node.nodes)) {
-        buf = stringify(node.nodes, custom);
+        return (node2.before || "") + value + (node2.after || "");
+      } else if (Array.isArray(node2.nodes)) {
+        buf = stringify(node2.nodes, custom);
         if (type !== "function") {
           return buf;
         }
-        return value + "(" + (node.before || "") + buf + (node.after || "") + (node.unclosed ? "" : ")");
+        return value + "(" + (node2.before || "") + buf + (node2.after || "") + (node2.unclosed ? "" : ")");
       }
       return value;
     }
@@ -146848,40 +146849,40 @@ function boundsToRect2(bounds) {
     height: bounds.maxY - bounds.minY
   };
 }
-function toNodeSummary(node) {
+function toNodeSummary(node2) {
   return {
-    id: node.id,
-    name: node.name,
-    type: node.type,
-    parentId: node.parentId,
-    x: Math.round(node.x),
-    y: Math.round(node.y),
-    width: Math.round(node.width),
-    height: Math.round(node.height),
-    rotation: Math.round(node.rotation),
-    opacity: node.opacity,
-    visible: node.visible,
-    locked: node.locked
+    id: node2.id,
+    name: node2.name,
+    type: node2.type,
+    parentId: node2.parentId,
+    x: Math.round(node2.x),
+    y: Math.round(node2.y),
+    width: Math.round(node2.width),
+    height: Math.round(node2.height),
+    rotation: Math.round(node2.rotation),
+    opacity: node2.opacity,
+    visible: node2.visible,
+    locked: node2.locked
   };
 }
-function isEffectivelyHidden(graph, node) {
-  let current = node;
+function isEffectivelyHidden(graph, node2) {
+  let current = node2;
   while (current) {
     if (!current.visible) return true;
     current = current.parentId ? graph.getNode(current.parentId) : void 0;
   }
   return false;
 }
-function isEffectivelyLocked(graph, node) {
-  let current = node;
+function isEffectivelyLocked(graph, node2) {
+  let current = node2;
   while (current) {
     if (current.locked) return true;
     current = current.parentId ? graph.getNode(current.parentId) : void 0;
   }
   return false;
 }
-function findPageId(graph, node) {
-  let current = node;
+function findPageId(graph, node2) {
+  let current = node2;
   while (current) {
     if (current.type === "CANVAS") return current.id;
     if (current.parentId === null) return null;
@@ -146941,12 +146942,12 @@ function siblingOverlapSeverity(intersectionArea2, smallerArea) {
   if (ratio > 0.08) return "minor";
   return "info";
 }
-function isCandidate(node, graph, options) {
-  if (node.type === "CANVAS") return false;
-  if (!options.includeHidden && isEffectivelyHidden(graph, node)) return false;
-  if (!options.includeLocked && isEffectivelyLocked(graph, node)) return false;
-  if (!options.includeAbsolute && node.layoutPositioning === "ABSOLUTE") return false;
-  if (options.pageId && findPageId(graph, node) !== options.pageId) return false;
+function isCandidate(node2, graph, options) {
+  if (node2.type === "CANVAS") return false;
+  if (!options.includeHidden && isEffectivelyHidden(graph, node2)) return false;
+  if (!options.includeLocked && isEffectivelyLocked(graph, node2)) return false;
+  if (!options.includeAbsolute && node2.layoutPositioning === "ABSOLUTE") return false;
+  if (options.pageId && findPageId(graph, node2) !== options.pageId) return false;
   return true;
 }
 function filterNodes(graph, args) {
@@ -146958,34 +146959,34 @@ function filterNodes(graph, args) {
   const allNodes = [...graph.getAllNodes()];
   const candidates = [];
   let totalNodes = 0;
-  for (const node of allNodes) {
-    if (node.type === "CANVAS") continue;
-    if (pageIdFilter && findPageId(graph, node) !== pageIdFilter) continue;
+  for (const node2 of allNodes) {
+    if (node2.type === "CANVAS") continue;
+    if (pageIdFilter && findPageId(graph, node2) !== pageIdFilter) continue;
     totalNodes++;
-    if (!isCandidate(node, graph, {
+    if (!isCandidate(node2, graph, {
       includeHidden,
       includeLocked,
       includeAbsolute,
       pageId: void 0
     }))
       continue;
-    if (typeFilter && !typeFilter.has(node.type)) continue;
-    candidates.push(node);
+    if (typeFilter && !typeFilter.has(node2.type)) continue;
+    candidates.push(node2);
   }
   return { candidates, totalNodes, analyzedNodes: candidates.length };
 }
 var EMPTY_BOUNDS = { minX: 0, maxX: 0, minY: 0, maxY: 0 };
-function nodeWorldCorners(node, graph) {
-  const matrix = getWorldMatrix(node, graph);
+function nodeWorldCorners(node2, graph) {
+  const matrix = getWorldMatrix(node2, graph);
   const pts = matrix_default.mapPoints(matrix, [
     0,
     0,
-    node.width,
+    node2.width,
     0,
-    node.width,
-    node.height,
+    node2.width,
+    node2.height,
     0,
-    node.height
+    node2.height
   ]);
   return [
     { x: pts[0], y: pts[1] },
@@ -147007,18 +147008,18 @@ function aabbFromCorners(corners) {
   }
   return { minX, minY, maxX, maxY };
 }
-function computeNodeVisualBounds(node, graph) {
-  const matrix = getWorldMatrix(node, graph);
-  const stroke = strokeOverflow(node.strokes, node.strokeCap, node.vectorNetwork);
+function computeNodeVisualBounds(node2, graph) {
+  const matrix = getWorldMatrix(node2, graph);
+  const stroke = strokeOverflow(node2.strokes, node2.strokeCap, node2.vectorNetwork);
   const baseCorners = matrix_default.mapPoints(matrix, [
     -stroke,
     -stroke,
-    node.width + stroke,
+    node2.width + stroke,
     -stroke,
-    node.width + stroke,
-    node.height + stroke,
+    node2.width + stroke,
+    node2.height + stroke,
     -stroke,
-    node.height + stroke
+    node2.height + stroke
   ]);
   let bounds = aabbFromCorners([
     { x: baseCorners[0], y: baseCorners[1] },
@@ -147026,17 +147027,17 @@ function computeNodeVisualBounds(node, graph) {
     { x: baseCorners[4], y: baseCorners[5] },
     { x: baseCorners[6], y: baseCorners[7] }
   ]);
-  const effects = effectOverflow(node.effects);
+  const effects = effectOverflow(node2.effects);
   bounds.minX -= effects.left;
   bounds.minY -= effects.top;
   bounds.maxX += effects.right;
   bounds.maxY += effects.bottom;
-  const hasNonInsideStroke = node.strokes.some(
+  const hasNonInsideStroke = node2.strokes.some(
     (stroke2) => stroke2.visible && stroke2.align !== "INSIDE"
   );
   const localGeometry = geometryBlobBounds([
-    ...node.fillGeometry,
-    ...hasNonInsideStroke ? node.strokeGeometry : []
+    ...node2.fillGeometry,
+    ...hasNonInsideStroke ? node2.strokeGeometry : []
   ]);
   if (localGeometry) {
     const geomCorners = matrix_default.mapPoints(matrix, [
@@ -147057,17 +147058,17 @@ function computeNodeVisualBounds(node, graph) {
     ]);
     bounds = unionVisualBounds(bounds, geomBounds) ?? bounds;
   }
-  if (node.type === "TEXT" && node.textDecoration !== "NONE") {
-    const fontSize = node.fontSize;
-    const underlineOffset = node.textUnderlineOffset ?? fontSize * 0.18;
-    const thickness = node.textDecorationThickness ?? Math.max(1, fontSize / 16);
+  if (node2.type === "TEXT" && node2.textDecoration !== "NONE") {
+    const fontSize = node2.fontSize;
+    const underlineOffset = node2.textUnderlineOffset ?? fontSize * 0.18;
+    const thickness = node2.textDecorationThickness ?? Math.max(1, fontSize / 16);
     bounds.maxY += underlineOffset + thickness + fontSize * 0.35;
   }
   return bounds;
 }
-function collectClipChain(graph, node) {
+function collectClipChain(graph, node2) {
   const clips = [];
-  let currentId = node.parentId;
+  let currentId = node2.parentId;
   while (currentId) {
     const current = graph.getNode(currentId);
     if (!current) break;
@@ -147079,9 +147080,9 @@ function collectClipChain(graph, node) {
   }
   return clips;
 }
-function computeNodeBounds(node, graph) {
-  const visual = computeNodeVisualBounds(node, graph);
-  const clips = collectClipChain(graph, node);
+function computeNodeBounds(node2, graph) {
+  const visual = computeNodeVisualBounds(node2, graph);
+  const clips = collectClipChain(graph, node2);
   if (clips.length === 0) {
     return { bounds: visual, area: visualBoundsArea(visual) };
   }
@@ -147249,16 +147250,16 @@ function parseOverlapSeverity(raw) {
 function buildBoundsCache(candidates, graph) {
   const boundsCache = /* @__PURE__ */ new Map();
   const entries = [];
-  for (const node of candidates) {
-    const cached = boundsCache.get(node.id);
+  for (const node2 of candidates) {
+    const cached = boundsCache.get(node2.id);
     if (cached) {
       entries.push(cached);
       continue;
     }
-    const computed = computeNodeBounds(node, graph);
+    const computed = computeNodeBounds(node2, graph);
     if (computed.area <= 0) continue;
-    const entry = { node, ...computed };
-    boundsCache.set(node.id, entry);
+    const entry = { node: node2, ...computed };
+    boundsCache.set(node2.id, entry);
     entries.push(entry);
   }
   return { boundsCache, entries };
@@ -147526,22 +147527,22 @@ function collectColors(graph) {
       colorMap.set(hex3, { hex: hex3, color: c4, count: 1, variableName });
     }
   };
-  for (const node of graph.getAllNodes()) {
-    if (node.type === "CANVAS") continue;
+  for (const node2 of graph.getAllNodes()) {
+    if (node2.type === "CANVAS") continue;
     totalNodes++;
-    for (const fill2 of node.fills) {
+    for (const fill2 of node2.fills) {
       if (!fill2.visible || fill2.type !== "SOLID") continue;
       addColor(fill2.color, null);
     }
-    for (const stroke of node.strokes) {
+    for (const stroke of node2.strokes) {
       if (!stroke.visible) continue;
       addColor(stroke.color, null);
     }
-    for (const effect of node.effects) {
+    for (const effect of node2.effects) {
       if (!effect.visible) continue;
       addColor(effect.color, null);
     }
-    for (const [field, varId] of Object.entries(node.boundVariables)) {
+    for (const [field, varId] of Object.entries(node2.boundVariables)) {
       if (!field.includes("fill") && !field.includes("stroke") && !field.includes("color")) continue;
       const variable = graph.variables.get(varId);
       if (variable) {
@@ -147572,19 +147573,19 @@ var analyzeTypographyCommand = {
   execute: (graph) => {
     const styleMap = /* @__PURE__ */ new Map();
     let totalTextNodes = 0;
-    for (const node of graph.getAllNodes()) {
-      if (node.type !== "TEXT") continue;
+    for (const node2 of graph.getAllNodes()) {
+      if (node2.type !== "TEXT") continue;
       totalTextNodes++;
-      const lh = node.lineHeight === null ? "auto" : `${node.lineHeight}px`;
-      const key = `${node.fontFamily}|${node.fontSize}|${node.fontWeight}|${lh}`;
+      const lh = node2.lineHeight === null ? "auto" : `${node2.lineHeight}px`;
+      const key = `${node2.fontFamily}|${node2.fontSize}|${node2.fontWeight}|${lh}`;
       const existing = styleMap.get(key);
       if (existing) {
         existing.count++;
       } else {
         styleMap.set(key, {
-          family: node.fontFamily,
-          size: node.fontSize,
-          weight: node.fontWeight,
+          family: node2.fontFamily,
+          size: node2.fontSize,
+          weight: node2.fontWeight,
           lineHeight: lh,
           count: 1
         });
@@ -147599,18 +147600,18 @@ var analyzeSpacingCommand = {
     const gapMap = /* @__PURE__ */ new Map();
     const paddingMap = /* @__PURE__ */ new Map();
     let totalNodes = 0;
-    for (const node of graph.getAllNodes()) {
-      if (node.type === "CANVAS" || node.layoutMode === "NONE") continue;
+    for (const node2 of graph.getAllNodes()) {
+      if (node2.type === "CANVAS" || node2.layoutMode === "NONE") continue;
       totalNodes++;
-      if (node.itemSpacing > 0)
-        gapMap.set(node.itemSpacing, (gapMap.get(node.itemSpacing) ?? 0) + 1);
-      if (node.counterAxisSpacing > 0)
-        gapMap.set(node.counterAxisSpacing, (gapMap.get(node.counterAxisSpacing) ?? 0) + 1);
+      if (node2.itemSpacing > 0)
+        gapMap.set(node2.itemSpacing, (gapMap.get(node2.itemSpacing) ?? 0) + 1);
+      if (node2.counterAxisSpacing > 0)
+        gapMap.set(node2.counterAxisSpacing, (gapMap.get(node2.counterAxisSpacing) ?? 0) + 1);
       for (const pad of [
-        node.paddingTop,
-        node.paddingRight,
-        node.paddingBottom,
-        node.paddingLeft
+        node2.paddingTop,
+        node2.paddingRight,
+        node2.paddingBottom,
+        node2.paddingLeft
       ]) {
         if (pad > 0) paddingMap.set(pad, (paddingMap.get(pad) ?? 0) + 1);
       }
@@ -147623,17 +147624,17 @@ var analyzeSpacingCommand = {
     return { gaps: toValues(gapMap), paddings: toValues(paddingMap), totalNodes };
   }
 };
-function buildSignature(graph, node) {
+function buildSignature(graph, node2) {
   const childTypes = /* @__PURE__ */ new Map();
-  for (const childId of node.childIds) {
+  for (const childId of node2.childIds) {
     const child = graph.getNode(childId);
     if (!child) continue;
     childTypes.set(child.type, (childTypes.get(child.type) ?? 0) + 1);
   }
   const childPart = sortBy([...childTypes.entries()], [([type]) => type]).map(([type, count]) => `${type}:${count}`).join(",");
-  const w3 = Math.round(node.width / 10) * 10;
-  const h4 = Math.round(node.height / 10) * 10;
-  return `${node.type}:${w3}x${h4}|${childPart}`;
+  const w3 = Math.round(node2.width / 10) * 10;
+  const h4 = Math.round(node2.height / 10) * 10;
+  return `${node2.type}:${w3}x${h4}|${childPart}`;
 }
 var analyzeClustersCommand = {
   name: "analyze_clusters",
@@ -147643,20 +147644,20 @@ var analyzeClustersCommand = {
     const limit = args.limit ?? 20;
     const sigMap = /* @__PURE__ */ new Map();
     let totalNodes = 0;
-    for (const node of graph.getAllNodes()) {
-      if (node.type === "CANVAS") continue;
+    for (const node2 of graph.getAllNodes()) {
+      if (node2.type === "CANVAS") continue;
       totalNodes++;
-      if (node.width < minSize || node.height < minSize) continue;
-      if (node.childIds.length === 0) continue;
-      const sig = buildSignature(graph, node);
+      if (node2.width < minSize || node2.height < minSize) continue;
+      if (node2.childIds.length === 0) continue;
+      const sig = buildSignature(graph, node2);
       const arr = sigMap.get(sig) ?? [];
       arr.push({
-        id: node.id,
-        name: node.name,
-        type: node.type,
-        width: Math.round(node.width),
-        height: Math.round(node.height),
-        childCount: node.childIds.length
+        id: node2.id,
+        name: node2.name,
+        type: node2.type,
+        width: Math.round(node2.width),
+        height: Math.round(node2.height),
+        childCount: node2.childIds.length
       });
       sigMap.set(sig, arr);
     }
@@ -147711,14 +147712,14 @@ var QUERYABLE_ATTRS = [
   "lineHeight",
   "letterSpacing"
 ];
-function wrapNode(_graph, node, parent) {
+function wrapNode(_graph, node2, parent) {
   const wrapped = {
     nodeType: NODE_TYPES.ELEMENT_NODE,
-    nodeName: node.type,
-    localName: node.type,
+    nodeName: node2.type,
+    localName: node2.type,
     namespaceURI: null,
     prefix: null,
-    _sceneNode: node,
+    _sceneNode: node2,
     _parent: parent
   };
   return wrapped;
@@ -147736,11 +147737,11 @@ function createDocument(graph, rootNode) {
 }
 function getAttrs(wrapped) {
   if (wrapped._attrs) return wrapped._attrs;
-  const node = wrapped._sceneNode;
+  const node2 = wrapped._sceneNode;
   const attrs = [];
   for (const attrName of QUERYABLE_ATTRS) {
-    if (attrName in node) {
-      const value = Reflect.get(node, attrName);
+    if (attrName in node2) {
+      const value = Reflect.get(node2, attrName);
       if (value === void 0 || value === null || typeof value === "symbol") continue;
       const stringValue = typeof value === "object" ? JSON.stringify(value) : String(value);
       attrs.push({
@@ -147760,31 +147761,31 @@ function getAttrs(wrapped) {
 }
 function getChildren(graph, wrapped) {
   if (wrapped._children) return wrapped._children;
-  const node = wrapped._sceneNode;
-  wrapped._children = node.childIds.map((id) => graph.getNode(id)).filter((n2) => n2 !== void 0).map((child) => wrapNode(graph, child, wrapped));
+  const node2 = wrapped._sceneNode;
+  wrapped._children = node2.childIds.map((id) => graph.getNode(id)).filter((n2) => n2 !== void 0).map((child) => wrapNode(graph, child, wrapped));
   return wrapped._children;
 }
-function isDocument(node) {
-  return node.nodeType === NODE_TYPES.DOCUMENT_NODE;
+function isDocument(node2) {
+  return node2.nodeType === NODE_TYPES.DOCUMENT_NODE;
 }
-function siblingNode(graph, node, offset) {
-  if (isDocument(node)) return null;
-  const parent = node._parent;
+function siblingNode(graph, node2, offset) {
+  if (isDocument(node2)) return null;
+  const parent = node2._parent;
   if (!parent || isDocument(parent)) return null;
   const siblings = getChildren(graph, parent);
-  const index = siblings.indexOf(node);
+  const index = siblings.indexOf(node2);
   if (index === -1) return null;
   return siblings[index + offset] ?? null;
 }
 function createDomFacade(graph) {
   return {
-    getAllAttributes(node) {
-      if (isDocument(node)) return [];
-      return getAttrs(node);
+    getAllAttributes(node2) {
+      if (isDocument(node2)) return [];
+      return getAttrs(node2);
     },
-    getAttribute(node, attributeName) {
-      if (isDocument(node)) return null;
-      const sceneNode = node._sceneNode;
+    getAttribute(node2, attributeName) {
+      if (isDocument(node2)) return null;
+      const sceneNode = node2._sceneNode;
       if (attributeName in sceneNode) {
         const value = Reflect.get(sceneNode, attributeName);
         if (value === void 0 || value === null || typeof value === "symbol") return null;
@@ -147792,39 +147793,39 @@ function createDomFacade(graph) {
       }
       return null;
     },
-    getChildNodes(node) {
-      if (isDocument(node)) return node._children ?? [];
-      return getChildren(graph, node);
+    getChildNodes(node2) {
+      if (isDocument(node2)) return node2._children ?? [];
+      return getChildren(graph, node2);
     },
-    getData(node) {
-      return node.value;
+    getData(node2) {
+      return node2.value;
     },
-    getFirstChild(node) {
-      if (isDocument(node)) return node.documentElement;
-      const children = getChildren(graph, node);
+    getFirstChild(node2) {
+      if (isDocument(node2)) return node2.documentElement;
+      const children = getChildren(graph, node2);
       return children[0] ?? null;
     },
-    getLastChild(node) {
-      if (isDocument(node)) return node.documentElement;
-      const children = getChildren(graph, node);
+    getLastChild(node2) {
+      if (isDocument(node2)) return node2.documentElement;
+      const children = getChildren(graph, node2);
       return children[children.length - 1] ?? null;
     },
-    getNextSibling(node) {
-      return siblingNode(graph, node, 1);
+    getNextSibling(node2) {
+      return siblingNode(graph, node2, 1);
     },
-    getParentNode(node) {
-      if (isDocument(node)) return null;
-      return node._parent ?? null;
+    getParentNode(node2) {
+      if (isDocument(node2)) return null;
+      return node2._parent ?? null;
     },
-    getPreviousSibling(node) {
-      return siblingNode(graph, node, -1);
+    getPreviousSibling(node2) {
+      return siblingNode(graph, node2, -1);
     }
   };
 }
 async function queryByXPath(graph, selector, options = {}) {
   const { limit = 1e3 } = options;
-  const pages = graph.getPages();
-  const targetPages = options.page ? pages.filter((p6) => p6.name === options.page) : pages;
+  const pages2 = graph.getPages();
+  const targetPages = options.page ? pages2.filter((p6) => p6.name === options.page) : pages2;
   if (targetPages.length === 0) return [];
   const fontoxpath = await Promise.resolve().then(() => __toESM(require_fontoxpath(), 1));
   const evaluateXPathToNodes = fontoxpath.evaluateXPathToNodes ?? fontoxpath.default.evaluateXPathToNodes;
@@ -147833,9 +147834,9 @@ async function queryByXPath(graph, selector, options = {}) {
   for (const page of targetPages) {
     const doc = createDocument(graph, page);
     const nodes = evaluateXPathToNodes(selector, doc, domFacade);
-    for (const node of nodes) {
+    for (const node2 of nodes) {
       if (results.length >= limit) break;
-      const sceneNode = node._sceneNode;
+      const sceneNode = node2._sceneNode;
       if (sceneNode.type !== "CANVAS") {
         results.push(sceneNode);
       }
@@ -147847,10 +147848,10 @@ async function queryByXPath(graph, selector, options = {}) {
 
 // packages/core/src/rpc/read-commands.ts
 function walkNodes(graph, rootId, fn6) {
-  const node = graph.getNode(rootId);
-  if (!node) return true;
-  if (!fn6(node)) return false;
-  for (const childId of node.childIds) {
+  const node2 = graph.getNode(rootId);
+  if (!node2) return true;
+  if (!fn6(node2)) return false;
+  for (const childId of node2.childIds) {
     if (!walkNodes(graph, childId, fn6)) return false;
   }
   return true;
@@ -147867,36 +147868,36 @@ function countNodes(graph, pageId) {
   const page = graph.getNode(pageId);
   return page?.childIds.reduce((count, id) => count + countDescendants(graph, id), 0) ?? 0;
 }
-function nodeFrame(node) {
+function nodeFrame(node2) {
   return {
-    x: Math.round(node.x),
-    y: Math.round(node.y),
-    width: Math.round(node.width),
-    height: Math.round(node.height)
+    x: Math.round(node2.x),
+    y: Math.round(node2.y),
+    width: Math.round(node2.width),
+    height: Math.round(node2.height)
   };
 }
 var infoCommand = {
   name: "info",
   execute: (graph) => {
-    const pages = graph.getPages();
+    const pages2 = graph.getPages();
     let totalNodes = 0;
     const types2 = {};
-    const fonts2 = /* @__PURE__ */ new Set();
+    const fonts = /* @__PURE__ */ new Set();
     const pageCounts = {};
-    const countNode = (node) => {
+    const countNode = (node2) => {
       totalNodes++;
-      types2[node.type] = (types2[node.type] ?? 0) + 1;
-      if (node.fontFamily) fonts2.add(node.fontFamily);
+      types2[node2.type] = (types2[node2.type] ?? 0) + 1;
+      if (node2.fontFamily) fonts.add(node2.fontFamily);
       return true;
     };
-    for (const page of pages) {
+    for (const page of pages2) {
       const beforePage = totalNodes;
       for (const cid of page.childIds) {
         walkNodes(graph, cid, countNode);
       }
       pageCounts[page.name] = totalNodes - beforePage;
     }
-    return { pages: pages.length, totalNodes, types: types2, fonts: [...fonts2].sort(), pageCounts };
+    return { pages: pages2.length, totalNodes, types: types2, fonts: [...fonts].sort(), pageCounts };
   }
 };
 var fontStatusCommand = {
@@ -147913,28 +147914,28 @@ var pagesCommand = {
   }
 };
 function buildTreeNode(graph, id, depth, maxDepth) {
-  const node = graph.getNode(id);
-  if (!node) return null;
+  const node2 = graph.getNode(id);
+  if (!node2) return null;
   const result = {
-    id: node.id,
-    name: node.name,
-    type: node.type,
-    ...nodeFrame(node)
+    id: node2.id,
+    name: node2.name,
+    type: node2.type,
+    ...nodeFrame(node2)
   };
-  if (node.childIds.length > 0 && depth < maxDepth) {
-    result.children = node.childIds.map((cid) => buildTreeNode(graph, cid, depth + 1, maxDepth)).filter((n2) => n2 !== null);
+  if (node2.childIds.length > 0 && depth < maxDepth) {
+    result.children = node2.childIds.map((cid) => buildTreeNode(graph, cid, depth + 1, maxDepth)).filter((n2) => n2 !== null);
   }
   return result;
 }
 var treeCommand = {
   name: "tree",
   execute: (graph, args) => {
-    const pages = graph.getPages();
+    const pages2 = graph.getPages();
     const maxDepth = args.depth ?? Infinity;
-    const page = args.page ? pages.find((p6) => p6.name === args.page) : pages[0];
+    const page = args.page ? pages2.find((p6) => p6.name === args.page) : pages2[0];
     if (!page)
       return {
-        error: `Page "${args.page}" not found. Available: ${pages.map((p6) => p6.name).join(", ")}`
+        error: `Page "${args.page}" not found. Available: ${pages2.map((p6) => p6.name).join(", ")}`
       };
     return {
       page: { id: page.id, name: page.name, type: page.type },
@@ -147945,24 +147946,24 @@ var treeCommand = {
 var findCommand = {
   name: "find",
   execute: (graph, args) => {
-    const pages = graph.getPages();
+    const pages2 = graph.getPages();
     const max2 = args.limit ?? 100;
     const namePattern = args.name?.toLowerCase();
     const typeFilter = args.type?.toUpperCase();
     const results = [];
     const searchPage = (page) => {
       for (const cid of page.childIds) {
-        const cont = walkNodes(graph, cid, (node) => {
+        const cont = walkNodes(graph, cid, (node2) => {
           if (results.length >= max2) return false;
-          const matchesName = !namePattern || node.name.toLowerCase().includes(namePattern);
-          const matchesType = !typeFilter || node.type === typeFilter;
+          const matchesName = !namePattern || node2.name.toLowerCase().includes(namePattern);
+          const matchesType = !typeFilter || node2.type === typeFilter;
           if (matchesName && matchesType) {
             results.push({
-              id: node.id,
-              name: node.name,
-              type: node.type,
-              width: Math.round(node.width),
-              height: Math.round(node.height)
+              id: node2.id,
+              name: node2.name,
+              type: node2.type,
+              width: Math.round(node2.width),
+              height: Math.round(node2.height)
             });
           }
           return true;
@@ -147971,10 +147972,10 @@ var findCommand = {
       }
     };
     if (args.page) {
-      const page = pages.find((p6) => p6.name === args.page);
+      const page = pages2.find((p6) => p6.name === args.page);
       if (page) searchPage(page);
     } else {
-      for (const page of pages) searchPage(page);
+      for (const page of pages2) searchPage(page);
     }
     return results;
   }
@@ -148004,41 +148005,41 @@ var queryCommand = {
 var nodeCommand = {
   name: "node",
   execute: (graph, args) => {
-    const node = graph.getNode(args.id);
-    if (!node) return { error: `Node "${args.id}" not found` };
-    const parent = node.parentId ? graph.getNode(node.parentId) : void 0;
+    const node2 = graph.getNode(args.id);
+    if (!node2) return { error: `Node "${args.id}" not found` };
+    const parent = node2.parentId ? graph.getNode(node2.parentId) : void 0;
     const boundVars = {};
-    for (const [field, varId] of Object.entries(node.boundVariables)) {
+    for (const [field, varId] of Object.entries(node2.boundVariables)) {
       const variable = graph.variables.get(varId);
       boundVars[field] = variable?.name ?? varId;
     }
     return {
-      id: node.id,
-      name: node.name,
-      type: node.type,
-      ...nodeFrame(node),
-      visible: node.visible,
-      locked: node.locked,
-      opacity: node.opacity,
-      rotation: node.rotation,
-      fills: node.fills,
-      strokes: node.strokes,
-      effects: node.effects,
-      cornerRadius: node.cornerRadius,
-      blendMode: node.blendMode,
-      layoutMode: node.layoutMode,
-      layoutDirection: node.layoutDirection,
-      fontFamily: node.fontFamily,
-      fontSize: node.fontSize,
-      fontWeight: node.fontWeight,
-      textDirection: node.textDirection,
+      id: node2.id,
+      name: node2.name,
+      type: node2.type,
+      ...nodeFrame(node2),
+      visible: node2.visible,
+      locked: node2.locked,
+      opacity: node2.opacity,
+      rotation: node2.rotation,
+      fills: node2.fills,
+      strokes: node2.strokes,
+      effects: node2.effects,
+      cornerRadius: node2.cornerRadius,
+      blendMode: node2.blendMode,
+      layoutMode: node2.layoutMode,
+      layoutDirection: node2.layoutDirection,
+      fontFamily: node2.fontFamily,
+      fontSize: node2.fontSize,
+      fontWeight: node2.fontWeight,
+      textDirection: node2.textDirection,
       text: (() => {
-        if (!node.text.length) return null;
-        if (node.text.length > 200) return node.text.slice(0, 200) + "\u2026";
-        return node.text;
+        if (!node2.text.length) return null;
+        if (node2.text.length > 200) return node2.text.slice(0, 200) + "\u2026";
+        return node2.text;
       })(),
       parent: parent ? { id: parent.id, name: parent.name, type: parent.type } : null,
-      children: node.childIds.length,
+      children: node2.childIds.length,
       boundVariables: boundVars
     };
   }
@@ -148188,21 +148189,21 @@ var no_hardcoded_colors_default = defineRule({
     "COMPONENT",
     "INSTANCE"
   ],
-  check(node, context2) {
+  check(node2, context2) {
     const checkPaints = (paints, field) => {
       for (let i2 = 0; i2 < paints.length; i2++) {
         const paint = paints[i2];
         if (paint.type !== "SOLID" || !paint.visible || !paint.color) continue;
-        if (node.boundVariables[`${field}/${i2}/color`]) continue;
+        if (node2.boundVariables[`${field}/${i2}/color`]) continue;
         context2.report({
-          node,
+          node: node2,
           message: `Hardcoded ${field === "fills" ? "fill" : "stroke"} color detected`,
           suggest: "Bind this color to a design variable for consistency"
         });
       }
     };
-    checkPaints(node.fills, "fills");
-    checkPaints(node.strokes, "strokes");
+    checkPaints(node2.fills, "fills");
+    checkPaints(node2.strokes, "strokes");
   }
 });
 
@@ -148217,9 +148218,9 @@ function isMultipleOf(value, base, tolerance = 0.01) {
   const remainder = value % base;
   return remainder < tolerance || base - remainder < tolerance;
 }
-function getNodePath(node) {
+function getNodePath(node2) {
   const path = [];
-  let current = node;
+  let current = node2;
   while (current) {
     path.unshift(current.name);
     current = current.parent;
@@ -148248,13 +148249,13 @@ var no_default_names_default = defineRule({
     category: "naming",
     description: "Layers should have descriptive names"
   },
-  check(node, context2) {
-    if (!isDefaultName(node.name)) return;
-    const isSmallDecorative = ["RECTANGLE", "ELLIPSE", "LINE"].includes(node.type) && node.width < 24 && node.height < 24;
+  check(node2, context2) {
+    if (!isDefaultName(node2.name)) return;
+    const isSmallDecorative = ["RECTANGLE", "ELLIPSE", "LINE"].includes(node2.type) && node2.width < 24 && node2.height < 24;
     if (isSmallDecorative) return;
     context2.report({
-      node,
-      message: `Default layer name "${node.name}" is not descriptive`,
+      node: node2,
+      message: `Default layer name "${node2.name}" is not descriptive`,
       suggest: "Rename to describe the layer purpose"
     });
   }
@@ -148268,13 +148269,13 @@ var prefer_auto_layout_default = defineRule({
     description: "Frames with multiple children should use auto layout"
   },
   match: ["FRAME", "COMPONENT"],
-  check(node, context2) {
+  check(node2, context2) {
     const config = context2.getConfig();
     const minChildren = config?.minChildren ?? 2;
-    if (node.layoutMode !== "NONE" || context2.getChildren(node).length < minChildren) return;
+    if (node2.layoutMode !== "NONE" || context2.getChildren(node2).length < minChildren) return;
     context2.report({
-      node,
-      message: `Frame with ${context2.getChildren(node).length} children doesn't use auto layout`,
+      node: node2,
+      message: `Frame with ${context2.getChildren(node2).length} children doesn't use auto layout`,
       suggest: "Add horizontal or vertical auto layout"
     });
   }
@@ -148288,22 +148289,22 @@ var consistent_spacing_default = defineRule({
     description: "Spacing should follow the spacing scale"
   },
   match: ["FRAME", "COMPONENT"],
-  check(node, context2) {
-    if (node.layoutMode === "NONE") return;
+  check(node2, context2) {
+    if (node2.layoutMode === "NONE") return;
     const config = context2.getConfig();
     const base = config?.base ?? 8;
     const valid = (value) => SPACING_SCALE.includes(value) || isMultipleOf(value, base);
     const values = [
-      ["gap", node.itemSpacing],
-      ["paddingTop", node.paddingTop],
-      ["paddingRight", node.paddingRight],
-      ["paddingBottom", node.paddingBottom],
-      ["paddingLeft", node.paddingLeft]
+      ["gap", node2.itemSpacing],
+      ["paddingTop", node2.paddingTop],
+      ["paddingRight", node2.paddingRight],
+      ["paddingBottom", node2.paddingBottom],
+      ["paddingLeft", node2.paddingLeft]
     ];
     for (const [name, value] of values) {
       if (value > 0 && !valid(value)) {
         context2.report({
-          node,
+          node: node2,
           message: `${name} ${value}px is not in spacing scale`,
           suggest: "Use a spacing token or 8pt-grid multiple"
         });
@@ -148321,11 +148322,11 @@ var consistent_radius_default = defineRule({
     description: "Corner radius should follow the radius scale"
   },
   match: ["RECTANGLE", "FRAME", "COMPONENT", "INSTANCE"],
-  check(node, context2) {
-    if (node.cornerRadius > 0 && !SCALE.has(node.cornerRadius))
+  check(node2, context2) {
+    if (node2.cornerRadius > 0 && !SCALE.has(node2.cornerRadius))
       context2.report({
-        node,
-        message: `Corner radius ${node.cornerRadius}px is not in scale`,
+        node: node2,
+        message: `Corner radius ${node2.cornerRadius}px is not in scale`,
         suggest: "Use a radius token or a scale value"
       });
   }
@@ -148340,19 +148341,19 @@ var color_contrast_default = defineRule({
     description: "Text must have sufficient contrast against its background"
   },
   match: ["TEXT"],
-  check(node, context2) {
-    const textFillIndex = node.fills.findIndex((f5) => f5.type === "SOLID" && f5.visible && f5.color);
-    const textColor = node.fills[textFillIndex]?.color;
+  check(node2, context2) {
+    const textFillIndex = node2.fills.findIndex((f5) => f5.type === "SOLID" && f5.visible && f5.color);
+    const textColor = node2.fills[textFillIndex]?.color;
     if (textColor == null) return;
-    if (node.boundVariables[`fills/${textFillIndex}/color`]) return;
-    let parent = context2.getParent(node);
+    if (node2.boundVariables[`fills/${textFillIndex}/color`]) return;
+    let parent = context2.getParent(node2);
     while (parent) {
       const bg = parent.fills.find((f5) => f5.type === "SOLID" && f5.visible && f5.color)?.color;
       if (bg) {
         const ratio = contrastRatio(textColor, bg);
         if (ratio < 4.5)
           context2.report({
-            node,
+            node: node2,
             message: `Contrast ratio ${ratio.toFixed(2)}:1 is below WCAG AA`,
             suggest: "Increase contrast between text and background"
           });
@@ -148392,12 +148393,12 @@ var touch_target_size_default = defineRule({
     description: "Interactive elements should be at least 44x44px"
   },
   match: ["FRAME", "COMPONENT", "INSTANCE", "RECTANGLE", "ELLIPSE"],
-  check(node, context2) {
-    if (!PATTERNS.some((p6) => p6.test(node.name))) return;
-    if (node.width >= 44 && node.height >= 44) return;
+  check(node2, context2) {
+    if (!PATTERNS.some((p6) => p6.test(node2.name))) return;
+    if (node2.width >= 44 && node2.height >= 44) return;
     context2.report({
-      node,
-      message: `Touch target too small: ${node.width}\xD7${node.height}px`,
+      node: node2,
+      message: `Touch target too small: ${node2.width}\xD7${node2.height}px`,
       suggest: "Resize to at least 44\xD744px or add padding"
     });
   }
@@ -148411,11 +148412,11 @@ var text_style_required_default = defineRule({
     description: "Text layers should use shared typography tokens or styles"
   },
   match: ["TEXT"],
-  check(node, context2) {
-    if (node.text.length <= 2) return;
-    if (node.boundVariables.fontSize || node.boundVariables.fontFamily) return;
+  check(node2, context2) {
+    if (node2.text.length <= 2) return;
+    if (node2.boundVariables.fontSize || node2.boundVariables.fontFamily) return;
     context2.report({
-      node,
+      node: node2,
       message: "Text layer without typography variable bindings",
       suggest: "Bind font size or font family to a shared text token when possible"
     });
@@ -148430,13 +148431,13 @@ var min_text_size_default = defineRule({
     description: "Text should be large enough to be readable (minimum 12px)"
   },
   match: ["TEXT"],
-  check(node, context2) {
+  check(node2, context2) {
     const config = context2.getConfig();
     const minSize = config?.minSize ?? 12;
-    if (node.fontSize < minSize)
+    if (node2.fontSize < minSize)
       context2.report({
-        node,
-        message: `Text size ${node.fontSize}px is below minimum ${minSize}px`,
+        node: node2,
+        message: `Text size ${node2.fontSize}px is below minimum ${minSize}px`,
         suggest: `Increase to at least ${minSize}px for readability`
       });
   }
@@ -148449,10 +148450,10 @@ var no_hidden_layers_default = defineRule({
     category: "structure",
     description: "Hidden layers may indicate unused elements"
   },
-  check(node, context2) {
-    if (!node.visible)
+  check(node2, context2) {
+    if (!node2.visible)
       context2.report({
-        node,
+        node: node2,
         message: "Hidden layer detected",
         suggest: "Delete if unused or keep only if required for component states"
       });
@@ -148466,18 +148467,18 @@ var no_deeply_nested_default = defineRule({
     category: "structure",
     description: "Avoid deeply nested layers"
   },
-  check(node, context2) {
+  check(node2, context2) {
     const config = context2.getConfig();
     const maxDepth = config?.maxDepth ?? 6;
     let depth = 0;
-    let current = context2.getParent(node);
+    let current = context2.getParent(node2);
     while (current) {
       depth++;
       current = context2.getParent(current);
     }
     if (depth > maxDepth) {
       context2.report({
-        node,
+        node: node2,
         message: `Layer nested ${depth} levels deep (max ${maxDepth})`,
         suggest: "Flatten structure or extract a component"
       });
@@ -148493,13 +148494,13 @@ var no_empty_frames_default = defineRule({
     description: "Frames should not be empty unless used as spacers"
   },
   match: ["FRAME"],
-  check(node, context2) {
-    if (context2.getChildren(node).length > 0) return;
-    const isSpacer = node.name.toLowerCase().includes("spacer") || node.width <= 1 || node.height <= 1;
-    const hasFill = node.fills.some((f5) => f5.visible && f5.type === "SOLID");
+  check(node2, context2) {
+    if (context2.getChildren(node2).length > 0) return;
+    const isSpacer = node2.name.toLowerCase().includes("spacer") || node2.width <= 1 || node2.height <= 1;
+    const hasFill = node2.fills.some((f5) => f5.visible && f5.type === "SOLID");
     if (!isSpacer && !hasFill)
       context2.report({
-        node,
+        node: node2,
         message: "Empty frame with no fill",
         suggest: "Delete if unused, or add content/fill"
       });
@@ -148513,17 +148514,17 @@ var pixel_perfect_default = defineRule({
     category: "layout",
     description: "Elements should align to whole pixels"
   },
-  check(node, context2) {
+  check(node2, context2) {
     const values = [
-      ["x", node.x],
-      ["y", node.y],
-      ["width", node.width],
-      ["height", node.height]
+      ["x", node2.x],
+      ["y", node2.y],
+      ["width", node2.width],
+      ["height", node2.height]
     ];
     const subpixel = values.filter(([, value]) => Math.abs(value - Math.round(value)) >= 0.01);
     if (subpixel.length === 0) return;
     context2.report({
-      node,
+      node: node2,
       message: `Subpixel values: ${subpixel.map(([k4, v3]) => `${k4}: ${v3}`).join(", ")}`,
       suggest: "Round to whole pixels for crisp rendering"
     });
@@ -148538,9 +148539,9 @@ var no_groups_default = defineRule({
     description: "Use frames instead of groups for better layout control"
   },
   match: ["GROUP"],
-  check(node, context2) {
+  check(node2, context2) {
     context2.report({
-      node,
+      node: node2,
       message: "Group should be converted to Frame",
       suggest: "Groups cannot use auto layout. Convert to Frame for better control."
     });
@@ -148554,11 +148555,11 @@ var effect_style_required_default = defineRule({
     category: "design-tokens",
     description: "Effects should use shared effect presets or tokens"
   },
-  check(node, context2) {
-    const visibleEffects = node.effects.filter((effect) => effect.visible);
+  check(node2, context2) {
+    const visibleEffects = node2.effects.filter((effect) => effect.visible);
     if (visibleEffects.length === 0) return;
     context2.report({
-      node,
+      node: node2,
       message: `Effect without shared style: ${visibleEffects.map((effect) => `${effect.type} ${effect.radius}px`).join(", ")}`,
       suggest: "Extract reusable shadows and blurs into shared presets or variables"
     });
@@ -148573,10 +148574,10 @@ var no_mixed_styles_default = defineRule({
     description: "Text layers should not mix multiple styles in one node"
   },
   match: ["TEXT"],
-  check(node, context2) {
-    if (node.text.length > 1 && node.styleRunCount > 0) {
+  check(node2, context2) {
+    if (node2.text.length > 1 && node2.styleRunCount > 0) {
       context2.report({
-        node,
+        node: node2,
         message: "Text layer has mixed font styles",
         suggest: "Split into separate text layers or unify the text style"
       });
@@ -148603,12 +148604,12 @@ var no_detached_instances_default = defineRule({
     description: "Frames that look like components should be instances, not detached copies"
   },
   match: ["FRAME"],
-  check(node, context2) {
-    if (node.componentId || !PATTERNS2.some((p6) => p6.test(node.name)) || context2.getChildren(node).length === 0 || node.layoutMode === "NONE")
+  check(node2, context2) {
+    if (node2.componentId || !PATTERNS2.some((p6) => p6.test(node2.name)) || context2.getChildren(node2).length === 0 || node2.layoutMode === "NONE")
       return;
     context2.report({
-      node,
-      message: `Frame "${node.name}" looks like a component but isn't an instance`,
+      node: node2,
+      message: `Frame "${node2.name}" looks like a component but isn't an instance`,
       suggest: "Use a component instance instead of a detached frame"
     });
   }
@@ -148675,10 +148676,10 @@ var Linter = class {
   capture(graph, id, parent) {
     const raw = graph.getNode(id);
     if (!raw) return;
-    const node = this.toLintNode(raw);
-    node.parent = parent;
-    this.nodes.set(id, node);
-    for (const childId of raw.childIds) this.capture(graph, childId, node);
+    const node2 = this.toLintNode(raw);
+    node2.parent = parent;
+    this.nodes.set(id, node2);
+    for (const childId of raw.childIds) this.capture(graph, childId, node2);
   }
   toLintNode(raw) {
     return {
@@ -148724,31 +148725,31 @@ var Linter = class {
     };
   }
   lintNode(id) {
-    const node = this.nodes.get(id);
-    if (!node) return;
+    const node2 = this.nodes.get(id);
+    if (!node2) return;
     for (const [ruleId, rule] of this.rules) {
-      if (rule.match && !rule.match.includes(node.type)) continue;
+      if (rule.match && !rule.match.includes(node2.type)) continue;
       const config = this.ruleConfigs.get(ruleId);
       if (!config || config.severity === "off") continue;
       const context2 = {
-        report: ({ node: node2, message, suggest }) => {
+        report: ({ node: node3, message, suggest }) => {
           this.messages.push({
             ruleId,
             severity: config.severity,
             message,
-            nodeId: node2.id,
-            nodeName: node2.name,
-            nodePath: getNodePath(this.nodes.get(node2.id) ?? node2),
+            nodeId: node3.id,
+            nodeName: node3.name,
+            nodePath: getNodePath(this.nodes.get(node3.id) ?? node3),
             suggest
           });
         },
         getConfig: () => config.options,
-        getParent: (node2) => this.nodes.get(node2.id)?.parent ?? null,
-        getChildren: (node2) => node2.childIds.map((childId) => this.nodes.get(childId)).filter((child) => !!child)
+        getParent: (node3) => this.nodes.get(node3.id)?.parent ?? null,
+        getChildren: (node3) => node3.childIds.map((childId) => this.nodes.get(childId)).filter((child) => !!child)
       };
-      rule.check(node, context2);
+      rule.check(node2, context2);
     }
-    for (const childId of node.childIds) this.lintNode(childId);
+    for (const childId of node2.childIds) this.lintNode(childId);
   }
 };
 function createLinter(options) {
@@ -148869,10 +148870,10 @@ function isVarRef(val) {
 function varName(ref) {
   return ref.replace(/^\$/, "");
 }
-function bindIfVar(node, field, val, ctx) {
+function bindIfVar(node2, field, val, ctx) {
   if (!isVarRef(val)) return;
   const entry = ctx.byName.get(varName(val));
-  if (entry) node.boundVariables[field] = entry.id;
+  if (entry) node2.boundVariables[field] = entry.id;
 }
 function buildVarContext(graph, penVars, themes) {
   const collectionId = generateId();
@@ -148976,21 +148977,21 @@ function parseFillColor(fill2, ctx) {
   const raw = typeof fill2 === "string" ? fill2 : fill2.color;
   return isVarRef(raw) ? ctx.resolveColor(raw) : parseColor(raw);
 }
-function convertFill(fill2, ctx, node) {
+function convertFill(fill2, ctx, node2) {
   if (fill2 === void 0) return [];
   const fills = Array.isArray(fill2) ? fill2 : [fill2];
   return fills.map((item, index) => {
     const visible = typeof item === "string" ? true : item.enabled !== false;
     const color = parseFillColor(item, ctx);
     const result = { type: "SOLID", visible, opacity: color.a, color };
-    if (node) bindIfVar(node, `fills[${index}]`, typeof item === "string" ? item : item.color, ctx);
+    if (node2) bindIfVar(node2, `fills[${index}]`, typeof item === "string" ? item : item.color, ctx);
     return result;
   });
 }
 function strokeWeight(stroke) {
   return typeof stroke.thickness === "number" ? stroke.thickness : Math.max(...Object.values(stroke.thickness));
 }
-function convertStroke(stroke, ctx, node) {
+function convertStroke(stroke, ctx, node2) {
   if (!stroke?.fill) return [];
   const color = isVarRef(stroke.fill) ? ctx.resolveColor(stroke.fill) : parseColor(stroke.fill);
   let align = "CENTER";
@@ -149004,17 +149005,17 @@ function convertStroke(stroke, ctx, node) {
     align,
     dashPattern: []
   };
-  if (node) {
-    bindIfVar(node, "strokes[0]", stroke.fill, ctx);
+  if (node2) {
+    bindIfVar(node2, "strokes[0]", stroke.fill, ctx);
     if (typeof stroke.thickness === "object") {
-      node.independentStrokeWeights = true;
-      node.borderTopWeight = stroke.thickness.top ?? 0;
-      node.borderRightWeight = stroke.thickness.right ?? 0;
-      node.borderBottomWeight = stroke.thickness.bottom ?? 0;
-      node.borderLeftWeight = stroke.thickness.left ?? 0;
+      node2.independentStrokeWeights = true;
+      node2.borderTopWeight = stroke.thickness.top ?? 0;
+      node2.borderRightWeight = stroke.thickness.right ?? 0;
+      node2.borderBottomWeight = stroke.thickness.bottom ?? 0;
+      node2.borderLeftWeight = stroke.thickness.left ?? 0;
     }
-    node.strokeJoin = mapStrokeJoin(stroke.join);
-    node.strokeCap = mapStrokeCap(stroke.cap);
+    node2.strokeJoin = mapStrokeJoin(stroke.join);
+    node2.strokeCap = mapStrokeCap(stroke.cap);
   }
   return [result];
 }
@@ -149047,43 +149048,43 @@ function convertEffects2(effect) {
     ];
   });
 }
-function applyCornerRadius(node, radius, ctx) {
+function applyCornerRadius(node2, radius, ctx) {
   if (radius === void 0) return;
   if (Array.isArray(radius)) {
     const values = radius.map((value) => parseSize(value, 0, ctx).value);
-    node.independentCorners = true;
-    node.topLeftRadius = values[0] ?? 0;
-    node.topRightRadius = values[1] ?? 0;
-    node.bottomRightRadius = values[2] ?? 0;
-    node.bottomLeftRadius = values[3] ?? 0;
+    node2.independentCorners = true;
+    node2.topLeftRadius = values[0] ?? 0;
+    node2.topRightRadius = values[1] ?? 0;
+    node2.bottomRightRadius = values[2] ?? 0;
+    node2.bottomLeftRadius = values[3] ?? 0;
     return;
   }
-  node.cornerRadius = parseSize(radius, 0, ctx).value;
+  node2.cornerRadius = parseSize(radius, 0, ctx).value;
 }
-function applyPadding(node, padding, ctx) {
+function applyPadding(node2, padding, ctx) {
   if (padding === void 0) return;
   const resolve = (v3) => typeof v3 === "string" ? isVarRef(v3) && ctx ? ctx.resolveNumber(v3) : Number(v3) || 0 : v3;
   if (Array.isArray(padding)) {
     if (padding.length === 2) {
       const vertical = resolve(padding[0]);
       const horizontal = resolve(padding[1]);
-      node.paddingTop = vertical;
-      node.paddingRight = horizontal;
-      node.paddingBottom = vertical;
-      node.paddingLeft = horizontal;
+      node2.paddingTop = vertical;
+      node2.paddingRight = horizontal;
+      node2.paddingBottom = vertical;
+      node2.paddingLeft = horizontal;
       return;
     }
-    node.paddingTop = resolve(padding[0] ?? 0);
-    node.paddingRight = resolve(padding[1] ?? 0);
-    node.paddingBottom = resolve(padding[2] ?? 0);
-    node.paddingLeft = resolve(padding[3] ?? 0);
+    node2.paddingTop = resolve(padding[0] ?? 0);
+    node2.paddingRight = resolve(padding[1] ?? 0);
+    node2.paddingBottom = resolve(padding[2] ?? 0);
+    node2.paddingLeft = resolve(padding[3] ?? 0);
     return;
   }
   const resolved = resolve(padding);
-  node.paddingTop = resolved;
-  node.paddingRight = resolved;
-  node.paddingBottom = resolved;
-  node.paddingLeft = resolved;
+  node2.paddingTop = resolved;
+  node2.paddingRight = resolved;
+  node2.paddingBottom = resolved;
+  node2.paddingLeft = resolved;
 }
 function parseParameterizedFallback(value, behavior) {
   const prefix = `${behavior}(`;
@@ -149226,22 +149227,22 @@ function applyAutoLayout(overrides, layoutMode, pen, widthSizing, heightSizing, 
     overrides.counterAxisSizing = heightSizing;
   }
 }
-function applyTextProps(node, pen, ctx) {
-  node.text = pen.type === "icon_font" ? pen.iconFontName ?? "" : pen.content ?? "";
-  node.fontFamily = pen.type === "icon_font" ? pen.iconFontFamily ?? "Material Symbols Sharp" : resolveFontFamily(pen.fontFamily, ctx);
-  node.fontSize = pen.fontSize ?? 14;
-  node.fontWeight = mapFontWeight(
+function applyTextProps(node2, pen, ctx) {
+  node2.text = pen.type === "icon_font" ? pen.iconFontName ?? "" : pen.content ?? "";
+  node2.fontFamily = pen.type === "icon_font" ? pen.iconFontFamily ?? "Material Symbols Sharp" : resolveFontFamily(pen.fontFamily, ctx);
+  node2.fontSize = pen.fontSize ?? 14;
+  node2.fontWeight = mapFontWeight(
     pen.fontWeight ?? (pen.type === "icon_font" ? pen.weight : void 0)
   );
-  node.textAlignHorizontal = mapTextAlign(pen.textAlign);
-  node.textAlignVertical = mapTextAlignVertical(pen.textAlignVertical);
+  node2.textAlignHorizontal = mapTextAlign(pen.textAlign);
+  node2.textAlignVertical = mapTextAlignVertical(pen.textAlignVertical);
   if (pen.lineHeight !== void 0) {
-    node.lineHeight = pen.lineHeight < 5 ? pen.lineHeight * node.fontSize : pen.lineHeight;
+    node2.lineHeight = pen.lineHeight < 5 ? pen.lineHeight * node2.fontSize : pen.lineHeight;
   }
-  if (pen.letterSpacing !== void 0) node.letterSpacing = pen.letterSpacing;
-  node.textAutoResize = pen.textGrowth === "fixed-width" ? "HEIGHT" : "WIDTH_AND_HEIGHT";
+  if (pen.letterSpacing !== void 0) node2.letterSpacing = pen.letterSpacing;
+  node2.textAutoResize = pen.textGrowth === "fixed-width" ? "HEIGHT" : "WIDTH_AND_HEIGHT";
   if (pen.fontFamily && isVarRef(pen.fontFamily)) {
-    bindIfVar(node, "fontFamily", pen.fontFamily, ctx);
+    bindIfVar(node2, "fontFamily", pen.fontFamily, ctx);
   }
 }
 function resolveSizing(pen, ctx) {
@@ -149255,55 +149256,55 @@ function resolveSizing(pen, ctx) {
   if (pen.height === void 0 && layout !== "NONE") h4.sizing = "HUG";
   return { w: w3, h: h4, layout, isTextLike };
 }
-function inheritLayoutFromComp(node, pen, comp) {
-  const wasRow = node.layoutMode === "HORIZONTAL";
-  node.layoutMode = comp.layoutMode;
-  node.primaryAxisAlign = comp.primaryAxisAlign;
-  node.counterAxisAlign = comp.counterAxisAlign;
-  const isRow = node.layoutMode === "HORIZONTAL";
+function inheritLayoutFromComp(node2, pen, comp) {
+  const wasRow = node2.layoutMode === "HORIZONTAL";
+  node2.layoutMode = comp.layoutMode;
+  node2.primaryAxisAlign = comp.primaryAxisAlign;
+  node2.counterAxisAlign = comp.counterAxisAlign;
+  const isRow = node2.layoutMode === "HORIZONTAL";
   if (wasRow !== isRow) {
-    const oldP = node.primaryAxisSizing;
-    node.primaryAxisSizing = node.counterAxisSizing;
-    node.counterAxisSizing = oldP;
+    const oldP = node2.primaryAxisSizing;
+    node2.primaryAxisSizing = node2.counterAxisSizing;
+    node2.counterAxisSizing = oldP;
   }
   const widthAxis = isRow ? "primaryAxisSizing" : "counterAxisSizing";
   const heightAxis = isRow ? "counterAxisSizing" : "primaryAxisSizing";
-  if (pen.width === void 0) node[widthAxis] = comp[widthAxis];
-  if (pen.height === void 0) node[heightAxis] = comp[heightAxis];
-  if (pen.gap === void 0) node.itemSpacing = comp.itemSpacing;
+  if (pen.width === void 0) node2[widthAxis] = comp[widthAxis];
+  if (pen.height === void 0) node2[heightAxis] = comp[heightAxis];
+  if (pen.gap === void 0) node2.itemSpacing = comp.itemSpacing;
   if (pen.padding === void 0) {
-    node.paddingTop = comp.paddingTop;
-    node.paddingRight = comp.paddingRight;
-    node.paddingBottom = comp.paddingBottom;
-    node.paddingLeft = comp.paddingLeft;
+    node2.paddingTop = comp.paddingTop;
+    node2.paddingRight = comp.paddingRight;
+    node2.paddingBottom = comp.paddingBottom;
+    node2.paddingLeft = comp.paddingLeft;
   }
-  if (pen.clip === void 0) node.clipsContent = comp.clipsContent;
+  if (pen.clip === void 0) node2.clipsContent = comp.clipsContent;
 }
-function applyRefVisuals(node, pen, compPen, ctx) {
+function applyRefVisuals(node2, pen, compPen, ctx) {
   if (!compPen) return;
   if (pen.fill === void 0 && compPen.fill !== void 0)
-    node.fills = convertFill(compPen.fill, ctx, node);
+    node2.fills = convertFill(compPen.fill, ctx, node2);
   if (pen.stroke === void 0 && compPen.stroke)
-    node.strokes = convertStroke(compPen.stroke, ctx, node);
-  if (pen.effect === void 0 && compPen.effect) node.effects = convertEffects2(compPen.effect);
-  if (pen.cornerRadius === void 0) applyCornerRadius(node, compPen.cornerRadius, ctx);
+    node2.strokes = convertStroke(compPen.stroke, ctx, node2);
+  if (pen.effect === void 0 && compPen.effect) node2.effects = convertEffects2(compPen.effect);
+  if (pen.cornerRadius === void 0) applyCornerRadius(node2, compPen.cornerRadius, ctx);
 }
-function applyRefProps(node, pen, graph, componentIds, penSources, ctx) {
+function applyRefProps(node2, pen, graph, componentIds, penSources, ctx) {
   if (!pen.ref) return;
   const componentId = componentIds.get(pen.ref) ?? pen.ref;
-  node.componentId = componentId;
+  node2.componentId = componentId;
   const comp = graph.getNode(componentId);
   if (!comp) return;
-  if (pen.width === void 0) node.width = comp.width;
-  if (pen.height === void 0) node.height = comp.height;
-  if (pen.layout === void 0) inheritLayoutFromComp(node, pen, comp);
-  applyRefVisuals(node, pen, penSources.get(pen.ref), ctx);
+  if (pen.width === void 0) node2.width = comp.width;
+  if (pen.height === void 0) node2.height = comp.height;
+  if (pen.layout === void 0) inheritLayoutFromComp(node2, pen, comp);
+  applyRefVisuals(node2, pen, penSources.get(pen.ref), ctx);
 }
 function applyAllRefProps(penNodes, graph, componentIds, penSources, ctx) {
   for (const pen of penNodes) {
     if (pen.type === "ref") {
-      const node = graph.getNode(pen.id);
-      if (node) applyRefProps(node, pen, graph, componentIds, penSources, ctx);
+      const node2 = graph.getNode(pen.id);
+      if (node2) applyRefProps(node2, pen, graph, componentIds, penSources, ctx);
     }
     if (pen.children) applyAllRefProps(pen.children, graph, componentIds, penSources, ctx);
   }
@@ -149328,46 +149329,46 @@ function createSceneNode(pen, parentId, graph, ctx, componentIds, penSources) {
     const heightSizing = parentLayout === "NONE" && h4.sizing === "FILL" ? "FIXED" : h4.sizing;
     applyAutoLayout(overrides, layout, pen, widthSizing, heightSizing, ctx);
   }
-  const node = graph.createNode(mapNodeType2(pen), parentId, overrides);
-  if (pen.fill !== void 0) node.fills = convertFill(pen.fill, ctx, node);
-  if (pen.stroke) node.strokes = convertStroke(pen.stroke, ctx, node);
-  node.effects = convertEffects2(pen.effect);
-  applyCornerRadius(node, pen.cornerRadius, ctx);
-  applyPadding(node, pen.padding, ctx);
+  const node2 = graph.createNode(mapNodeType2(pen), parentId, overrides);
+  if (pen.fill !== void 0) node2.fills = convertFill(pen.fill, ctx, node2);
+  if (pen.stroke) node2.strokes = convertStroke(pen.stroke, ctx, node2);
+  node2.effects = convertEffects2(pen.effect);
+  applyCornerRadius(node2, pen.cornerRadius, ctx);
+  applyPadding(node2, pen.padding, ctx);
   if (isTextLike) {
-    applyTextProps(node, pen, ctx);
+    applyTextProps(node2, pen, ctx);
     if (parentLayout === "NONE" && pen.width === void 0 && !pen.textGrowth) {
-      node.textAutoResize = "NONE";
-      node.width = node.text.length * node.fontSize * 0.65;
-      node.height = node.fontSize * (node.lineHeight ? node.lineHeight / node.fontSize : 1.2);
+      node2.textAutoResize = "NONE";
+      node2.width = node2.text.length * node2.fontSize * 0.65;
+      node2.height = node2.fontSize * (node2.lineHeight ? node2.lineHeight / node2.fontSize : 1.2);
     }
   }
   if (pen.type === "path" && pen.geometry) {
     const vectorNetwork = parseSVGPath(pen.geometry);
-    node.vectorNetwork = vectorNetwork;
-    scaleVectorNetwork(vectorNetwork, node.width, node.height);
+    node2.vectorNetwork = vectorNetwork;
+    scaleVectorNetwork(vectorNetwork, node2.width, node2.height);
   }
   if (parentLayout !== "NONE") {
     const parentVertical = parentLayout === "VERTICAL";
     if (w3.sizing === "FILL") {
-      if (parentVertical) node.layoutAlignSelf = "STRETCH";
-      else node.layoutGrow = 1;
+      if (parentVertical) node2.layoutAlignSelf = "STRETCH";
+      else node2.layoutGrow = 1;
     }
     if (h4.sizing === "FILL") {
-      if (parentVertical) node.layoutGrow = 1;
-      else node.layoutAlignSelf = "STRETCH";
+      if (parentVertical) node2.layoutGrow = 1;
+      else node2.layoutAlignSelf = "STRETCH";
     }
   }
   if (pen.reusable) {
-    componentIds.set(pen.id, node.id);
+    componentIds.set(pen.id, node2.id);
     penSources.set(pen.id, pen);
   }
   if (pen.children) {
     for (const child of pen.children) {
-      createSceneNode(child, node.id, graph, ctx, componentIds, penSources);
+      createSceneNode(child, node2.id, graph, ctx, componentIds, penSources);
     }
   }
-  return node.id;
+  return node2.id;
 }
 function collectByNameType(graph, parentId, name, type, out, depth) {
   if (depth > 2) return;
@@ -149413,10 +149414,10 @@ function applyOverrideProps(target, overrideData, ctx) {
   if (overrideData.name !== void 0) target.name = overrideData.name;
 }
 function populateInstances(graph) {
-  for (const node of graph.getAllNodes()) {
-    if (node.type === "INSTANCE" && node.componentId && node.childIds.length === 0) {
-      const component = graph.getNode(node.componentId);
-      if (component) populateInstanceChildren(graph, node.id, node.componentId);
+  for (const node2 of graph.getAllNodes()) {
+    if (node2.type === "INSTANCE" && node2.componentId && node2.childIds.length === 0) {
+      const component = graph.getNode(node2.componentId);
+      if (component) populateInstanceChildren(graph, node2.id, node2.componentId);
     }
   }
 }
@@ -149456,25 +149457,25 @@ function walkAndApplyOverrides(nodes, graph, ctx, componentIds, penSources) {
   }
 }
 function collectComponentIds(nodes, map) {
-  for (const node of nodes) {
-    if (node.reusable) map.set(node.id, node.id);
-    if (node.children) collectComponentIds(node.children, map);
+  for (const node2 of nodes) {
+    if (node2.reusable) map.set(node2.id, node2.id);
+    if (node2.children) collectComponentIds(node2.children, map);
   }
 }
-function resolveNodeVars(node, graph, ctx) {
-  for (const [key, varId] of Object.entries(node.boundVariables)) {
+function resolveNodeVars(node2, graph, ctx) {
+  for (const [key, varId] of Object.entries(node2.boundVariables)) {
     const variable = graph.variables.get(varId);
     if (!variable) continue;
     const modeVal = variable.valuesByMode[ctx.activeModeId] ?? Object.values(variable.valuesByMode)[0];
     if (key.startsWith("fills[") && typeof modeVal === "object" && "r" in modeVal) {
       const idx = Number.parseInt(key.match(/\d+/)?.[0] ?? "0", 10);
-      if (node.fills[idx]) node.fills[idx].color = modeVal;
+      if (node2.fills[idx]) node2.fills[idx].color = modeVal;
     } else if (key.startsWith("strokes[") && typeof modeVal === "object" && "r" in modeVal) {
       const idx = Number.parseInt(key.match(/\d+/)?.[0] ?? "0", 10);
-      if (node.strokes[idx]) node.strokes[idx].color = modeVal;
+      if (node2.strokes[idx]) node2.strokes[idx].color = modeVal;
     }
   }
-  for (const childId of node.childIds) {
+  for (const childId of node2.childIds) {
     const child = graph.getNode(childId);
     if (child) resolveNodeVars(child, graph, ctx);
   }
@@ -149482,30 +149483,30 @@ function resolveNodeVars(node, graph, ctx) {
 function resolveThemeVariables(penNodes, graph, ctx) {
   for (const pen of penNodes) {
     if (pen.theme) applyTheme(pen.theme, ctx);
-    const node = graph.getNode(pen.id);
-    if (node) resolveNodeVars(node, graph, ctx);
+    const node2 = graph.getNode(pen.id);
+    if (node2) resolveNodeVars(node2, graph, ctx);
     if (pen.children) resolveThemeVariables(pen.children, graph, ctx);
   }
 }
 function fixInstanceWidths(graph) {
-  for (const node of graph.getAllNodes()) {
-    if (node.type !== "INSTANCE" || !node.componentId) continue;
-    const comp = graph.getNode(node.componentId);
+  for (const node2 of graph.getAllNodes()) {
+    if (node2.type !== "INSTANCE" || !node2.componentId) continue;
+    const comp = graph.getNode(node2.componentId);
     if (!comp) continue;
-    if (node.width <= 100 && comp.width > 100) node.width = comp.width;
-    if (node.height <= 100 && comp.height > 100) node.height = comp.height;
-    if (comp.layoutGrow > 0) node.layoutGrow = comp.layoutGrow;
-    if (comp.layoutAlignSelf !== "AUTO") node.layoutAlignSelf = comp.layoutAlignSelf;
-    node.fills = copyFills(node.fills);
-    node.strokes = copyStrokes(node.strokes);
-    node.effects = copyEffects(node.effects);
+    if (node2.width <= 100 && comp.width > 100) node2.width = comp.width;
+    if (node2.height <= 100 && comp.height > 100) node2.height = comp.height;
+    if (comp.layoutGrow > 0) node2.layoutGrow = comp.layoutGrow;
+    if (comp.layoutAlignSelf !== "AUTO") node2.layoutAlignSelf = comp.layoutAlignSelf;
+    node2.fills = copyFills(node2.fills);
+    node2.strokes = copyStrokes(node2.strokes);
+    node2.effects = copyEffects(node2.effects);
   }
 }
 function fixTextWidths(graph) {
-  for (const node of graph.getAllNodes()) {
-    if (node.type !== "TEXT" || !node.text || node.text.length <= 1) continue;
-    if (node.width >= node.fontSize * 2) continue;
-    node.width = node.text.length * node.fontSize * 0.65;
+  for (const node2 of graph.getAllNodes()) {
+    if (node2.type !== "TEXT" || !node2.text || node2.text.length <= 1) continue;
+    if (node2.width >= node2.fontSize * 2) continue;
+    node2.width = node2.text.length * node2.fontSize * 0.65;
   }
 }
 function parsePenFile(json) {
@@ -149590,18 +149591,18 @@ function formatProp(key, value) {
   if (typeof value === "boolean") return value ? key : `${key}={false}`;
   return `${key}={${JSON.stringify(value)}}`;
 }
-function getNodeContext(node, graph) {
-  const parent = node.parentId ? graph.getNode(node.parentId) : null;
+function getNodeContext(node2, graph) {
+  const parent = node2.parentId ? graph.getNode(node2.parentId) : null;
   return {
-    isAutoLayout: node.layoutMode !== "NONE",
-    isGrid: node.layoutMode === "GRID",
-    isFlex: node.layoutMode === "HORIZONTAL" || node.layoutMode === "VERTICAL",
+    isAutoLayout: node2.layoutMode !== "NONE",
+    isGrid: node2.layoutMode === "GRID",
+    isFlex: node2.layoutMode === "HORIZONTAL" || node2.layoutMode === "VERTICAL",
     parentIsAutoLayout: parent ? parent.layoutMode !== "NONE" : false,
     parentIsGrid: parent ? parent.layoutMode === "GRID" : false
   };
 }
-function collectPadding(node) {
-  const { paddingTop: pt3, paddingRight: pr2, paddingBottom: pb, paddingLeft: pl2 } = node;
+function collectPadding(node2) {
+  const { paddingTop: pt3, paddingRight: pr2, paddingBottom: pb, paddingLeft: pl2 } = node2;
   if (pt3 === 0 && pr2 === 0 && pb === 0 && pl2 === 0) return null;
   return { pt: pt3, pr: pr2, pb, pl: pl2 };
 }
@@ -149611,17 +149612,17 @@ function emitPadding(edges, uniform, symmetric, individual) {
   if (pt3 === pb && pl2 === pr2) return symmetric(pt3, pl2);
   return individual(edges);
 }
-function collectCornerRadii(node) {
-  if (node.cornerRadius <= 0) return null;
-  if (node.independentCorners) {
+function collectCornerRadii(node2) {
+  if (node2.cornerRadius <= 0) return null;
+  if (node2.independentCorners) {
     return {
-      tl: node.topLeftRadius,
-      tr: node.topRightRadius,
-      br: node.bottomRightRadius,
-      bl: node.bottomLeftRadius
+      tl: node2.topLeftRadius,
+      tr: node2.topRightRadius,
+      br: node2.bottomRightRadius,
+      bl: node2.bottomLeftRadius
     };
   }
-  const r4 = node.cornerRadius;
+  const r4 = node2.cornerRadius;
   return { tl: r4, tr: r4, br: r4, bl: r4 };
 }
 function formatTrack(t2) {
@@ -149646,18 +149647,18 @@ function gridTemplateTw(tracks) {
   if (allEqual1Fr) return String(tracks.length);
   return `[${tracks.map(formatTrack).join("_")}]`;
 }
-function collectGridClasses(node) {
+function collectGridClasses(node2) {
   const classes = ["grid"];
-  if (node.gridTemplateColumns.length > 0)
-    classes.push(`grid-cols-${gridTemplateTw(node.gridTemplateColumns)}`);
-  if (node.gridTemplateRows.length > 0)
-    classes.push(`grid-rows-${gridTemplateTw(node.gridTemplateRows)}`);
+  if (node2.gridTemplateColumns.length > 0)
+    classes.push(`grid-cols-${gridTemplateTw(node2.gridTemplateColumns)}`);
+  if (node2.gridTemplateRows.length > 0)
+    classes.push(`grid-rows-${gridTemplateTw(node2.gridTemplateRows)}`);
   return classes;
 }
-function collectGridPositionClasses(node) {
-  if (!node.gridPosition) return [];
+function collectGridPositionClasses(node2) {
+  if (!node2.gridPosition) return [];
   const classes = [];
-  const pos = node.gridPosition;
+  const pos = node2.gridPosition;
   if (pos.column > 0) classes.push(`col-start-${pos.column}`);
   if (pos.row > 0) classes.push(`row-start-${pos.row}`);
   if (pos.columnSpan > 1) classes.push(`col-span-${pos.columnSpan}`);
@@ -149674,69 +149675,69 @@ var ALIGN_MAP = {
   MAX: "flex-end",
   STRETCH: "stretch"
 };
-function applyFlexStyle(style, node) {
+function applyFlexStyle(style, node2) {
   style.display = "flex";
-  if (node.layoutMode === "VERTICAL") style.flexDirection = "column";
-  if (node.layoutWrap === "WRAP") style.flexWrap = "wrap";
-  if (node.itemSpacing > 0) style.gap = px(node.itemSpacing);
-  if (node.layoutWrap === "WRAP" && node.counterAxisSpacing > 0)
-    style.rowGap = px(node.counterAxisSpacing);
-  if (JUSTIFY_MAP[node.primaryAxisAlign]) style.justifyContent = JUSTIFY_MAP[node.primaryAxisAlign];
-  if (ALIGN_MAP[node.counterAxisAlign]) style.alignItems = ALIGN_MAP[node.counterAxisAlign];
+  if (node2.layoutMode === "VERTICAL") style.flexDirection = "column";
+  if (node2.layoutWrap === "WRAP") style.flexWrap = "wrap";
+  if (node2.itemSpacing > 0) style.gap = px(node2.itemSpacing);
+  if (node2.layoutWrap === "WRAP" && node2.counterAxisSpacing > 0)
+    style.rowGap = px(node2.counterAxisSpacing);
+  if (JUSTIFY_MAP[node2.primaryAxisAlign]) style.justifyContent = JUSTIFY_MAP[node2.primaryAxisAlign];
+  if (ALIGN_MAP[node2.counterAxisAlign]) style.alignItems = ALIGN_MAP[node2.counterAxisAlign];
 }
-function applyFlexSizing(style, node) {
-  const primaryAxis = node.layoutMode === "HORIZONTAL" ? "width" : "height";
-  const crossAxis = node.layoutMode === "HORIZONTAL" ? "height" : "width";
-  if (node.primaryAxisSizing === "FILL") style[primaryAxis] = "100%";
-  else if (node.primaryAxisSizing !== "HUG") style[primaryAxis] = px(node[primaryAxis]);
-  if (node.counterAxisSizing === "FILL") style[crossAxis] = "100%";
-  else if (node.counterAxisSizing !== "HUG") style[crossAxis] = px(node[crossAxis]);
+function applyFlexSizing(style, node2) {
+  const primaryAxis = node2.layoutMode === "HORIZONTAL" ? "width" : "height";
+  const crossAxis = node2.layoutMode === "HORIZONTAL" ? "height" : "width";
+  if (node2.primaryAxisSizing === "FILL") style[primaryAxis] = "100%";
+  else if (node2.primaryAxisSizing !== "HUG") style[primaryAxis] = px(node2[primaryAxis]);
+  if (node2.counterAxisSizing === "FILL") style[crossAxis] = "100%";
+  else if (node2.counterAxisSizing !== "HUG") style[crossAxis] = px(node2[crossAxis]);
 }
-function applyPadding2(style, node) {
-  const { paddingTop: pt3, paddingRight: pr2, paddingBottom: pb, paddingLeft: pl2 } = node;
+function applyPadding2(style, node2) {
+  const { paddingTop: pt3, paddingRight: pr2, paddingBottom: pb, paddingLeft: pl2 } = node2;
   if (pt3 === 0 && pr2 === 0 && pb === 0 && pl2 === 0) return;
   if (pt3 === pr2 && pr2 === pb && pb === pl2) style.padding = px(pt3);
   else if (pt3 === pb && pl2 === pr2) style.padding = `${px(pt3)} ${px(pl2)}`;
   else style.padding = `${px(pt3)} ${px(pr2)} ${px(pb)} ${px(pl2)}`;
 }
-function applyLayoutStyle(style, node, graph) {
-  const ctx = getNodeContext(node, graph);
+function applyLayoutStyle(style, node2, graph) {
+  const ctx = getNodeContext(node2, graph);
   if (ctx.isGrid) {
     style.display = "grid";
-    if (node.gridColumnGap > 0) style.columnGap = px(node.gridColumnGap);
-    if (node.gridRowGap > 0) style.rowGap = px(node.gridRowGap);
-    if (node.width > 0) style.width = px(node.width);
-    if (node.gridTemplateRows.length > 0 && node.height > 0) style.height = px(node.height);
+    if (node2.gridColumnGap > 0) style.columnGap = px(node2.gridColumnGap);
+    if (node2.gridRowGap > 0) style.rowGap = px(node2.gridRowGap);
+    if (node2.width > 0) style.width = px(node2.width);
+    if (node2.gridTemplateRows.length > 0 && node2.height > 0) style.height = px(node2.height);
   } else if (ctx.isFlex) {
-    applyFlexStyle(style, node);
-    applyFlexSizing(style, node);
+    applyFlexStyle(style, node2);
+    applyFlexSizing(style, node2);
   } else {
-    if (node.width > 0) style.width = px(node.width);
-    if (node.height > 0) style.height = px(node.height);
+    if (node2.width > 0) style.width = px(node2.width);
+    if (node2.height > 0) style.height = px(node2.height);
   }
-  if (ctx.parentIsAutoLayout && node.layoutGrow > 0) style.flexGrow = "1";
-  if (ctx.isAutoLayout) applyPadding2(style, node);
+  if (ctx.parentIsAutoLayout && node2.layoutGrow > 0) style.flexGrow = "1";
+  if (ctx.isAutoLayout) applyPadding2(style, node2);
 }
-function applyAppearanceStyle(style, node) {
-  const bg = solidFillColor(node.fills);
-  if (bg && node.type !== "TEXT") style.backgroundColor = bg;
-  const stroke = solidStroke(node.strokes);
+function applyAppearanceStyle(style, node2) {
+  const bg = solidFillColor(node2.fills);
+  if (bg && node2.type !== "TEXT") style.backgroundColor = bg;
+  const stroke = solidStroke(node2.strokes);
   if (stroke) {
     style.borderWidth = px(stroke.weight);
     style.borderColor = stroke.color;
     style.borderStyle = "solid";
   }
-  if (node.cornerRadius > 0) {
-    if (node.independentCorners) {
-      style.borderRadius = `${px(node.topLeftRadius)} ${px(node.topRightRadius)} ${px(node.bottomRightRadius)} ${px(node.bottomLeftRadius)}`;
+  if (node2.cornerRadius > 0) {
+    if (node2.independentCorners) {
+      style.borderRadius = `${px(node2.topLeftRadius)} ${px(node2.topRightRadius)} ${px(node2.bottomRightRadius)} ${px(node2.bottomLeftRadius)}`;
     } else {
-      style.borderRadius = node.cornerRadius >= 9999 ? "9999px" : px(node.cornerRadius);
+      style.borderRadius = node2.cornerRadius >= 9999 ? "9999px" : px(node2.cornerRadius);
     }
   }
-  if (node.opacity < 1) style.opacity = String(node.opacity);
-  if (node.rotation !== 0) style.transform = `rotate(${node.rotation}deg)`;
-  if (node.clipsContent) style.overflow = "hidden";
-  for (const effect of node.effects) {
+  if (node2.opacity < 1) style.opacity = String(node2.opacity);
+  if (node2.rotation !== 0) style.transform = `rotate(${node2.rotation}deg)`;
+  if (node2.clipsContent) style.overflow = "hidden";
+  for (const effect of node2.effects) {
     if (!effect.visible) continue;
     if (effect.type === "DROP_SHADOW" || effect.type === "INNER_SHADOW") {
       const inset = effect.type === "INNER_SHADOW" ? "inset " : "";
@@ -149750,30 +149751,30 @@ function applyAppearanceStyle(style, node) {
     }
   }
 }
-function applyTextStyle(style, node) {
-  if (node.type !== "TEXT") return;
-  style.fontSize = px(node.fontSize);
-  if (node.fontFamily && node.fontFamily !== DEFAULT_FONT_FAMILY) style.fontFamily = node.fontFamily;
-  if (node.fontWeight !== 400) style.fontWeight = String(node.fontWeight);
-  if (node.textAlignHorizontal !== "LEFT") style.textAlign = node.textAlignHorizontal.toLowerCase();
-  const textColor = solidFillColor(node.fills);
+function applyTextStyle(style, node2) {
+  if (node2.type !== "TEXT") return;
+  style.fontSize = px(node2.fontSize);
+  if (node2.fontFamily && node2.fontFamily !== DEFAULT_FONT_FAMILY) style.fontFamily = node2.fontFamily;
+  if (node2.fontWeight !== 400) style.fontWeight = String(node2.fontWeight);
+  if (node2.textAlignHorizontal !== "LEFT") style.textAlign = node2.textAlignHorizontal.toLowerCase();
+  const textColor = solidFillColor(node2.fills);
   if (textColor) style.color = textColor;
 }
-function nodeToStyle(node, graph) {
+function nodeToStyle(node2, graph) {
   const style = {};
-  applyLayoutStyle(style, node, graph);
-  applyAppearanceStyle(style, node);
-  applyTextStyle(style, node);
+  applyLayoutStyle(style, node2, graph);
+  applyAppearanceStyle(style, node2);
+  applyTextStyle(style, node2);
   return style;
 }
-function collectTailwindClasses(node, graph) {
-  const style = nodeToStyle(node, graph);
-  const ctx = getNodeContext(node, graph);
+function collectTailwindClasses(node2, graph) {
+  const style = nodeToStyle(node2, graph);
+  const ctx = getNodeContext(node2, graph);
   const extraClasses = [];
-  if (ctx.isGrid) extraClasses.push(...collectGridClasses(node));
-  if (ctx.parentIsGrid) extraClasses.push(...collectGridPositionClasses(node));
-  if (node.layoutDirection === "RTL") extraClasses.push("[direction:rtl]");
-  if (node.type === "TEXT" && resolveNodeTextDirection(node) === "RTL")
+  if (ctx.isGrid) extraClasses.push(...collectGridClasses(node2));
+  if (ctx.parentIsGrid) extraClasses.push(...collectGridPositionClasses(node2));
+  if (node2.layoutDirection === "RTL") extraClasses.push("[direction:rtl]");
+  if (node2.type === "TEXT" && resolveNodeTextDirection(node2) === "RTL")
     extraClasses.push("[direction:rtl]");
   const twirlClasses = twirl(style);
   const combined = twirlClasses ? twirlClasses.split(" ") : [];
@@ -149817,51 +149818,51 @@ var NODE_TYPE_TO_TW_TAG = {
   COMPONENT_SET: "div",
   INSTANCE: "div"
 };
-function collectGridSizingProps(node, props) {
+function collectGridSizingProps(node2, props) {
   props.push(["grid", true]);
-  if (node.gridTemplateColumns.length > 0)
-    props.push(["columns", formatTracks(node.gridTemplateColumns)]);
-  if (node.gridTemplateRows.length > 0) props.push(["rows", formatTracks(node.gridTemplateRows)]);
-  if (node.width > 0) props.push(["w", node.width]);
-  if (node.gridTemplateRows.length > 0 && node.height > 0) props.push(["h", node.height]);
-  if (node.gridColumnGap > 0) props.push(["columnGap", node.gridColumnGap]);
-  if (node.gridRowGap > 0) props.push(["rowGap", node.gridRowGap]);
+  if (node2.gridTemplateColumns.length > 0)
+    props.push(["columns", formatTracks(node2.gridTemplateColumns)]);
+  if (node2.gridTemplateRows.length > 0) props.push(["rows", formatTracks(node2.gridTemplateRows)]);
+  if (node2.width > 0) props.push(["w", node2.width]);
+  if (node2.gridTemplateRows.length > 0 && node2.height > 0) props.push(["h", node2.height]);
+  if (node2.gridColumnGap > 0) props.push(["columnGap", node2.gridColumnGap]);
+  if (node2.gridRowGap > 0) props.push(["rowGap", node2.gridRowGap]);
 }
-function collectFlexSizingProps(node, props) {
-  props.push(["flex", node.layoutMode === "HORIZONTAL" ? "row" : "col"]);
-  if (node.layoutDirection === "RTL") props.push(["dir", "rtl"]);
-  const primaryAxis = node.layoutMode === "HORIZONTAL" ? "width" : "height";
-  const crossAxis = node.layoutMode === "HORIZONTAL" ? "height" : "width";
-  if (node.primaryAxisSizing === "FILL") props.push([primaryAxis === "width" ? "w" : "h", "fill"]);
-  else if (node.primaryAxisSizing !== "HUG")
-    props.push([primaryAxis === "width" ? "w" : "h", node[primaryAxis]]);
-  if (node.counterAxisSizing === "FILL") props.push([crossAxis === "width" ? "w" : "h", "fill"]);
-  else if (node.counterAxisSizing !== "HUG")
-    props.push([crossAxis === "width" ? "w" : "h", node[crossAxis]]);
+function collectFlexSizingProps(node2, props) {
+  props.push(["flex", node2.layoutMode === "HORIZONTAL" ? "row" : "col"]);
+  if (node2.layoutDirection === "RTL") props.push(["dir", "rtl"]);
+  const primaryAxis = node2.layoutMode === "HORIZONTAL" ? "width" : "height";
+  const crossAxis = node2.layoutMode === "HORIZONTAL" ? "height" : "width";
+  if (node2.primaryAxisSizing === "FILL") props.push([primaryAxis === "width" ? "w" : "h", "fill"]);
+  else if (node2.primaryAxisSizing !== "HUG")
+    props.push([primaryAxis === "width" ? "w" : "h", node2[primaryAxis]]);
+  if (node2.counterAxisSizing === "FILL") props.push([crossAxis === "width" ? "w" : "h", "fill"]);
+  else if (node2.counterAxisSizing !== "HUG")
+    props.push([crossAxis === "width" ? "w" : "h", node2[crossAxis]]);
 }
-function collectGridPositionProps(node, props) {
-  if (!node.gridPosition) return;
-  const pos = node.gridPosition;
+function collectGridPositionProps(node2, props) {
+  if (!node2.gridPosition) return;
+  const pos = node2.gridPosition;
   if (pos.column > 0) props.push(["colStart", pos.column]);
   if (pos.row > 0) props.push(["rowStart", pos.row]);
   if (pos.columnSpan > 1) props.push(["colSpan", pos.columnSpan]);
   if (pos.rowSpan > 1) props.push(["rowSpan", pos.rowSpan]);
 }
-function collectFlexAlignmentProps(node, props) {
-  if (node.itemSpacing > 0) props.push(["gap", node.itemSpacing]);
-  if (node.layoutWrap === "WRAP") {
+function collectFlexAlignmentProps(node2, props) {
+  if (node2.itemSpacing > 0) props.push(["gap", node2.itemSpacing]);
+  if (node2.layoutWrap === "WRAP") {
     props.push(["wrap", true]);
-    if (node.counterAxisSpacing > 0) props.push(["rowGap", node.counterAxisSpacing]);
+    if (node2.counterAxisSpacing > 0) props.push(["rowGap", node2.counterAxisSpacing]);
   }
-  if (node.primaryAxisAlign === "CENTER") props.push(["justify", "center"]);
-  else if (node.primaryAxisAlign === "MAX") props.push(["justify", "end"]);
-  else if (node.primaryAxisAlign === "SPACE_BETWEEN") props.push(["justify", "between"]);
-  if (node.counterAxisAlign === "CENTER") props.push(["items", "center"]);
-  else if (node.counterAxisAlign === "MAX") props.push(["items", "end"]);
-  else if (node.counterAxisAlign === "STRETCH") props.push(["items", "stretch"]);
+  if (node2.primaryAxisAlign === "CENTER") props.push(["justify", "center"]);
+  else if (node2.primaryAxisAlign === "MAX") props.push(["justify", "end"]);
+  else if (node2.primaryAxisAlign === "SPACE_BETWEEN") props.push(["justify", "between"]);
+  if (node2.counterAxisAlign === "CENTER") props.push(["items", "center"]);
+  else if (node2.counterAxisAlign === "MAX") props.push(["items", "end"]);
+  else if (node2.counterAxisAlign === "STRETCH") props.push(["items", "stretch"]);
 }
-function collectAutoLayoutPaddingProps(node, props) {
-  const pad = collectPadding(node);
+function collectAutoLayoutPaddingProps(node2, props) {
+  const pad = collectPadding(node2);
   if (!pad) return;
   props.push(
     ...emitPadding(
@@ -149882,8 +149883,8 @@ function collectAutoLayoutPaddingProps(node, props) {
     )
   );
 }
-function collectCornerRadiiProps(node, props) {
-  const corners = collectCornerRadii(node);
+function collectCornerRadiiProps(node2, props) {
+  const corners = collectCornerRadii(node2);
   if (!corners) return;
   const { tl: tl2, tr: tr2, br, bl: bl2 } = corners;
   if (tl2 === tr2 && tr2 === br && br === bl2) {
@@ -149895,24 +149896,24 @@ function collectCornerRadiiProps(node, props) {
     if (bl2 > 0) props.push(["roundedBL", bl2]);
   }
 }
-function collectAppearanceProps(node, props) {
-  const bg = solidFillColor(node.fills);
+function collectAppearanceProps(node2, props) {
+  const bg = solidFillColor(node2.fills);
   if (bg) props.push(["bg", bg]);
-  const stroke = solidStroke(node.strokes);
+  const stroke = solidStroke(node2.strokes);
   if (stroke) {
     props.push(["stroke", stroke.color]);
     if (stroke.weight !== 1) props.push(["strokeWidth", stroke.weight]);
     if (stroke.dash) props.push(["strokeDash", stroke.dash]);
   }
-  collectCornerRadiiProps(node, props);
-  if (node.cornerSmoothing > 0) props.push(["cornerSmoothing", node.cornerSmoothing]);
-  if (node.opacity < 1) props.push(["opacity", Math.round(node.opacity * 100) / 100]);
-  if (node.rotation !== 0) props.push(["rotate", Math.round(node.rotation * 100) / 100]);
-  if (node.blendMode !== "PASS_THROUGH" && node.blendMode !== "NORMAL") {
-    props.push(["blendMode", node.blendMode.toLowerCase()]);
+  collectCornerRadiiProps(node2, props);
+  if (node2.cornerSmoothing > 0) props.push(["cornerSmoothing", node2.cornerSmoothing]);
+  if (node2.opacity < 1) props.push(["opacity", Math.round(node2.opacity * 100) / 100]);
+  if (node2.rotation !== 0) props.push(["rotate", Math.round(node2.rotation * 100) / 100]);
+  if (node2.blendMode !== "PASS_THROUGH" && node2.blendMode !== "NORMAL") {
+    props.push(["blendMode", node2.blendMode.toLowerCase()]);
   }
-  if (node.clipsContent) props.push(["overflow", "hidden"]);
-  for (const effect of node.effects) {
+  if (node2.clipsContent) props.push(["overflow", "hidden"]);
+  for (const effect of node2.effects) {
     if (!effect.visible) continue;
     if (effect.type === "DROP_SHADOW" || effect.type === "INNER_SHADOW") {
       const shadow = formatShadow(effect);
@@ -149922,114 +149923,114 @@ function collectAppearanceProps(node, props) {
     }
   }
 }
-function collectPositionProps(node, ctx, props) {
+function collectPositionProps(node2, ctx, props) {
   if (ctx.parentIsAutoLayout || ctx.parentIsGrid) return;
-  if (node.x !== 0) props.push(["x", node.x]);
-  if (node.y !== 0) props.push(["y", node.y]);
+  if (node2.x !== 0) props.push(["x", node2.x]);
+  if (node2.y !== 0) props.push(["y", node2.y]);
 }
-function collectSizingProps(node, ctx, graph, props) {
-  if (ctx.isGrid) collectGridSizingProps(node, props);
-  else if (ctx.isFlex) collectFlexSizingProps(node, props);
-  else if (node.type === "TEXT") collectTextSizingProps(node, graph, props);
+function collectSizingProps(node2, ctx, graph, props) {
+  if (ctx.isGrid) collectGridSizingProps(node2, props);
+  else if (ctx.isFlex) collectFlexSizingProps(node2, props);
+  else if (node2.type === "TEXT") collectTextSizingProps(node2, graph, props);
   else {
-    if (node.width > 0) props.push(["w", node.width]);
-    if (node.height > 0) props.push(["h", node.height]);
+    if (node2.width > 0) props.push(["w", node2.width]);
+    if (node2.height > 0) props.push(["h", node2.height]);
   }
   if (!ctx.parentIsAutoLayout) return;
-  if (node.layoutGrow > 0) props.push(["grow", node.layoutGrow]);
-  if (node.layoutAlignSelf === "STRETCH") {
-    const parent = node.parentId ? graph.getNode(node.parentId) : null;
+  if (node2.layoutGrow > 0) props.push(["grow", node2.layoutGrow]);
+  if (node2.layoutAlignSelf === "STRETCH") {
+    const parent = node2.parentId ? graph.getNode(node2.parentId) : null;
     if (parent && (parent.layoutMode === "HORIZONTAL" || parent.layoutMode === "VERTICAL")) {
       const crossDim = parent.layoutMode === "HORIZONTAL" ? "h" : "w";
       if (!props.some(([k4]) => k4 === crossDim)) props.push([crossDim, "fill"]);
     }
   }
 }
-function collectTextSizingProps(node, graph, props) {
-  const autoResize = node.textAutoResize;
+function collectTextSizingProps(node2, graph, props) {
+  const autoResize = node2.textAutoResize;
   const emitH = autoResize === "NONE" || autoResize === "TRUNCATE";
-  const isFillWidth = node.layoutAlignSelf === "STRETCH" && (() => {
-    const parent = node.parentId ? graph.getNode(node.parentId) : null;
+  const isFillWidth = node2.layoutAlignSelf === "STRETCH" && (() => {
+    const parent = node2.parentId ? graph.getNode(node2.parentId) : null;
     return parent?.layoutMode === "VERTICAL";
   })();
-  const isGrowWidth = node.layoutGrow > 0 && (() => {
-    const parent = node.parentId ? graph.getNode(node.parentId) : null;
+  const isGrowWidth = node2.layoutGrow > 0 && (() => {
+    const parent = node2.parentId ? graph.getNode(node2.parentId) : null;
     return parent?.layoutMode === "HORIZONTAL";
   })();
   const emitW = autoResize !== "WIDTH_AND_HEIGHT" && !isFillWidth && !isGrowWidth;
-  if (emitW && node.width > 0) props.push(["w", node.width]);
-  if (emitH && node.height > 0) props.push(["h", node.height]);
+  if (emitW && node2.width > 0) props.push(["w", node2.width]);
+  if (emitH && node2.height > 0) props.push(["h", node2.height]);
 }
-function collectTextNodeProps(node, props) {
-  const direction = resolveNodeTextDirection(node);
-  if (node.fontSize !== 14) props.push(["size", node.fontSize]);
-  if (node.fontFamily && node.fontFamily !== DEFAULT_FONT_FAMILY)
-    props.push(["font", node.fontFamily]);
-  if (node.fontWeight !== 400) {
-    if (node.fontWeight === 700) props.push(["weight", "bold"]);
-    else if (node.fontWeight === 500) props.push(["weight", "medium"]);
-    else props.push(["weight", node.fontWeight]);
+function collectTextNodeProps(node2, props) {
+  const direction = resolveNodeTextDirection(node2);
+  if (node2.fontSize !== 14) props.push(["size", node2.fontSize]);
+  if (node2.fontFamily && node2.fontFamily !== DEFAULT_FONT_FAMILY)
+    props.push(["font", node2.fontFamily]);
+  if (node2.fontWeight !== 400) {
+    if (node2.fontWeight === 700) props.push(["weight", "bold"]);
+    else if (node2.fontWeight === 500) props.push(["weight", "medium"]);
+    else props.push(["weight", node2.fontWeight]);
   }
   if (direction === "RTL") props.push(["dir", "rtl"]);
-  if (node.textAlignHorizontal !== "LEFT") {
-    props.push(["textAlign", node.textAlignHorizontal.toLowerCase()]);
+  if (node2.textAlignHorizontal !== "LEFT") {
+    props.push(["textAlign", node2.textAlignHorizontal.toLowerCase()]);
   }
-  if (node.lineHeight != null) props.push(["lineHeight", node.lineHeight]);
-  if (node.letterSpacing !== 0) props.push(["letterSpacing", node.letterSpacing]);
-  if (node.textDecoration !== "NONE")
-    props.push(["textDecoration", node.textDecoration.toLowerCase()]);
-  if (node.textCase !== "ORIGINAL") props.push(["textCase", node.textCase.toLowerCase()]);
-  if (node.maxLines != null) props.push(["maxLines", node.maxLines]);
-  if (node.textTruncation === "ENDING" && node.maxLines == null) props.push(["truncate", true]);
-  const textColor = solidFillColor(node.fills);
+  if (node2.lineHeight != null) props.push(["lineHeight", node2.lineHeight]);
+  if (node2.letterSpacing !== 0) props.push(["letterSpacing", node2.letterSpacing]);
+  if (node2.textDecoration !== "NONE")
+    props.push(["textDecoration", node2.textDecoration.toLowerCase()]);
+  if (node2.textCase !== "ORIGINAL") props.push(["textCase", node2.textCase.toLowerCase()]);
+  if (node2.maxLines != null) props.push(["maxLines", node2.maxLines]);
+  if (node2.textTruncation === "ENDING" && node2.maxLines == null) props.push(["truncate", true]);
+  const textColor = solidFillColor(node2.fills);
   if (textColor) {
     const bgIdx = props.findIndex(([k4]) => k4 === "bg");
     if (bgIdx !== -1) props.splice(bgIdx, 1);
     props.push(["color", textColor]);
   }
 }
-function collectShapeNodeProps(node, props) {
-  if (node.type === "STAR") {
-    if (node.pointCount !== 5) props.push(["points", node.pointCount]);
-    if (node.starInnerRadius !== 0.382) props.push(["innerRadius", node.starInnerRadius]);
+function collectShapeNodeProps(node2, props) {
+  if (node2.type === "STAR") {
+    if (node2.pointCount !== 5) props.push(["points", node2.pointCount]);
+    if (node2.starInnerRadius !== 0.382) props.push(["innerRadius", node2.starInnerRadius]);
   }
-  if (node.type === "POLYGON" && node.pointCount !== 3) {
-    props.push(["points", node.pointCount]);
+  if (node2.type === "POLYGON" && node2.pointCount !== 3) {
+    props.push(["points", node2.pointCount]);
   }
 }
-function collectProps(node, graph) {
+function collectProps(node2, graph) {
   const props = [];
-  const ctx = getNodeContext(node, graph);
-  if (node.name && node.name !== node.type) props.push(["name", node.name]);
-  collectPositionProps(node, ctx, props);
-  collectSizingProps(node, ctx, graph, props);
-  if (ctx.parentIsGrid) collectGridPositionProps(node, props);
-  if (ctx.isFlex) collectFlexAlignmentProps(node, props);
-  if (ctx.isAutoLayout) collectAutoLayoutPaddingProps(node, props);
-  collectAppearanceProps(node, props);
-  if (node.type === "TEXT") collectTextNodeProps(node, props);
-  collectShapeNodeProps(node, props);
+  const ctx = getNodeContext(node2, graph);
+  if (node2.name && node2.name !== node2.type) props.push(["name", node2.name]);
+  collectPositionProps(node2, ctx, props);
+  collectSizingProps(node2, ctx, graph, props);
+  if (ctx.parentIsGrid) collectGridPositionProps(node2, props);
+  if (ctx.isFlex) collectFlexAlignmentProps(node2, props);
+  if (ctx.isAutoLayout) collectAutoLayoutPaddingProps(node2, props);
+  collectAppearanceProps(node2, props);
+  if (node2.type === "TEXT") collectTextNodeProps(node2, props);
+  collectShapeNodeProps(node2, props);
   return props;
 }
-function nodeToJSX(node, graph, indent, format) {
+function nodeToJSX(node2, graph, indent, format) {
   const tagMap = format === "tailwind" ? NODE_TYPE_TO_TW_TAG : NODE_TYPE_TO_TAG;
-  const tag = tagMap[node.type];
+  const tag = tagMap[node2.type];
   if (!tag) return "";
   const prefix = "  ".repeat(indent);
   let attrsStr;
   if (format === "tailwind") {
-    const classes = collectTailwindClasses(node, graph);
-    const nameAttr = node.name && node.name !== node.type ? ` data-name="${node.name}"` : "";
+    const classes = collectTailwindClasses(node2, graph);
+    const nameAttr = node2.name && node2.name !== node2.type ? ` data-name="${node2.name}"` : "";
     const classAttr = classes.length > 0 ? ` className="${classes.join(" ")}"` : "";
     attrsStr = `${nameAttr}${classAttr}`.trim();
   } else {
-    const props = collectProps(node, graph);
+    const props = collectProps(node2, graph);
     attrsStr = props.map(([k4, v3]) => formatProp(k4, v3)).join(" ");
   }
   const opening = attrsStr ? `<${tag} ${attrsStr}` : `<${tag}`;
-  const children = graph.getChildren(node.id);
-  if (node.type === "TEXT") {
-    const text = node.text;
+  const children = graph.getChildren(node2.id);
+  if (node2.type === "TEXT") {
+    const text = node2.text;
     if (!text) return `${prefix}${opening} />`;
     const escaped = escapeJSXText(text);
     if (!escaped.includes("\n")) {
@@ -150047,9 +150048,9 @@ function nodeToJSX(node, graph, indent, format) {
   return [`${prefix}${opening}>`, ...childJSX, `${prefix}</${tag}>`].join("\n");
 }
 function sceneNodeToJSX(nodeId, graph, format = "openpencil") {
-  const node = graph.getNode(nodeId);
-  if (!node) return "";
-  return nodeToJSX(node, graph, 0, format);
+  const node2 = graph.getNode(nodeId);
+  if (!node2) return "";
+  return nodeToJSX(node2, graph, 0, format);
 }
 function selectionToJSX(nodeIds, graph, format = "openpencil") {
   return nodeIds.map((id) => sceneNodeToJSX(id, graph, format)).filter(Boolean).join("\n\n");
@@ -150123,18 +150124,18 @@ function getVisibleSiblingCount(ctx, cache, parentId) {
   cache.set(parentId, count);
   return count;
 }
-function resolveSizeOnlyPosition(ctx, visibleSiblingCount, node) {
-  if (!node.parentId || getVisibleSiblingCount(ctx, visibleSiblingCount, node.parentId) !== 1 || !node.componentId)
+function resolveSizeOnlyPosition(ctx, visibleSiblingCount, node2) {
+  if (!node2.parentId || getVisibleSiblingCount(ctx, visibleSiblingCount, node2.parentId) !== 1 || !node2.componentId)
     return null;
-  const source = ctx.graph.getNode(node.componentId);
-  const targetParent = ctx.graph.getNode(node.parentId);
+  const source = ctx.graph.getNode(node2.componentId);
+  const targetParent = ctx.graph.getNode(node2.parentId);
   if (!source || !targetParent) return null;
   const fitsTargetParent = source.x >= 0 && source.y >= 0 && source.x + source.width <= targetParent.width + 0.01 && source.y + source.height <= targetParent.height + 0.01;
   return fitsTargetParent ? { x: source.x, y: source.y } : null;
 }
-function preserveTransformedPositionAfterResize(node, width, height) {
-  if (node.rotation === 0 && !node.flipX && !node.flipY) return null;
-  const matrix = getNodeLocalMatrix(node);
+function preserveTransformedPositionAfterResize(node2, width, height) {
+  if (node2.rotation === 0 && !node2.flipX && !node2.flipY) return null;
+  const matrix = getNodeLocalMatrix(node2);
   const centerX = width / 2;
   const centerY = height / 2;
   return {
@@ -150212,8 +150213,8 @@ function* overrideCandidates(graph, activeNodeIds) {
     return;
   }
   for (const id of activeNodeIds) {
-    const node = graph.getNode(id);
-    if (node) yield node;
+    const node2 = graph.getNode(id);
+    if (node2) yield node2;
   }
 }
 
@@ -150242,35 +150243,35 @@ function cloneSourceIds(cloneSources) {
 function refreshCloneSources(graph, cloneSources, activeNodeIds) {
   if (refreshedCloneSourceMaps.has(cloneSources)) return;
   const knownIds = cloneSourceIds(cloneSources);
-  for (const node of overrideCandidates(graph, activeNodeIds)) {
-    if (!node.componentId) continue;
-    let known = knownIds.get(node.componentId);
+  for (const node2 of overrideCandidates(graph, activeNodeIds)) {
+    if (!node2.componentId) continue;
+    let known = knownIds.get(node2.componentId);
     if (!known) {
       known = /* @__PURE__ */ new Set();
-      knownIds.set(node.componentId, known);
-      cloneSources.set(node.componentId, []);
+      knownIds.set(node2.componentId, known);
+      cloneSources.set(node2.componentId, []);
     }
-    if (known.has(node.id)) continue;
-    known.add(node.id);
-    cloneSources.get(node.componentId)?.push(node.id);
+    if (known.has(node2.id)) continue;
+    known.add(node2.id);
+    cloneSources.get(node2.componentId)?.push(node2.id);
   }
   refreshedCloneSourceMaps.add(cloneSources);
 }
 function indexCloneNodes(graph, nodeIds, cloneSources) {
   const knownIds = cloneSourceIds(cloneSources);
   for (const nodeId of nodeIds) {
-    const node = graph.getNode(nodeId);
-    if (!node?.componentId) continue;
-    let known = knownIds.get(node.componentId);
+    const node2 = graph.getNode(nodeId);
+    if (!node2?.componentId) continue;
+    let known = knownIds.get(node2.componentId);
     if (!known) {
       known = /* @__PURE__ */ new Set();
-      knownIds.set(node.componentId, known);
+      knownIds.set(node2.componentId, known);
     }
-    if (known.has(node.id)) continue;
-    known.add(node.id);
-    const clones = cloneSources.get(node.componentId);
-    if (clones) clones.push(node.id);
-    else cloneSources.set(node.componentId, [node.id]);
+    if (known.has(node2.id)) continue;
+    known.add(node2.id);
+    const clones = cloneSources.get(node2.componentId);
+    if (clones) clones.push(node2.id);
+    else cloneSources.set(node2.componentId, [node2.id]);
   }
 }
 function indexCloneSubtree(graph, rootId, cloneSources) {
@@ -150278,11 +150279,11 @@ function indexCloneSubtree(graph, rootId, cloneSources) {
   const queue = [rootId];
   let index = 0;
   while (index < queue.length) {
-    const node = graph.getNode(queue[index]);
+    const node2 = graph.getNode(queue[index]);
     index++;
-    if (!node) continue;
-    nodeIds.push(node.id);
-    queue.push(...node.childIds);
+    if (!node2) continue;
+    nodeIds.push(node2.id);
+    queue.push(...node2.childIds);
   }
   indexCloneNodes(graph, nodeIds, cloneSources);
 }
@@ -150291,24 +150292,24 @@ function snapshotChildSources(graph, parentId) {
   const parent = graph.getNode(parentId);
   if (!parent) return result;
   const visit = (nodeId, path) => {
-    const node = graph.getNode(nodeId);
-    if (!node) return;
-    result.push({ id: node.id, path, type: node.type });
-    node.childIds.forEach((childId, index) => visit(childId, [...path, index]));
+    const node2 = graph.getNode(nodeId);
+    if (!node2) return;
+    result.push({ id: node2.id, path, type: node2.type });
+    node2.childIds.forEach((childId, index) => visit(childId, [...path, index]));
   };
   parent.childIds.forEach((childId, index) => visit(childId, [index]));
   return result;
 }
 function resolveChildPath(graph, parentId, path) {
-  let node = graph.getNode(parentId);
-  if (!node) return null;
+  let node2 = graph.getNode(parentId);
+  if (!node2) return null;
   for (const index of path) {
-    const childId = node.childIds[index];
+    const childId = node2.childIds[index];
     if (!childId) return null;
-    node = graph.getNode(childId);
-    if (!node) return null;
+    node2 = graph.getNode(childId);
+    if (!node2) return null;
   }
-  return node;
+  return node2;
 }
 function cloneIdsForReplacement(graph, previousId, replacementId, cloneSources) {
   return /* @__PURE__ */ new Set([
@@ -150365,21 +150366,21 @@ function preComputeRoots(ctx) {
     const cached = ctx.preComputedRoot.get(nodeId);
     if (cached !== void 0) return cached;
     if (depth > MAX_CHAIN_DEPTH) return nodeId;
-    const node = ctx.graph.getNode(nodeId);
-    if (node?.componentId && node.componentId !== nodeId) {
-      const root = resolve(node.componentId, depth + 1);
+    const node2 = ctx.graph.getNode(nodeId);
+    if (node2?.componentId && node2.componentId !== nodeId) {
+      const root = resolve(node2.componentId, depth + 1);
       ctx.preComputedRoot.set(nodeId, root);
       return root;
     }
     ctx.preComputedRoot.set(nodeId, nodeId);
     return nodeId;
   }
-  for (const node of overrideCandidates(ctx.graph, ctx.activeNodeIds)) {
-    if (!node.componentId) continue;
-    resolve(node.id);
-    const clones = ctx.preComputedClones.get(node.componentId);
-    if (clones) clones.push(node.id);
-    else ctx.preComputedClones.set(node.componentId, [node.id]);
+  for (const node2 of overrideCandidates(ctx.graph, ctx.activeNodeIds)) {
+    if (!node2.componentId) continue;
+    resolve(node2.id);
+    const clones = ctx.preComputedClones.get(node2.componentId);
+    if (clones) clones.push(node2.id);
+    else ctx.preComputedClones.set(node2.componentId, [node2.id]);
   }
 }
 function getComponentRoot(ctx, nodeId, depth = 0) {
@@ -150389,9 +150390,9 @@ function getComponentRoot(ctx, nodeId, depth = 0) {
     ctx.componentIdRoot.set(nodeId, nodeId);
     return nodeId;
   }
-  const node = ctx.graph.getNode(nodeId);
-  if (node?.componentId) {
-    const root = getComponentRoot(ctx, node.componentId, depth + 1);
+  const node2 = ctx.graph.getNode(nodeId);
+  if (node2?.componentId) {
+    const root = getComponentRoot(ctx, node2.componentId, depth + 1);
     ctx.componentIdRoot.set(nodeId, root);
     return root;
   }
@@ -150467,11 +150468,11 @@ function sourcePathToNode(ctx, sourceRootId, targetId) {
   const cacheKey = `${sourceRootId}\0${targetId}`;
   if (cache.has(cacheKey)) return cache.get(cacheKey) ?? null;
   const visit = (nodeId, path) => {
-    const node = ctx.graph.getNode(nodeId);
-    if (!node) return null;
-    if (nodeId === targetId || node.componentId === targetId) return path;
-    for (let index = 0; index < node.childIds.length; index++) {
-      const result2 = visit(node.childIds[index], [...path, index]);
+    const node2 = ctx.graph.getNode(nodeId);
+    if (!node2) return null;
+    if (nodeId === targetId || node2.componentId === targetId) return path;
+    for (let index = 0; index < node2.childIds.length; index++) {
+      const result2 = visit(node2.childIds[index], [...path, index]);
       if (result2) return result2;
     }
     return null;
@@ -150501,13 +150502,13 @@ function findNodeByNameAndType(ctx, parentId, name, type) {
   let count = 0;
   const visit = (id) => {
     if (count > 1) return;
-    const node = ctx.graph.getNode(id);
-    if (!node) return;
-    if (node.name === name && node.type === type) {
+    const node2 = ctx.graph.getNode(id);
+    if (!node2) return;
+    if (node2.name === name && node2.type === type) {
       count++;
       match = id;
     }
-    for (const childId of node.childIds) visit(childId);
+    for (const childId of node2.childIds) visit(childId);
   };
   visit(parentId);
   return count === 1 ? match : null;
@@ -150526,13 +150527,13 @@ function findNodeBySourceSiblingIndex(ctx, parentId, componentId, sourceId) {
   if (!candidates) {
     candidates = [];
     const collect = (id) => {
-      const node = ctx.graph.getNode(id);
-      if (!node) return;
-      if (node.componentId) {
-        const root = ctx.preComputedRoot.get(node.componentId) ?? getComponentRoot(ctx, node.componentId);
+      const node2 = ctx.graph.getNode(id);
+      if (!node2) return;
+      if (node2.componentId) {
+        const root = ctx.preComputedRoot.get(node2.componentId) ?? getComponentRoot(ctx, node2.componentId);
         if (root === targetRoot) candidates?.push(id);
       }
-      for (const childId of node.childIds) collect(childId);
+      for (const childId of node2.childIds) collect(childId);
     };
     collect(parentId);
     candidates.sort((aId, bId) => {
@@ -150639,10 +150640,10 @@ function resolveOverrideTarget(ctx, instanceId, guids) {
 function collectStyledStrokeDescendants(ctx, nodeId) {
   const result = [];
   const visit = (id) => {
-    const node = ctx.graph.getNode(id);
-    if (!node) return;
-    if (node.strokes.length > 0) result.push(copyStrokes(node.strokes));
-    for (const childId of node.childIds) visit(childId);
+    const node2 = ctx.graph.getNode(id);
+    if (!node2) return;
+    if (node2.strokes.length > 0) result.push(copyStrokes(node2.strokes));
+    for (const childId of node2.childIds) visit(childId);
   };
   visit(nodeId);
   return result;
@@ -150650,9 +150651,9 @@ function collectStyledStrokeDescendants(ctx, nodeId) {
 function applyStrokeDescendants(ctx, nodeId, strokes) {
   let index = 0;
   const visit = (id) => {
-    const node = ctx.graph.getNode(id);
-    if (!node) return;
-    if (node.strokes.length > 0) {
+    const node2 = ctx.graph.getNode(id);
+    if (!node2) return;
+    if (node2.strokes.length > 0) {
       if (index < strokes.length) {
         ctx.graph.preserveSourceMetadataDuring(() => {
           ctx.graph.updateNode(id, { strokes: copyStrokes(strokes[index]) });
@@ -150660,7 +150661,7 @@ function applyStrokeDescendants(ctx, nodeId, strokes) {
       }
       index++;
     }
-    for (const childId of node.childIds) visit(childId);
+    for (const childId of node2.childIds) visit(childId);
   };
   visit(nodeId);
 }
@@ -150669,30 +150670,30 @@ function componentInstanceName(ctx, component) {
   const parent = component.parentId ? ctx.graph.getNode(component.parentId) : void 0;
   return parent?.type === "COMPONENT_SET" ? parent.name : component.name;
 }
-function swappedRootProps(node, component) {
+function swappedRootProps(node2, component) {
   const props = copyInstanceComponentProps(component);
-  props.width = node.width;
-  props.height = node.height;
+  props.width = node2.width;
+  props.height = node2.height;
   props.boundVariables = { ...props.boundVariables };
   for (const field of ["width", "height"]) {
-    const binding = node.boundVariables[field];
+    const binding = node2.boundVariables[field];
     if (binding) props.boundVariables[field] = binding;
   }
   return props;
 }
 function repopulateInstance(ctx, nodeId, compId) {
-  const node = ctx.graph.getNode(nodeId);
-  if (node?.type !== "INSTANCE") return;
+  const node2 = ctx.graph.getNode(nodeId);
+  if (node2?.type !== "INSTANCE") return;
   const previousStrokes = collectStyledStrokeDescendants(ctx, nodeId);
   const previousSources = snapshotChildSources(ctx.graph, nodeId);
-  const rootCompId = node.componentId ? getComponentRoot(ctx, node.componentId) : void 0;
+  const rootCompId = node2.componentId ? getComponentRoot(ctx, node2.componentId) : void 0;
   const rootComp = rootCompId ? ctx.graph.getNode(rootCompId) : void 0;
-  for (const childId of Array.from(node.childIds)) ctx.graph.deleteNode(childId);
+  for (const childId of Array.from(node2.childIds)) ctx.graph.deleteNode(childId);
   const comp = ctx.graph.getNode(compId);
-  const updates = comp ? { ...swappedRootProps(node, comp), componentId: compId } : { componentId: compId };
+  const updates = comp ? { ...swappedRootProps(node2, comp), componentId: compId } : { componentId: compId };
   const previousName = componentInstanceName(ctx, rootComp);
   const nextName = componentInstanceName(ctx, comp);
-  if (nextName && previousName && (node.name === previousName || node.name === rootComp?.name)) {
+  if (nextName && previousName && (node2.name === previousName || node2.name === rootComp?.name)) {
     updates.name = nextName;
   }
   ctx.graph.preserveSourceMetadataDuring(() => ctx.graph.updateNode(nodeId, updates));
@@ -150959,14 +150960,14 @@ function syncChildrenDeep(graph, sourceId, targetId, swappedInstances, skip, pro
 }
 function buildClonesMap(graph, activeNodeIds) {
   const clonesOf = /* @__PURE__ */ new Map();
-  for (const node of overrideCandidates(graph, activeNodeIds)) {
-    if (!node.componentId) continue;
-    let arr = clonesOf.get(node.componentId);
+  for (const node2 of overrideCandidates(graph, activeNodeIds)) {
+    if (!node2.componentId) continue;
+    let arr = clonesOf.get(node2.componentId);
     if (!arr) {
       arr = [];
-      clonesOf.set(node.componentId, arr);
+      clonesOf.set(node2.componentId, arr);
     }
-    arr.push(node.id);
+    arr.push(node2.id);
   }
   return clonesOf;
 }
@@ -151059,29 +151060,29 @@ function propagateOverridesTransitively(graph, seeds, swappedInstances, componen
     for (const cloneId of clones) {
       if (!needsSync.has(cloneId) || visited.has(cloneId)) continue;
       visited.add(cloneId);
-      const node = graph.getNode(cloneId);
-      if (!node) continue;
+      const node2 = graph.getNode(cloneId);
+      if (!node2) continue;
       if (skip.has(cloneId)) {
-        if (source.type === "TEXT" && node.type === "TEXT" && !isFieldProtected(protections, node.id, "text")) {
-          graph.updateNode(node.id, { text: source.text });
+        if (source.type === "TEXT" && node2.type === "TEXT" && !isFieldProtected(protections, node2.id, "text")) {
+          graph.updateNode(node2.id, { text: source.text });
         }
         syncQueue.push(cloneId);
         continue;
       }
-      syncNodeProps(graph, source, node, protections);
-      if (source.childIds.length !== node.childIds.length) {
-        const previousSources = snapshotChildSources(graph, node.id);
-        for (const childId of Array.from(node.childIds)) graph.deleteNode(childId);
+      syncNodeProps(graph, source, node2, protections);
+      if (source.childIds.length !== node2.childIds.length) {
+        const previousSources = snapshotChildSources(graph, node2.id);
+        for (const childId of Array.from(node2.childIds)) graph.deleteNode(childId);
         if (source.childIds.length > 0) {
-          graph.populateInstanceChildren(node.id, sourceId, "fig-import");
-          indexCloneSubtree(graph, node.id, clonesOf);
+          graph.populateInstanceChildren(node2.id, sourceId, "fig-import");
+          indexCloneSubtree(graph, node2.id, clonesOf);
         }
-        remapRepopulatedChildSources(graph, node.id, previousSources, clonesOf, activeNodeIds);
-      } else if (source.childIds.length > 0 && node.childIds.length > 0) {
+        remapRepopulatedChildSources(graph, node2.id, previousSources, clonesOf, activeNodeIds);
+      } else if (source.childIds.length > 0 && node2.childIds.length > 0) {
         syncChildrenDeep(
           graph,
           sourceId,
-          node.id,
+          node2.id,
           swappedInstances,
           skip,
           protections,
@@ -151186,22 +151187,22 @@ function restoreThinCloneCrossPositions(ctx) {
   }
 }
 function applyGeneratedFreeformStretch(ctx) {
-  for (const node of overrideCandidates(ctx.graph, ctx.activeNodeIds)) {
-    if (node.source.format === "fig" || !node.derivedLayout || !node.parentId || node.layoutPositioning === "ABSOLUTE") {
+  for (const node2 of overrideCandidates(ctx.graph, ctx.activeNodeIds)) {
+    if (node2.source.format === "fig" || !node2.derivedLayout || !node2.parentId || node2.layoutPositioning === "ABSOLUTE") {
       continue;
     }
-    const parent = ctx.graph.getNode(node.parentId);
+    const parent = ctx.graph.getNode(node2.parentId);
     if (!parent || parent.source.format === "fig" || parent.layoutMode !== "NONE" || !parent.derivedLayout) {
       continue;
     }
     const updates = {};
-    if (node.horizontalConstraint === "STRETCH" && node.derivedLayout.width !== void 0 && node.derivedLayout.width === parent.derivedLayout.width) {
-      updates.width = node.derivedLayout.width;
+    if (node2.horizontalConstraint === "STRETCH" && node2.derivedLayout.width !== void 0 && node2.derivedLayout.width === parent.derivedLayout.width) {
+      updates.width = node2.derivedLayout.width;
     }
-    if (node.verticalConstraint === "STRETCH" && node.derivedLayout.height !== void 0 && node.derivedLayout.height === parent.derivedLayout.height) {
-      updates.height = node.derivedLayout.height;
+    if (node2.verticalConstraint === "STRETCH" && node2.derivedLayout.height !== void 0 && node2.derivedLayout.height === parent.derivedLayout.height) {
+      updates.height = node2.derivedLayout.height;
     }
-    if (Object.keys(updates).length > 0) ctx.graph.updateNode(node.id, updates);
+    if (Object.keys(updates).length > 0) ctx.graph.updateNode(node2.id, updates);
   }
 }
 function propagateDsdChanges(ctx, modified, sizeSet) {
@@ -151376,14 +151377,14 @@ init_node_change();
 function findPropRefs(ctx, nodeId, propRefsMap) {
   let sourceId = nodeId;
   for (let depth = 0; sourceId && depth < 10; depth++) {
-    const node = ctx.graph.getNode(sourceId);
-    const overrideKey = node?.overrideKey ? ctx.overrideKeyToGuid.get(node.overrideKey) ?? node.overrideKey : void 0;
+    const node2 = ctx.graph.getNode(sourceId);
+    const overrideKey = node2?.overrideKey ? ctx.overrideKeyToGuid.get(node2.overrideKey) ?? node2.overrideKey : void 0;
     const figmaId = ctx.nodeIdToGuid.get(sourceId) ?? overrideKey;
     if (figmaId) {
       const refs = propRefsMap.get(figmaId);
       if (refs) return refs;
     }
-    const nextId = node?.componentId ?? void 0;
+    const nextId = node2?.componentId ?? void 0;
     if (nextId === sourceId) break;
     sourceId = nextId;
   }
@@ -151552,21 +151553,21 @@ var MAX_CLONE_CHAIN_DEPTH = 10;
 function applyConstraintScaling(ctx) {
   const { graph } = ctx;
   const scaled2 = /* @__PURE__ */ new Set();
-  for (const node of overrideCandidates(graph, ctx.activeNodeIds)) {
-    if (node.type !== "INSTANCE" || !node.componentId) continue;
-    const comp = graph.getNode(node.componentId);
+  for (const node2 of overrideCandidates(graph, ctx.activeNodeIds)) {
+    if (node2.type !== "INSTANCE" || !node2.componentId) continue;
+    const comp = graph.getNode(node2.componentId);
     if (!comp || comp.width <= 0 || comp.height <= 0) continue;
-    const scale = resolveInstanceScale(graph, node, comp);
+    const scale = resolveInstanceScale(graph, node2, comp);
     if (!scale) continue;
-    positionPinnedAbsoluteChildren(ctx, node, scale.basis);
-    if (node.layoutMode !== "NONE") continue;
+    positionPinnedAbsoluteChildren(ctx, node2, scale.basis);
+    if (node2.layoutMode !== "NONE") continue;
     const { sx, sy } = scale;
     if (Math.abs(sx - 1) < 1e-3 && Math.abs(sy - 1) < 1e-3) continue;
-    const figmaId = ctx.nodeIdToGuid.get(node.id);
+    const figmaId = ctx.nodeIdToGuid.get(node2.id);
     const strokeScale = figmaId ? ctx.changeMap.get(figmaId)?.strokeWeight : void 0;
     scaleChildren(
       graph,
-      node,
+      node2,
       comp,
       sx,
       sy,
@@ -151703,17 +151704,17 @@ function scaledGeometryUpdates(source, shapeScaleX, shapeScaleY, hasDerivedGeome
   }
   return updates;
 }
-function scaleDescendantAxes(graph, node, cache) {
-  const cached = cache.get(node.id);
+function scaleDescendantAxes(graph, node2, cache) {
+  const cached = cache.get(node2.id);
   if (cached) return cached;
   const result = { horizontal: false, vertical: false };
-  for (const child of graph.getChildren(node.id)) {
+  for (const child of graph.getChildren(node2.id)) {
     const nested = scaleDescendantAxes(graph, child, cache);
     result.horizontal ||= child.horizontalConstraint === "SCALE" || nested.horizontal;
     result.vertical ||= child.verticalConstraint === "SCALE" || nested.vertical;
     if (result.horizontal && result.vertical) break;
   }
-  cache.set(node.id, result);
+  cache.set(node2.id, result);
   return result;
 }
 function childScaleAxes(graph, child, scaleThroughFixedWrappers, cache) {
@@ -151860,19 +151861,19 @@ function collectSubtreeIds(graph, rootIds) {
     index++;
     if (result.has(id)) continue;
     result.add(id);
-    const node = graph.getNode(id);
-    if (node) queue.push(...node.childIds);
+    const node2 = graph.getNode(id);
+    if (node2) queue.push(...node2.childIds);
   }
   return result;
 }
 function populateInstances2(graph, rootIds) {
   const visiting = /* @__PURE__ */ new Set();
   function ensurePopulated(nodeId) {
-    const node = graph.getNode(nodeId);
-    if (node?.type !== "INSTANCE" || !node.componentId || node.childIds.length > 0) return;
+    const node2 = graph.getNode(nodeId);
+    if (node2?.type !== "INSTANCE" || !node2.componentId || node2.childIds.length > 0) return;
     if (visiting.has(nodeId)) return;
     visiting.add(nodeId);
-    const comp = graph.getNode(node.componentId);
+    const comp = graph.getNode(node2.componentId);
     if (!comp) return;
     if (comp.type === "INSTANCE" && comp.componentId && comp.childIds.length === 0) {
       ensurePopulated(comp.id);
@@ -151883,14 +151884,14 @@ function populateInstances2(graph, rootIds) {
         ensurePopulated(childId);
       }
     }
-    if (comp.childIds.length > 0 && node.childIds.length === 0) {
-      graph.populateInstanceChildren(nodeId, node.componentId, "fig-import");
+    if (comp.childIds.length > 0 && node2.childIds.length === 0) {
+      graph.populateInstanceChildren(nodeId, node2.componentId, "fig-import");
     }
   }
   if (!rootIds) {
-    for (const node of graph.nodes.values()) {
-      if (node.type === "INSTANCE" && node.componentId && node.childIds.length === 0) {
-        ensurePopulated(node.id);
+    for (const node2 of graph.nodes.values()) {
+      if (node2.type === "INSTANCE" && node2.componentId && node2.childIds.length === 0) {
+        ensurePopulated(node2.id);
       }
     }
     return void 0;
@@ -151904,9 +151905,9 @@ function populateInstances2(graph, rootIds) {
     if (!nodeId || visited.has(nodeId)) continue;
     visited.add(nodeId);
     ensurePopulated(nodeId);
-    const node = graph.getNode(nodeId);
-    if (!node) continue;
-    queue.push(...node.childIds);
+    const node2 = graph.getNode(nodeId);
+    if (!node2) continue;
+    queue.push(...node2.childIds);
   }
   return collectSubtreeIds(graph, rootIds);
 }
@@ -152168,15 +152169,15 @@ function buildKiwiPropertyNodes(graph, changeMap, guidToNodeId) {
   const result = /* @__PURE__ */ new Set();
   for (const [nodeId, change] of changedNodeEntries(changeMap, guidToNodeId)) {
     const nc = change;
-    const node = graph.getNode(nodeId);
-    if (!node?.componentId) continue;
-    const comp = graph.getNode(node.componentId);
+    const node2 = graph.getNode(nodeId);
+    if (!node2?.componentId) continue;
+    const comp = graph.getNode(node2.componentId);
     if (!comp) continue;
-    const hasDiffRadius = (nc.cornerRadius !== void 0 || nc.rectangleCornerRadiiIndependent !== void 0) && node.cornerRadius !== comp.cornerRadius;
+    const hasDiffRadius = (nc.cornerRadius !== void 0 || nc.rectangleCornerRadiiIndependent !== void 0) && node2.cornerRadius !== comp.cornerRadius;
     const hasDiffVisible = nc.visible === false && comp.visible;
-    const hasDiffFills = nc.fillPaints !== void 0 && !isEqual(node.fills, comp.fills);
-    const hasDiffStrokes = nc.strokePaints !== void 0 && !isEqual(node.strokes, comp.strokes);
-    const hasDiffText = nc.textData !== void 0 && node.type === "TEXT" && comp.type === "TEXT" && node.text !== comp.text;
+    const hasDiffFills = nc.fillPaints !== void 0 && !isEqual(node2.fills, comp.fills);
+    const hasDiffStrokes = nc.strokePaints !== void 0 && !isEqual(node2.strokes, comp.strokes);
+    const hasDiffText = nc.textData !== void 0 && node2.type === "TEXT" && comp.type === "TEXT" && node2.text !== comp.text;
     if (hasDiffRadius || hasDiffVisible || hasDiffFills || hasDiffStrokes || hasDiffText) {
       result.add(nodeId);
     }
@@ -152192,17 +152193,17 @@ function buildKiwiGeometryNodes(changeMap, guidToNodeId) {
 }
 function componentLinkedNodes(graph) {
   const nodes = [];
-  for (const node of graph.getAllNodes()) if (node.componentId) nodes.push(node);
+  for (const node2 of graph.getAllNodes()) if (node2.componentId) nodes.push(node2);
   return nodes;
 }
 function instancePlacementPairs(graph) {
   const pairs = [];
-  for (const node of graph.getAllNodes()) {
-    if (node.type !== "INSTANCE" || !node.componentId) continue;
-    const source = graph.getNode(node.componentId);
-    if (!source || source.childIds.length !== node.childIds.length) continue;
-    for (let index = 0; index < node.childIds.length; index++) {
-      pairs.push({ sourceChildId: source.childIds[index], childId: node.childIds[index] });
+  for (const node2 of graph.getAllNodes()) {
+    if (node2.type !== "INSTANCE" || !node2.componentId) continue;
+    const source = graph.getNode(node2.componentId);
+    if (!source || source.childIds.length !== node2.childIds.length) continue;
+    for (let index = 0; index < node2.childIds.length; index++) {
+      pairs.push({ sourceChildId: source.childIds[index], childId: node2.childIds[index] });
     }
   }
   return pairs;
@@ -152210,13 +152211,13 @@ function instancePlacementPairs(graph) {
 function propagateResolvedFills(graph, protectedNodes, candidates = componentLinkedNodes(graph)) {
   for (let pass = 0; pass < 10; pass++) {
     let changed = false;
-    for (const node of candidates) {
-      if (!node.componentId) continue;
-      const source = graph.getNode(node.componentId);
-      if (!source || isEqual(source.fills, node.fills)) continue;
-      if (protectedNodes.has(node.id) && !protectedNodes.has(source.id)) continue;
-      if (hasInstanceOverride2(graph, node.id, "fills")) continue;
-      graph.updateNode(node.id, { fills: copyFills(source.fills) });
+    for (const node2 of candidates) {
+      if (!node2.componentId) continue;
+      const source = graph.getNode(node2.componentId);
+      if (!source || isEqual(source.fills, node2.fills)) continue;
+      if (protectedNodes.has(node2.id) && !protectedNodes.has(source.id)) continue;
+      if (hasInstanceOverride2(graph, node2.id, "fills")) continue;
+      graph.updateNode(node2.id, { fills: copyFills(source.fills) });
       changed = true;
     }
     if (!changed) return;
@@ -152252,26 +152253,26 @@ function propagateResolvedTextClones(graph, activeNodeIds) {
   const ordered = [];
   const visited = /* @__PURE__ */ new Set();
   const visiting = /* @__PURE__ */ new Set();
-  const visit = (node) => {
-    if (visited.has(node.id) || visiting.has(node.id)) return;
-    visiting.add(node.id);
-    const source = node.componentId ? graph.getNode(node.componentId) : void 0;
+  const visit = (node2) => {
+    if (visited.has(node2.id) || visiting.has(node2.id)) return;
+    visiting.add(node2.id);
+    const source = node2.componentId ? graph.getNode(node2.componentId) : void 0;
     if (source?.type === "TEXT") visit(source);
-    visiting.delete(node.id);
-    visited.add(node.id);
-    if (node.type === "TEXT" && node.componentId) ordered.push(node);
+    visiting.delete(node2.id);
+    visited.add(node2.id);
+    if (node2.type === "TEXT" && node2.componentId) ordered.push(node2);
   };
   for (const nodeId of activeNodeIds ?? graph.nodes.keys()) {
-    const node = graph.getNode(nodeId);
-    if (node?.type === "TEXT" && node.componentId) visit(node);
+    const node2 = graph.getNode(nodeId);
+    if (node2?.type === "TEXT" && node2.componentId) visit(node2);
   }
-  for (const node of ordered) {
-    const source = node.componentId ? graph.getNode(node.componentId) : void 0;
-    if (source?.type !== "TEXT" || source.text !== node.text) continue;
-    if (source.width === node.width && source.height === node.height && isEqual(source.fills, node.fills) && isEqual(source.styleRuns, node.styleRuns) && sameDerivedGlyphSource(source.derivedTextGlyphs, node.derivedTextGlyphs)) {
+  for (const node2 of ordered) {
+    const source = node2.componentId ? graph.getNode(node2.componentId) : void 0;
+    if (source?.type !== "TEXT" || source.text !== node2.text) continue;
+    if (source.width === node2.width && source.height === node2.height && isEqual(source.fills, node2.fills) && isEqual(source.styleRuns, node2.styleRuns) && sameDerivedGlyphSource(source.derivedTextGlyphs, node2.derivedTextGlyphs)) {
       continue;
     }
-    graph.updateNode(node.id, {
+    graph.updateNode(node2.id, {
       width: source.width,
       height: source.height,
       fills: copyFills(source.fills),
@@ -152327,15 +152328,15 @@ function buildOverrideContext(graph, changeMap, guidToNodeId, blobs, activeNodeI
   };
 }
 function applyResolvedNumericBindings(graph, activeNodeIds) {
-  for (const node of overrideCandidates(graph, activeNodeIds)) {
+  for (const node2 of overrideCandidates(graph, activeNodeIds)) {
     const updates = {};
-    for (const [field, variableId] of Object.entries(node.boundVariables)) {
+    for (const [field, variableId] of Object.entries(node2.boundVariables)) {
       if (Array.isArray(variableId)) continue;
-      const value = graph.resolveNumberVariableForNode(node.id, variableId);
+      const value = graph.resolveNumberVariableForNode(node2.id, variableId);
       if (value === void 0) continue;
       Object.assign(updates, resolvedNumericBindingUpdate(field, value));
     }
-    if (Object.keys(updates).length > 0) graph.updateNode(node.id, updates);
+    if (Object.keys(updates).length > 0) graph.updateNode(node2.id, updates);
   }
 }
 function populateAndApplyOverrides(graph, changeMap, guidToNodeId, blobs = [], activeRootIds) {
@@ -152391,11 +152392,11 @@ function populateAndApplyOverrides(graph, changeMap, guidToNodeId, blobs = [], a
   propagateResolvedTextClones(graph, ctx.activeNodeIds);
   applyConstraintScaling(ctx);
   const scaledInstances = /* @__PURE__ */ new Set();
-  for (const node of overrideCandidates(graph, ctx.activeNodeIds)) {
-    if (node.type !== "INSTANCE" || !node.componentId) continue;
-    const component = graph.getNode(node.componentId);
-    if (component && (node.width !== component.width || node.height !== component.height)) {
-      scaledInstances.add(node.id);
+  for (const node2 of overrideCandidates(graph, ctx.activeNodeIds)) {
+    if (node2.type !== "INSTANCE" || !node2.componentId) continue;
+    const component = graph.getNode(node2.componentId);
+    if (component && (node2.width !== component.width || node2.height !== component.height)) {
+      scaledInstances.add(node2.id);
     }
   }
   applyComponentProperties(ctx);
@@ -152738,35 +152739,35 @@ function importVariableBindings(changeMap, guidToNodeId, graph) {
 }
 function remapComponentIds(graph, guidToNodeId) {
   graph.preserveSourceMetadataDuring(() => {
-    for (const node of graph.getAllNodes()) {
-      if (node.type !== "INSTANCE" || !node.componentId) continue;
-      const remapped = guidToNodeId.get(node.componentId);
-      if (remapped) graph.updateNode(node.id, { componentId: remapped });
+    for (const node2 of graph.getAllNodes()) {
+      if (node2.type !== "INSTANCE" || !node2.componentId) continue;
+      const remapped = guidToNodeId.get(node2.componentId);
+      if (remapped) graph.updateNode(node2.id, { componentId: remapped });
     }
   });
 }
 function remapInstanceSwapPropertyValues(graph, guidToNodeId) {
   const defsById = /* @__PURE__ */ new Map();
-  for (const node of graph.getAllNodes()) {
-    for (const def of node.componentPropertyDefinitions) {
+  for (const node2 of graph.getAllNodes()) {
+    for (const def of node2.componentPropertyDefinitions) {
       if (!defsById.has(def.id)) defsById.set(def.id, def);
     }
   }
   graph.preserveSourceMetadataDuring(() => {
-    for (const node of graph.getAllNodes()) {
-      if (node.componentPropertyDefinitions.length > 0) {
-        const defs = node.componentPropertyDefinitions.map((def) => {
+    for (const node2 of graph.getAllNodes()) {
+      if (node2.componentPropertyDefinitions.length > 0) {
+        const defs = node2.componentPropertyDefinitions.map((def) => {
           if (def.type !== "INSTANCE_SWAP") return def;
           const remappedDefault = def.defaultValue ? guidToNodeId.get(def.defaultValue) : void 0;
           if (!remappedDefault) return def;
           return { ...def, defaultValue: remappedDefault };
         });
-        const changed = defs.some((def, i2) => def !== node.componentPropertyDefinitions[i2]);
-        if (changed) graph.updateNode(node.id, { componentPropertyDefinitions: defs });
+        const changed = defs.some((def, i2) => def !== node2.componentPropertyDefinitions[i2]);
+        if (changed) graph.updateNode(node2.id, { componentPropertyDefinitions: defs });
       }
-      if (Object.keys(node.componentPropertyAssignments).length > 0) {
+      if (Object.keys(node2.componentPropertyAssignments).length > 0) {
         let changed = false;
-        const assignments = { ...node.componentPropertyAssignments };
+        const assignments = { ...node2.componentPropertyAssignments };
         for (const [propId, value] of Object.entries(assignments)) {
           if (defsById.get(propId)?.type !== "INSTANCE_SWAP") continue;
           const remapped = guidToNodeId.get(value);
@@ -152775,21 +152776,21 @@ function remapInstanceSwapPropertyValues(graph, guidToNodeId) {
             changed = true;
           }
         }
-        if (changed) graph.updateNode(node.id, { componentPropertyAssignments: assignments });
+        if (changed) graph.updateNode(node2.id, { componentPropertyAssignments: assignments });
       }
     }
   });
 }
 function applyVariantPropSpecs(graph) {
-  for (const node of graph.getAllNodes()) {
-    if (node.type !== "COMPONENT" || node.variantPropSpecs.length === 0 || !node.parentId) continue;
-    const parent = graph.getNode(node.parentId);
+  for (const node2 of graph.getAllNodes()) {
+    if (node2.type !== "COMPONENT" || node2.variantPropSpecs.length === 0 || !node2.parentId) continue;
+    const parent = graph.getNode(node2.parentId);
     if (parent?.type !== "COMPONENT_SET") continue;
     const defs = new Map(parent.componentPropertyDefinitions.map((def) => [def.id, def.name]));
     const values = {};
-    for (const spec of node.variantPropSpecs)
+    for (const spec of node2.variantPropSpecs)
       values[defs.get(spec.propDefId) ?? spec.propDefId] = spec.value;
-    graph.updateNode(node.id, { componentPropertyValues: values });
+    graph.updateNode(node2.id, { componentPropertyValues: values });
   }
 }
 function parseDocumentColorSpace(nodeChanges) {
@@ -152809,9 +152810,9 @@ function rememberLazyFigImportContext(graph, changeMap, guidToNodeId, blobs, pop
 }
 function componentPageIdsForLazyPopulation(graph) {
   const pageIds = /* @__PURE__ */ new Set();
-  for (const node of graph.getAllNodes()) {
-    if (node.type !== "COMPONENT" && node.type !== "COMPONENT_SET") continue;
-    let current = node.parentId ? graph.getNode(node.parentId) : void 0;
+  for (const node2 of graph.getAllNodes()) {
+    if (node2.type !== "COMPONENT" && node2.type !== "COMPONENT_SET") continue;
+    let current = node2.parentId ? graph.getNode(node2.parentId) : void 0;
     while (current?.parentId && current.type !== "CANVAS") {
       current = graph.getNode(current.parentId);
     }
@@ -152850,10 +152851,10 @@ function importNodeChanges(nodeChanges, blobs = [], images, options = {}) {
       props.textAutoResize = "WIDTH_AND_HEIGHT";
     }
     const parentId = canvasIdToPageId.get(graphParentId) ?? graphParentId;
-    const node = graph.createNode(nodeType, parentId, props);
-    guidToNodeId.set(ncId, node.id);
+    const node2 = graph.createNode(nodeType, parentId, props);
+    guidToNodeId.set(ncId, node2.id);
     for (const childId of getChildren2(ncId)) {
-      createSceneNode2(childId, node.id);
+      createSceneNode2(childId, node2.id);
     }
   }
   importPages(graph, changeMap, parentMap, childrenMap, created, canvasIdToPageId, createSceneNode2);
@@ -152891,7 +152892,7 @@ function cloneSceneGraphForFigExport(graph) {
   const cloned = new SceneGraph();
   cloned.rootId = graph.rootId;
   cloned.nodes = new Map(
-    [...graph.nodes].map(([id, node]) => [id, { ...node, childIds: [...node.childIds] }])
+    [...graph.nodes].map(([id, node2]) => [id, { ...node2, childIds: [...node2.childIds] }])
   );
   cloned.images = new Map(graph.images);
   cloned.variables = new Map(graph.variables);
@@ -152915,13 +152916,13 @@ function cloneSceneGraphForFigExport(graph) {
   }
   return cloned;
 }
-function normalizeNodeGuides(node) {
-  return Array.isArray(node.guides) ? node : { ...node, guides: [] };
+function normalizeNodeGuides(node2) {
+  return Array.isArray(node2.guides) ? node2 : { ...node2, guides: [] };
 }
 function deserializeSceneGraph(data) {
   const graph = new SceneGraph();
   graph.rootId = data.rootId;
-  graph.nodes = new Map(data.nodes.map(([id, node]) => [id, normalizeNodeGuides(node)]));
+  graph.nodes = new Map(data.nodes.map(([id, node2]) => [id, normalizeNodeGuides(node2)]));
   graph.images = new Map(data.images);
   graph.variables = new Map(data.variables);
   graph.variableCollections = new Map(data.variableCollections);
@@ -152945,8 +152946,8 @@ function deserializeSceneGraph(data) {
 // packages/core/src/kiwi/fig/population/delta.ts
 function applyFigPopulationDelta(graph, delta) {
   graph.preserveSourceMetadataDuring(() => {
-    for (const [, node] of delta.created) {
-      graph.createNodeWithId(node.id, node.type, node.parentId, node);
+    for (const [, node2] of delta.created) {
+      graph.createNodeWithId(node2.id, node2.type, node2.parentId, node2);
     }
     for (const [id, changes] of delta.updated) graph.updateNode(id, changes);
     for (const id of delta.deleted) graph.deleteNode(id);
@@ -153306,8 +153307,8 @@ function applyEnabledLibrariesPluginData(documentNodeChange, graph) {
 
 // packages/core/src/io/formats/fig/thumbnail-page.ts
 var COVER_PAGE_NAME = "cover";
-function findFigThumbnailPageId(pages) {
-  const normalizedNames = pages.map((page) => ({
+function findFigThumbnailPageId(pages2) {
+  const normalizedNames = pages2.map((page) => ({
     page,
     name: page.name.trim().toLocaleLowerCase()
   }));
@@ -153344,14 +153345,14 @@ async function getFontDigest(family, style) {
 }
 async function buildFontDigestMap(graph) {
   const fontKeys = /* @__PURE__ */ new Set();
-  for (const node of graph.getAllNodes()) {
-    if (node.type !== "TEXT") continue;
-    const baseStyle = weightToStyle(node.fontWeight, node.italic);
-    fontKeys.add(`${node.fontFamily}|${baseStyle}`);
-    for (const run of node.styleRuns) {
-      const family = run.style.fontFamily ?? node.fontFamily;
-      const weight = run.style.fontWeight ?? node.fontWeight;
-      const italic = run.style.italic ?? node.italic;
+  for (const node2 of graph.getAllNodes()) {
+    if (node2.type !== "TEXT") continue;
+    const baseStyle = weightToStyle(node2.fontWeight, node2.italic);
+    fontKeys.add(`${node2.fontFamily}|${baseStyle}`);
+    for (const run of node2.styleRuns) {
+      const family = run.style.fontFamily ?? node2.fontFamily;
+      const weight = run.style.fontWeight ?? node2.fontWeight;
+      const italic = run.style.italic ?? node2.italic;
       fontKeys.add(`${family}|${weightToStyle(weight, italic)}`);
     }
   }
@@ -153368,9 +153369,9 @@ async function buildFontDigestMap(graph) {
 var coreFigExportRuntime = {
   getGlyphOutlineMetrics: getGlyphOutlineMetricsSync
 };
-function sceneNodeToKiwi2(node, parentGuid, childIndex, localIdCounter, graph, blobs, nodeIdToGuid, fontDigestMap, varIdToGuid, glyphBlobMap = /* @__PURE__ */ new Map(), blobIndexByHex, assignedGuidValues, componentPropertyDefinitionsById, modeIdToGuid, propertyIdToGuid) {
+function sceneNodeToKiwi2(node2, parentGuid, childIndex, localIdCounter, graph, blobs, nodeIdToGuid, fontDigestMap, varIdToGuid, glyphBlobMap = /* @__PURE__ */ new Map(), blobIndexByHex, assignedGuidValues, componentPropertyDefinitionsById, modeIdToGuid, propertyIdToGuid) {
   return sceneNodeToKiwi(
-    node,
+    node2,
     parentGuid,
     childIndex,
     localIdCounter,
@@ -153488,11 +153489,11 @@ function collectComponentPropertyGuidState(graph) {
   const ids = /* @__PURE__ */ new Set();
   let maxLocalId0 = 0;
   let maxLocalId1 = 0;
-  for (const node of graph.getAllNodes()) {
-    for (const definition29 of node.componentPropertyDefinitions) ids.add(definition29.id);
-    for (const reference of node.componentPropertyReferences) ids.add(reference.propertyId);
-    for (const propertyId of Object.keys(node.componentPropertyAssignments)) ids.add(propertyId);
-    for (const spec of node.variantPropSpecs) ids.add(spec.propDefId);
+  for (const node2 of graph.getAllNodes()) {
+    for (const definition29 of node2.componentPropertyDefinitions) ids.add(definition29.id);
+    for (const reference of node2.componentPropertyReferences) ids.add(reference.propertyId);
+    for (const propertyId of Object.keys(node2.componentPropertyAssignments)) ids.add(propertyId);
+    for (const spec of node2.variantPropSpecs) ids.add(spec.propDefId);
   }
   for (const propertyId of ids) {
     const match = /^(\d+):(\d+)$/.exec(propertyId);
@@ -153598,11 +153599,11 @@ function applyImportedCanvasFields(page, canvasNc) {
   const strokeWeight2 = page.source.fig.rawNodeFields.strokeWeight;
   if (typeof strokeWeight2 === "number") canvasNc.strokeWeight = strokeWeight2;
 }
-function buildCanvasEntries(graph, pages, docGuid, localIdCounter, nodeIdToGuid, assignedGuidValues) {
+function buildCanvasEntries(graph, pages2, docGuid, localIdCounter, nodeIdToGuid, assignedGuidValues) {
   const canvasEntries = [];
   let internalCanvasGuid = null;
-  for (let p6 = 0; p6 < pages.length; p6++) {
-    const page = pages[p6];
+  for (let p6 = 0; p6 < pages2.length; p6++) {
+    const page = pages2[p6];
     const canvasGuid = (() => {
       if (!page.source.id) return { sessionID: 0, localID: localIdCounter.value++ };
       const importedGuid = stringToGuid(page.source.id);
@@ -153631,7 +153632,7 @@ function buildCanvasEntries(graph, pages, docGuid, localIdCounter, nodeIdToGuid,
     if (page.internalOnly) canvasNc.internalOnly = true;
     canvasEntries.push({ page, canvasGuid, canvasNc });
   }
-  const hasSharedStyles = [...graph.nodes.values()].some((node) => node.sharedStyleType !== null);
+  const hasSharedStyles = [...graph.nodes.values()].some((node2) => node2.sharedStyleType !== null);
   if ((graph.variableCollections.size > 0 || hasSharedStyles) && internalCanvasGuid === null) {
     internalCanvasGuid = { sessionID: 0, localID: localIdCounter.value++ };
     assignedGuidValues.add(`${internalCanvasGuid.sessionID}:${internalCanvasGuid.localID}`);
@@ -153652,7 +153653,7 @@ function buildCanvasEntries(graph, pages, docGuid, localIdCounter, nodeIdToGuid,
 function appendInternalResources(context2) {
   const { graph, internalCanvasGuid, nodeChanges } = context2;
   if (!internalCanvasGuid) return;
-  const sharedStyleNodes = [...graph.nodes.values()].filter((node) => node.sharedStyleType !== null);
+  const sharedStyleNodes = [...graph.nodes.values()].filter((node2) => node2.sharedStyleType !== null);
   for (let index = 0; index < sharedStyleNodes.length; index++) {
     nodeChanges.push(
       ...sceneNodeToKiwi2(
@@ -153709,7 +153710,7 @@ async function exportFigFile(sourceGraph, ck, renderer, pageId, renderHeadlessTh
   applyEnabledLibrariesPluginData(documentNc, graph);
   const nodeChanges = [documentNc];
   const blobs = [];
-  const pages = graph.getPages(true);
+  const pages2 = graph.getPages(true);
   const nodeIdToGuid = /* @__PURE__ */ new Map();
   const assignedGuidValues = /* @__PURE__ */ new Set();
   assignedGuidValues.add(`${docGuid.sessionID}:${docGuid.localID}`);
@@ -153723,10 +153724,10 @@ async function exportFigFile(sourceGraph, ck, renderer, pageId, renderHeadlessTh
   let maxLocalId0 = localIdCounter.value - 1;
   let maxLocalId1 = localIdCounter.value - 1;
   const nodeSourceGuidValues = /* @__PURE__ */ new Set();
-  for (const node of graph.nodes.values()) {
-    if (node.source.id) {
-      nodeSourceGuidValues.add(node.source.id);
-      const g4 = stringToGuid(node.source.id);
+  for (const node2 of graph.nodes.values()) {
+    if (node2.source.id) {
+      nodeSourceGuidValues.add(node2.source.id);
+      const g4 = stringToGuid(node2.source.id);
       if (g4.sessionID === 0 && g4.localID > maxLocalId0) {
         maxLocalId0 = g4.localID;
       }
@@ -153741,7 +153742,7 @@ async function exportFigFile(sourceGraph, ck, renderer, pageId, renderHeadlessTh
   localIdCounter.value = Math.max(localIdCounter.value, maxLocalId0 + 1, maxLocalId1 + 1);
   const { canvasEntries, internalCanvasGuid } = buildCanvasEntries(
     graph,
-    pages,
+    pages2,
     docGuid,
     localIdCounter,
     nodeIdToGuid,
@@ -153817,7 +153818,7 @@ async function exportFigFile(sourceGraph, ck, renderer, pageId, renderHeadlessTh
     msg.blobs = blobs.map((bytes) => ({ bytes }));
   }
   const kiwiData = compiled.encodeMessage(msg);
-  const currentPageId = pageId ?? findFigThumbnailPageId(pages);
+  const currentPageId = pageId ?? findFigThumbnailPageId(pages2);
   const thumbnailPNG = await renderFigThumbnail(
     graph,
     currentPageId,
@@ -154154,9 +154155,9 @@ var pdfFormat = {
 };
 function resolvePPTXExportNodes(request) {
   if (request.target.scope !== "document") return resolveExportNodes(request);
-  const pages = request.graph.getPages();
-  if (!pages.length) return null;
-  return { pageId: pages[0].id, nodeIds: pages.flatMap((page) => page.childIds) };
+  const pages2 = request.graph.getPages();
+  if (!pages2.length) return null;
+  return { pageId: pages2[0].id, nodeIds: pages2.flatMap((page) => page.childIds) };
 }
 var pptxFormat = {
   id: "pptx",
@@ -154312,14 +154313,14 @@ async function resolveRemoteFontSource(family, request, provider) {
   return void 0;
 }
 async function exportWebFontFaceAssets({
-  fonts: fonts2,
+  fonts,
   providers = WEB_FONT_PROVIDER_IDS.slice(),
   assetBasePath = "assets/fonts",
   fetcher = fetch
 }) {
   const assets = [];
   const seen = /* @__PURE__ */ new Set();
-  for (const request of fonts2) {
+  for (const request of fonts) {
     const family = request.family;
     const requestStyle = request.style ?? "normal";
     const key = `${family}|${request.weight}|${requestStyle}`;
@@ -154359,42 +154360,42 @@ var RESET_CSS = "*,*::before,*::after{box-sizing:border-box}html,body{margin:0;p
 function styleToCSS(style) {
   return Object.entries(style).filter(([, value]) => value !== "").map(([property, value]) => `${property}: ${value}`).join("; ");
 }
-function cloneNode(node) {
-  if (node.type === "text") return { ...node };
+function cloneNode(node2) {
+  if (node2.type === "text") return { ...node2 };
   return {
-    ...node,
-    attrs: { ...node.attrs },
-    inlineStyle: node.inlineStyle ? { ...node.inlineStyle } : void 0,
-    children: node.children.map(cloneNode)
+    ...node2,
+    attrs: { ...node2.attrs },
+    inlineStyle: node2.inlineStyle ? { ...node2.inlineStyle } : void 0,
+    children: node2.children.map(cloneNode)
   };
 }
-function standaloneStyleForNode(node, parent, origin) {
-  const style = { ...node.inlineStyle };
-  const source = node.sourceSceneNode;
+function standaloneStyleForNode(node2, parent, origin) {
+  const style = { ...node2.inlineStyle };
+  const source = node2.sourceSceneNode;
   if (!source) return style;
   style.position = "absolute";
   style.left = `${source.x - (parent ? 0 : origin.minX)}px`;
   style.top = `${source.y - (parent ? 0 : origin.minY)}px`;
   return style;
 }
-function standaloneNode(node, origin, parent) {
-  if (node.type === "text") return cloneNode(node);
+function standaloneNode(node2, origin, parent) {
+  if (node2.type === "text") return cloneNode(node2);
   const standalone = {
-    ...node,
-    attrs: { ...node.attrs },
-    inlineStyle: standaloneStyleForNode(node, parent, origin),
+    ...node2,
+    attrs: { ...node2.attrs },
+    inlineStyle: standaloneStyleForNode(node2, parent, origin),
     children: []
   };
-  standalone.children = node.children.map((child) => standaloneNode(child, origin, node));
+  standalone.children = node2.children.map((child) => standaloneNode(child, origin, node2));
   return standalone;
 }
-function nodeBounds(node) {
-  if (node.type === "text" || !node.sourceSceneNode) return void 0;
+function nodeBounds(node2) {
+  if (node2.type === "text" || !node2.sourceSceneNode) return void 0;
   return {
-    minX: node.sourceSceneNode.x,
-    minY: node.sourceSceneNode.y,
-    width: node.sourceSceneNode.width,
-    height: node.sourceSceneNode.height
+    minX: node2.sourceSceneNode.x,
+    minY: node2.sourceSceneNode.y,
+    width: node2.sourceSceneNode.width,
+    height: node2.sourceSceneNode.height
   };
 }
 function standaloneSize(document2) {
@@ -154408,33 +154409,33 @@ function standaloneSize(document2) {
 function standaloneDocument(document2, size) {
   return {
     ...document2,
-    children: document2.children.map((node) => standaloneNode(node, size))
+    children: document2.children.map((node2) => standaloneNode(node2, size))
   };
 }
 function cssClassName(index) {
   return `op-${index.toString(36)}`;
 }
-function extractInlineStyles(node, rules, nextIndex) {
-  if (node.type === "text") return node;
-  const children = node.children.map((child) => extractInlineStyles(child, rules, nextIndex));
-  if (!node.inlineStyle || Object.keys(node.inlineStyle).length === 0) return { ...node, children };
+function extractInlineStyles(node2, rules, nextIndex) {
+  if (node2.type === "text") return node2;
+  const children = node2.children.map((child) => extractInlineStyles(child, rules, nextIndex));
+  if (!node2.inlineStyle || Object.keys(node2.inlineStyle).length === 0) return { ...node2, children };
   const className = cssClassName(nextIndex.value);
   nextIndex.value += 1;
-  rules.push(`.${className}{${styleToCSS(node.inlineStyle)}}`);
+  rules.push(`.${className}{${styleToCSS(node2.inlineStyle)}}`);
   return {
-    ...node,
-    attrs: { ...node.attrs, class: mergeClassNames(node.attrs.class, className) ?? className },
+    ...node2,
+    attrs: { ...node2.attrs, class: mergeClassNames(node2.attrs.class, className) ?? className },
     inlineStyle: void 0,
     children
   };
 }
-function isElement(node) {
-  return "attrs" in node && "tagName" in node;
+function isElement(node2) {
+  return "attrs" in node2 && "tagName" in node2;
 }
-function walkParseTree(node, visit) {
-  if (isElement(node)) visit(node);
-  if ("childNodes" in node) {
-    for (const child of node.childNodes) walkParseTree(child, visit);
+function walkParseTree(node2, visit) {
+  if (isElement(node2)) visit(node2);
+  if ("childNodes" in node2) {
+    for (const child of node2.childNodes) walkParseTree(child, visit);
   }
 }
 function classNamesFromHTML(html) {
@@ -154473,16 +154474,16 @@ function firstFontFamily(value) {
   const raw = commaIndex !== -1 ? value.slice(0, commaIndex) : value;
   return stripFontFamilyQuotes(raw.trim());
 }
-function collectFontRequests(node, fonts2) {
-  if (node.type === "text") return;
-  const source = node.sourceSceneNode;
+function collectFontRequests(node2, fonts) {
+  if (node2.type === "text") return;
+  const source = node2.sourceSceneNode;
   if (source?.type === "TEXT") {
     const family = normalizeFontFamily(firstFontFamily(source.fontFamily));
     const style = source.italic ? "italic" : "normal";
     const key = `${family}|${source.fontWeight}|${style}`;
-    fonts2.set(key, { family, weight: source.fontWeight, style });
+    fonts.set(key, { family, weight: source.fontWeight, style });
   }
-  for (const child of node.children) collectFontRequests(child, fonts2);
+  for (const child of node2.children) collectFontRequests(child, fonts);
 }
 function serializeFontWeight(weight) {
   return Array.isArray(weight) ? weight.join(" ") : String(weight);
@@ -154575,13 +154576,13 @@ async function exportStandaloneHTML(document2, options) {
     const index = { value: 0 };
     const styledDocument = {
       ...doc,
-      children: doc.children.map((node) => extractInlineStyles(node, rules, index))
+      children: doc.children.map((node2) => extractInlineStyles(node2, rules, index))
     };
     body = serializeHTML(styledDocument);
     css += rules.join("");
   }
   if (options.assets === "external") {
-    const [extracted, fonts2] = await Promise.all([
+    const [extracted, fonts] = await Promise.all([
       Promise.resolve(extractImageAssets(body, options.assetBasePath)),
       fontFaceAssets(document2, options)
     ]);
@@ -154592,8 +154593,8 @@ async function exportStandaloneHTML(document2, options) {
       entrypoint: "index.html",
       files: [
         { path: "index.html", content: html2 },
-        { path: cssPath, content: `${fonts2.css}${css}` },
-        ...fonts2.files,
+        { path: cssPath, content: `${fonts.css}${css}` },
+        ...fonts.files,
         ...extracted.files
       ]
     };
@@ -154638,10 +154639,10 @@ function dropShadowToCSS(effect) {
   if (effect?.type !== "DROP_SHADOW" || !effect.visible) return void 0;
   return `${effect.offset.x}px ${effect.offset.y}px ${effect.radius}px ${effect.spread}px ${colorToCSS({ ...effect.color, a: effect.color.a })}`;
 }
-function sceneNodeSizeStyle(node) {
+function sceneNodeSizeStyle(node2) {
   const style = {};
-  if (node.width > 0) style.width = `${node.width}px`;
-  if (node.height > 0) style.height = `${node.height}px`;
+  if (node2.width > 0) style.width = `${node2.width}px`;
+  if (node2.height > 0) style.height = `${node2.height}px`;
   return style;
 }
 
@@ -154651,8 +154652,8 @@ init_color();
 init_constants9();
 var DOM_CSS_PLUGIN_ID = "open-pencil-dom-css";
 var IMAGE_SOURCE_URL_KEY = "image-source-url";
-function nodeChildren(graph, node) {
-  return node.childIds.map((id) => graph.getNode(id)).filter((child) => child !== void 0);
+function nodeChildren(graph, node2) {
+  return node2.childIds.map((id) => graph.getNode(id)).filter((child) => child !== void 0);
 }
 function justifyContentToCSS(value) {
   if (value === "CENTER") return "center";
@@ -154681,35 +154682,35 @@ function textCaseToCSS(value) {
   if (value === "TITLE") return "capitalize";
   return void 0;
 }
-function addPositioning(style, node) {
-  if (node.layoutPositioning !== "ABSOLUTE") return;
+function addPositioning(style, node2) {
+  if (node2.layoutPositioning !== "ABSOLUTE") return;
   style.position = "absolute";
-  style.left = `${node.x}px`;
-  style.top = `${node.y}px`;
+  style.left = `${node2.x}px`;
+  style.top = `${node2.y}px`;
 }
-function addSizeConstraints(style, node) {
-  if (node.minWidth !== null) style["min-width"] = `${node.minWidth}px`;
-  if (node.maxWidth !== null) style["max-width"] = `${node.maxWidth}px`;
-  if (node.minHeight !== null) style["min-height"] = `${node.minHeight}px`;
-  if (node.maxHeight !== null) style["max-height"] = `${node.maxHeight}px`;
+function addSizeConstraints(style, node2) {
+  if (node2.minWidth !== null) style["min-width"] = `${node2.minWidth}px`;
+  if (node2.maxWidth !== null) style["max-width"] = `${node2.maxWidth}px`;
+  if (node2.minHeight !== null) style["min-height"] = `${node2.minHeight}px`;
+  if (node2.maxHeight !== null) style["max-height"] = `${node2.maxHeight}px`;
 }
-function addCornerRadii(style, node) {
-  if (node.independentCorners) {
-    if (node.topLeftRadius > 0) style["border-top-left-radius"] = `${node.topLeftRadius}px`;
-    if (node.topRightRadius > 0) style["border-top-right-radius"] = `${node.topRightRadius}px`;
-    if (node.bottomRightRadius > 0)
-      style["border-bottom-right-radius"] = `${node.bottomRightRadius}px`;
-    if (node.bottomLeftRadius > 0) style["border-bottom-left-radius"] = `${node.bottomLeftRadius}px`;
+function addCornerRadii(style, node2) {
+  if (node2.independentCorners) {
+    if (node2.topLeftRadius > 0) style["border-top-left-radius"] = `${node2.topLeftRadius}px`;
+    if (node2.topRightRadius > 0) style["border-top-right-radius"] = `${node2.topRightRadius}px`;
+    if (node2.bottomRightRadius > 0)
+      style["border-bottom-right-radius"] = `${node2.bottomRightRadius}px`;
+    if (node2.bottomLeftRadius > 0) style["border-bottom-left-radius"] = `${node2.bottomLeftRadius}px`;
     return;
   }
-  if (node.cornerRadius > 0) style["border-radius"] = `${node.cornerRadius}px`;
+  if (node2.cornerRadius > 0) style["border-radius"] = `${node2.cornerRadius}px`;
 }
-function addStroke(style, node) {
-  const stroke = node.strokes[0];
+function addStroke(style, node2) {
+  const stroke = node2.strokes[0];
   const border = strokeToCSS(stroke);
   if (!border) return;
-  const borderStyle = node.dashPattern.length > 0 ? "dashed" : "solid";
-  if (!node.independentStrokeWeights) {
+  const borderStyle = node2.dashPattern.length > 0 ? "dashed" : "solid";
+  if (!node2.independentStrokeWeights) {
     style.border = border;
     if (borderStyle !== "solid") style["border-style"] = borderStyle;
     return;
@@ -154717,13 +154718,13 @@ function addStroke(style, node) {
   const color = strokeColorToCSS(stroke) ?? "currentColor";
   style["border-style"] = borderStyle;
   style["border-color"] = color;
-  style["border-top-width"] = `${node.borderTopWeight}px`;
-  style["border-right-width"] = `${node.borderRightWeight}px`;
-  style["border-bottom-width"] = `${node.borderBottomWeight}px`;
-  style["border-left-width"] = `${node.borderLeftWeight}px`;
+  style["border-top-width"] = `${node2.borderTopWeight}px`;
+  style["border-right-width"] = `${node2.borderRightWeight}px`;
+  style["border-bottom-width"] = `${node2.borderBottomWeight}px`;
+  style["border-left-width"] = `${node2.borderLeftWeight}px`;
 }
-function addPadding(style, node) {
-  const { paddingTop, paddingRight, paddingBottom, paddingLeft } = node;
+function addPadding(style, node2) {
+  const { paddingTop, paddingRight, paddingBottom, paddingLeft } = node2;
   if (paddingTop === 0 && paddingRight === 0 && paddingBottom === 0 && paddingLeft === 0) return;
   if (paddingTop === paddingRight && paddingRight === paddingBottom && paddingBottom === paddingLeft) {
     style.padding = `${paddingTop}px`;
@@ -154739,129 +154740,129 @@ function addPadding(style, node) {
   if (paddingBottom > 0) style["padding-bottom"] = `${paddingBottom}px`;
   if (paddingLeft > 0) style["padding-left"] = `${paddingLeft}px`;
 }
-function addFlexGap(style, node) {
-  if (node.itemSpacing <= 0 && node.counterAxisSpacing <= 0) return;
-  if (node.counterAxisSpacing <= 0) {
-    style.gap = `${node.itemSpacing}px`;
+function addFlexGap(style, node2) {
+  if (node2.itemSpacing <= 0 && node2.counterAxisSpacing <= 0) return;
+  if (node2.counterAxisSpacing <= 0) {
+    style.gap = `${node2.itemSpacing}px`;
     return;
   }
-  if (node.layoutMode === "HORIZONTAL") {
-    if (node.itemSpacing > 0) style["column-gap"] = `${node.itemSpacing}px`;
-    style["row-gap"] = `${node.counterAxisSpacing}px`;
+  if (node2.layoutMode === "HORIZONTAL") {
+    if (node2.itemSpacing > 0) style["column-gap"] = `${node2.itemSpacing}px`;
+    style["row-gap"] = `${node2.counterAxisSpacing}px`;
     return;
   }
-  if (node.itemSpacing > 0) style["row-gap"] = `${node.itemSpacing}px`;
-  style["column-gap"] = `${node.counterAxisSpacing}px`;
+  if (node2.itemSpacing > 0) style["row-gap"] = `${node2.itemSpacing}px`;
+  style["column-gap"] = `${node2.counterAxisSpacing}px`;
 }
-function addImageStyle(style, node) {
-  const fill2 = node.fills.at(0);
+function addImageStyle(style, node2) {
+  const fill2 = node2.fills.at(0);
   if (fill2?.type !== "IMAGE" || !fill2.visible) return;
-  if (node.width > 0 && node.height > 0) style["aspect-ratio"] = `${node.width} / ${node.height}`;
+  if (node2.width > 0 && node2.height > 0) style["aspect-ratio"] = `${node2.width} / ${node2.height}`;
   if (fill2.imageScaleMode === "FIT") style["object-fit"] = "contain";
   if (fill2.imageScaleMode === "FILL") style["object-fit"] = "cover";
 }
-function styleFromSceneNode(node) {
-  const style = sceneNodeSizeStyle(node);
-  addPositioning(style, node);
-  addSizeConstraints(style, node);
-  const fill2 = fillToCSS(node.fills.at(0));
+function styleFromSceneNode(node2) {
+  const style = sceneNodeSizeStyle(node2);
+  addPositioning(style, node2);
+  addSizeConstraints(style, node2);
+  const fill2 = fillToCSS(node2.fills.at(0));
   if (fill2) style["background-color"] = fill2;
-  addImageStyle(style, node);
-  addStroke(style, node);
-  const shadow = dropShadowToCSS(node.effects[0]);
+  addImageStyle(style, node2);
+  addStroke(style, node2);
+  const shadow = dropShadowToCSS(node2.effects[0]);
   if (shadow) style["box-shadow"] = shadow;
-  if (node.opacity < 1) style.opacity = String(node.opacity);
-  addCornerRadii(style, node);
-  if (node.clipsContent) style.overflow = "hidden";
-  const alignSelf = alignSelfToCSS(node.layoutAlignSelf);
+  if (node2.opacity < 1) style.opacity = String(node2.opacity);
+  addCornerRadii(style, node2);
+  if (node2.clipsContent) style.overflow = "hidden";
+  const alignSelf = alignSelfToCSS(node2.layoutAlignSelf);
   if (alignSelf) style["align-self"] = alignSelf;
-  if (node.layoutMode !== "NONE") {
+  if (node2.layoutMode !== "NONE") {
     style.display = "flex";
-    style["flex-direction"] = node.layoutMode === "HORIZONTAL" ? "row" : "column";
-    const justifyContent = justifyContentToCSS(node.primaryAxisAlign);
-    const alignItems = alignItemsToCSS(node.counterAxisAlign);
+    style["flex-direction"] = node2.layoutMode === "HORIZONTAL" ? "row" : "column";
+    const justifyContent = justifyContentToCSS(node2.primaryAxisAlign);
+    const alignItems = alignItemsToCSS(node2.counterAxisAlign);
     if (justifyContent) style["justify-content"] = justifyContent;
     if (alignItems) style["align-items"] = alignItems;
-    if (node.layoutWrap === "WRAP") style["flex-wrap"] = "wrap";
-    addFlexGap(style, node);
-    addPadding(style, node);
+    if (node2.layoutWrap === "WRAP") style["flex-wrap"] = "wrap";
+    addFlexGap(style, node2);
+    addPadding(style, node2);
   }
   return style;
 }
-function styleFromTextNode(node) {
-  const style = sceneNodeSizeStyle(node);
-  addPositioning(style, node);
-  style.color = fillToCSS(node.fills.at(0)) ?? colorToCSS(BLACK2);
-  style["font-family"] = node.fontFamily;
-  style["font-size"] = `${node.fontSize}px`;
-  style["font-weight"] = String(node.fontWeight);
-  if (node.italic) style["font-style"] = "italic";
-  if (node.lineHeight !== null) style["line-height"] = `${node.lineHeight}px`;
-  if (node.letterSpacing !== 0) style["letter-spacing"] = `${node.letterSpacing}px`;
-  if (node.textAlignHorizontal !== "LEFT")
-    style["text-align"] = node.textAlignHorizontal.toLowerCase();
-  if (node.opacity < 1) style.opacity = String(node.opacity);
-  const shadow = dropShadowToCSS(node.effects[0]);
+function styleFromTextNode(node2) {
+  const style = sceneNodeSizeStyle(node2);
+  addPositioning(style, node2);
+  style.color = fillToCSS(node2.fills.at(0)) ?? colorToCSS(BLACK2);
+  style["font-family"] = node2.fontFamily;
+  style["font-size"] = `${node2.fontSize}px`;
+  style["font-weight"] = String(node2.fontWeight);
+  if (node2.italic) style["font-style"] = "italic";
+  if (node2.lineHeight !== null) style["line-height"] = `${node2.lineHeight}px`;
+  if (node2.letterSpacing !== 0) style["letter-spacing"] = `${node2.letterSpacing}px`;
+  if (node2.textAlignHorizontal !== "LEFT")
+    style["text-align"] = node2.textAlignHorizontal.toLowerCase();
+  if (node2.opacity < 1) style.opacity = String(node2.opacity);
+  const shadow = dropShadowToCSS(node2.effects[0]);
   if (shadow) style["text-shadow"] = shadow;
-  if (node.textDecoration !== "NONE") {
-    style["text-decoration-line"] = node.textDecoration === "UNDERLINE" ? "underline" : "line-through";
+  if (node2.textDecoration !== "NONE") {
+    style["text-decoration-line"] = node2.textDecoration === "UNDERLINE" ? "underline" : "line-through";
   }
-  const textTransform = textCaseToCSS(node.textCase);
+  const textTransform = textCaseToCSS(node2.textCase);
   if (textTransform) style["text-transform"] = textTransform;
-  style["white-space"] = node.maxLines === 1 ? "nowrap" : "pre-wrap";
+  style["white-space"] = node2.maxLines === 1 ? "nowrap" : "pre-wrap";
   return style;
 }
-function imageSourceURL(node) {
-  return node.pluginData.find(
+function imageSourceURL(node2) {
+  return node2.pluginData.find(
     (entry) => entry.pluginId === DOM_CSS_PLUGIN_ID && entry.key === IMAGE_SOURCE_URL_KEY
   )?.value;
 }
-function attrsForNode(graph, node, includeSourceIds) {
-  const attrs = includeSourceIds ? { "data-open-pencil-node-id": node.id } : {};
-  const sourceURL = imageSourceURL(node);
+function attrsForNode(graph, node2, includeSourceIds) {
+  const attrs = includeSourceIds ? { "data-open-pencil-node-id": node2.id } : {};
+  const sourceURL = imageSourceURL(node2);
   if (sourceURL) attrs.src = sourceURL;
-  const fill2 = node.fills.at(0);
+  const fill2 = node2.fills.at(0);
   if (fill2?.type !== "IMAGE" || !fill2.imageHash) return attrs;
   const bytes = graph.images.get(fill2.imageHash);
   if (!bytes) return attrs;
   return { ...attrs, src: `data:image/png;base64,${encodeBase64(bytes)}` };
 }
-function tagNameForNode(node) {
-  const fill2 = node.fills.at(0);
-  if ((fill2?.type === "IMAGE" || imageSourceURL(node)) && node.childIds.length === 0) return "img";
+function tagNameForNode(node2) {
+  const fill2 = node2.fills.at(0);
+  if ((fill2?.type === "IMAGE" || imageSourceURL(node2)) && node2.childIds.length === 0) return "img";
   return "div";
 }
-function sceneNodeToDesignNode(graph, node, options) {
-  if (!node.visible || node.internalOnly) return null;
-  if (node.type === "TEXT") {
+function sceneNodeToDesignNode(graph, node2, options) {
+  if (!node2.visible || node2.internalOnly) return null;
+  if (node2.type === "TEXT") {
     return {
       type: "element",
       tagName: "span",
-      attrs: attrsForNode(graph, node, options.includeSourceIds),
-      inlineStyle: styleFromTextNode(node),
-      sourceSceneNodeId: node.id,
-      sourceSceneNode: node,
-      children: [{ type: "text", text: node.text }]
+      attrs: attrsForNode(graph, node2, options.includeSourceIds),
+      inlineStyle: styleFromTextNode(node2),
+      sourceSceneNodeId: node2.id,
+      sourceSceneNode: node2,
+      children: [{ type: "text", text: node2.text }]
     };
   }
-  const children = nodeChildren(graph, node).map((child) => sceneNodeToDesignNode(graph, child, options)).filter((child) => child !== null);
-  if (node.type === "CANVAS") {
+  const children = nodeChildren(graph, node2).map((child) => sceneNodeToDesignNode(graph, child, options)).filter((child) => child !== null);
+  if (node2.type === "CANVAS") {
     return {
       type: "element",
       tagName: "main",
-      attrs: attrsForNode(graph, node, options.includeSourceIds),
-      sourceSceneNodeId: node.id,
-      sourceSceneNode: node,
+      attrs: attrsForNode(graph, node2, options.includeSourceIds),
+      sourceSceneNodeId: node2.id,
+      sourceSceneNode: node2,
       children
     };
   }
   return {
     type: "element",
-    tagName: tagNameForNode(node),
-    attrs: attrsForNode(graph, node, options.includeSourceIds),
-    inlineStyle: styleFromSceneNode(node),
-    sourceSceneNodeId: node.id,
-    sourceSceneNode: node,
+    tagName: tagNameForNode(node2),
+    attrs: attrsForNode(graph, node2, options.includeSourceIds),
+    inlineStyle: styleFromSceneNode(node2),
+    sourceSceneNodeId: node2.id,
+    sourceSceneNode: node2,
     children
   };
 }
@@ -154906,9 +154907,9 @@ function populateAll(graph) {
 function prepare2(graph, command, args) {
   if (command === "pages" || command === "variables") return;
   if (command === "tree") {
-    const pages = graph.getPages();
+    const pages2 = graph.getPages();
     const name = pageName(args);
-    const page = name ? pages.find((item) => item.name === name) : pages[0];
+    const page = name ? pages2.find((item) => item.name === name) : pages2[0];
     if (page) populatePage(graph, page.id);
     return;
   }
@@ -154949,6 +154950,55 @@ function query(path, args) {
     limit: args.limit
   });
 }
+function pages(path) {
+  return rpc(path, "pages");
+}
+function node(path, args) {
+  return rpc(path, "node", { id: args.id });
+}
+function find(path, args = {}) {
+  return rpc(path, "find", {
+    name: args.name,
+    type: args.type,
+    page: args.page,
+    limit: args.limit
+  });
+}
+function variables(path, args = {}) {
+  return rpc(path, "variables", {
+    collection: args.collection,
+    type: args.type
+  });
+}
+function fontStatus(path) {
+  return rpc(path, "font-status");
+}
+function analyze(path, args) {
+  return rpc(path, `analyze_${args.kind}`, {
+    threshold: args.threshold,
+    similar: args.similar,
+    limit: args.limit,
+    minSize: args.minSize,
+    minCount: args.minCount,
+    scope: args.scope,
+    severity: args.severity,
+    categories: args.categories,
+    minRatio: args.minRatio
+  });
+}
+function formats() {
+  return dump(
+    io.listFormats().map((format) => ({
+      id: format.id,
+      label: format.label,
+      role: format.role,
+      category: format.category,
+      extensions: format.extensions,
+      mimeTypes: format.mimeTypes,
+      support: Object.entries(format.support).filter(([, enabled]) => enabled).map(([name]) => name)
+    }))
+  );
+}
 async function lint(path, args = {}) {
   const graph = await load(path);
   populateAll(graph);
@@ -154961,7 +155011,7 @@ async function convert2(path, output) {
   await writeFile(output, result.data);
   return dump({ output, bytes: result.data.byteLength });
 }
-async function fonts(graph, roots, format) {
+async function fontWarning(graph, roots, format) {
   if (!["png", "jpg", "webp", "pdf"].includes(format)) return;
   const status = await prepareGraphFonts(graph, roots);
   if (status.faithful) return;
@@ -154995,10 +155045,10 @@ async function exportDocument(path, args) {
     throw new Error(`Invalid format "${args.format}". Use ${[...FORMATS].join(", ")}.`);
   }
   const graph = await load(path);
-  const pages = graph.getPages();
-  const page = args.page ? pages.find((item) => item.name === args.page) : pages[0];
+  const pages2 = graph.getPages();
+  const page = args.page ? pages2.find((item) => item.name === args.page) : pages2[0];
   if (!page) {
-    const available = pages.map((item) => `"${item.name}"`).join(", ");
+    const available = pages2.map((item) => `"${item.name}"`).join(", ");
     throw new Error(
       args.page ? `Page "${args.page}" not found. Available pages: ${available || "none"}.` : "Document has no pages."
     );
@@ -155007,7 +155057,7 @@ async function exportDocument(path, args) {
   if (whole) populateAll(graph);
   else populatePage(graph, page.id);
   const target = { scope: "page", pageId: page.id };
-  const warning = await fonts(graph, whole ? pages.map((item) => item.id) : [page.id], format);
+  const warning = await fontWarning(graph, whole ? pages2.map((item) => item.id) : [page.id], format);
   await mkdir(dirname(args.output), { recursive: true });
   if (format === "html") {
     return dump({ ...await writeHtml(graph, target, args.output), warning });
@@ -155026,16 +155076,23 @@ async function exportDocument(path, args) {
   return dump({ output: args.output, bytes, warning });
 }
 export {
+  analyze,
   convert2 as convert,
   exportDocument,
+  find,
+  fontStatus,
+  formats,
   info,
   lint,
   load,
+  node,
+  pages,
   populateAll,
   populatePage,
   prepare2 as prepare,
   query,
-  tree
+  tree,
+  variables
 };
 /*! Bundled license information:
 
